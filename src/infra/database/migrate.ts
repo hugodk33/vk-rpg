@@ -1,6 +1,13 @@
+// src/infra/database/migrate.ts
 import { db } from './database'
 
 db.exec(`
+
+PRAGMA foreign_keys = ON;
+
+-- =========================
+-- USERS
+-- =========================
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   type INTEGER,
@@ -9,6 +16,286 @@ CREATE TABLE IF NOT EXISTS users (
   phone TEXT,
   email TEXT
 );
+
+-- =========================
+-- NARRATORS
+-- =========================
+CREATE TABLE IF NOT EXISTS narrators (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  name TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS narrator_images (
+  id TEXT PRIMARY KEY,
+  narrator_id TEXT,
+  url TEXT,
+  FOREIGN KEY (narrator_id) REFERENCES narrators(id)
+);
+
+-- =========================
+-- GAME TABLES
+-- =========================
+CREATE TABLE IF NOT EXISTS game_tables (
+  id TEXT PRIMARY KEY,
+  narrator_id TEXT,
+  intro TEXT,
+  FOREIGN KEY (narrator_id) REFERENCES narrators(id)
+);
+
+CREATE TABLE IF NOT EXISTS game_table_players (
+  id TEXT PRIMARY KEY,
+  table_id TEXT,
+  user_id TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- =========================
+-- CHARACTERS
+-- =========================
+CREATE TABLE IF NOT EXISTS characters (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  table_id TEXT,
+  name TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+);
+
+CREATE TABLE IF NOT EXISTS character_images (
+  id TEXT PRIMARY KEY,
+  character_id TEXT,
+  url TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+-- =========================
+-- CHARACTER SHEET (GURPS)
+-- =========================
+CREATE TABLE IF NOT EXISTS character_sheets (
+  id TEXT PRIMARY KEY,
+  character_id TEXT,
+  name TEXT,
+  bio TEXT,
+  backstory TEXT,
+  points INTEGER,
+  hp INTEGER,
+  st INTEGER,
+  dx INTEGER,
+  iq INTEGER,
+  ht INTEGER,
+  fatigue INTEGER,
+  encumbrance TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+-- =========================
+-- SCENES
+-- =========================
+CREATE TABLE IF NOT EXISTS scenes (
+  id TEXT PRIMARY KEY,
+  table_id TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+);
+
+-- =========================
+-- NARRATIONS
+-- =========================
+CREATE TABLE IF NOT EXISTS narrations (
+  id TEXT PRIMARY KEY,
+  table_id TEXT,
+  scene_id TEXT,
+  narration TEXT,
+  moment INTEGER,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id),
+  FOREIGN KEY (scene_id) REFERENCES scenes(id)
+);
+
+-- =========================
+-- LOCATIONS
+-- =========================
+CREATE TABLE IF NOT EXISTS locations (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  region TEXT,
+  address TEXT,
+  sub_region TEXT,
+  is_indoor INTEGER,
+  other TEXT,
+  country TEXT,
+  area TEXT,
+  dimensions TEXT,
+  description TEXT
+);
+
+-- =========================
+-- ACTIONS
+-- =========================
+CREATE TABLE IF NOT EXISTS actions (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  user_id TEXT,
+  description TEXT,
+  scene_id TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (scene_id) REFERENCES scenes(id)
+);
+
+-- =========================
+-- ITEMS
+-- =========================
+CREATE TABLE IF NOT EXISTS items (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  type INTEGER,
+  category TEXT,
+  weight INTEGER,
+  dimensions TEXT,
+  description TEXT,
+  quality TEXT,
+  condition TEXT,
+  holder_id TEXT,
+  owner_id TEXT,
+  skill_user_id TEXT,
+  skill_level TEXT,
+  FOREIGN KEY (holder_id) REFERENCES users(id),
+  FOREIGN KEY (owner_id) REFERENCES users(id),
+  FOREIGN KEY (skill_user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS item_images (
+  id TEXT PRIMARY KEY,
+  item_id TEXT,
+  url TEXT,
+  FOREIGN KEY (item_id) REFERENCES items(id)
+);
+
+-- =========================
+-- DAMAGES
+-- =========================
+CREATE TABLE IF NOT EXISTS damages (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  description TEXT,
+  type TEXT,
+  value TEXT,
+  range TEXT,
+  character_id TEXT,
+  item_id TEXT,
+  skill_id TEXT,
+  advantage_id TEXT
+);
+
+-- =========================
+-- NPCs
+-- =========================
+CREATE TABLE IF NOT EXISTS npcs (
+  id TEXT PRIMARY KEY,
+  character_id TEXT,
+  table_id TEXT,
+  status TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+);
+
+-- =========================
+-- SKILLS
+-- =========================
+CREATE TABLE IF NOT EXISTS skills (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  predefinition_value TEXT,
+  predefinition_type TEXT
+);
+
+CREATE TABLE IF NOT EXISTS skill_dependencies (
+  id TEXT PRIMARY KEY,
+  skill_id TEXT,
+  depends_on_skill_id TEXT,
+  FOREIGN KEY (skill_id) REFERENCES skills(id),
+  FOREIGN KEY (depends_on_skill_id) REFERENCES skills(id)
+);
+
+-- =========================
+-- CHARACTER SKILLS
+-- =========================
+CREATE TABLE IF NOT EXISTS character_skills (
+  id TEXT PRIMARY KEY,
+  character_id TEXT,
+  skill_id TEXT,
+  cost_points INTEGER,
+  effect TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (skill_id) REFERENCES skills(id)
+);
+
+-- =========================
+-- ADVANTAGES
+-- =========================
+CREATE TABLE IF NOT EXISTS advantages (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  character_id TEXT,
+  cost_points INTEGER,
+  effect TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+-- =========================
+-- DISADVANTAGES / PECULIARITIES
+-- =========================
+CREATE TABLE IF NOT EXISTS peculiarities (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  character_id TEXT,
+  cost_points INTEGER,
+  effect TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+-- =========================
+-- MODIFIERS
+-- =========================
+CREATE TABLE IF NOT EXISTS modifiers (
+  id TEXT PRIMARY KEY,
+  duration TEXT
+);
+
+-- RELAÇÕES (arrays)
+CREATE TABLE IF NOT EXISTS modifier_scenes (
+  id TEXT PRIMARY KEY,
+  modifier_id TEXT,
+  scene_id TEXT
+);
+
+CREATE TABLE IF NOT EXISTS modifier_attributes (
+  id TEXT PRIMARY KEY,
+  modifier_id TEXT,
+  attribute TEXT
+);
+
+CREATE TABLE IF NOT EXISTS modifier_skills (
+  id TEXT PRIMARY KEY,
+  modifier_id TEXT,
+  skill_id TEXT
+);
+
+CREATE TABLE IF NOT EXISTS modifier_advantages (
+  id TEXT PRIMARY KEY,
+  modifier_id TEXT,
+  advantage_id TEXT
+);
+
+CREATE TABLE IF NOT EXISTS modifier_items (
+  id TEXT PRIMARY KEY,
+  modifier_id TEXT,
+  item_id TEXT
+);
+
 `)
 
-console.log('Database migrated!')
+console.log('✅ Full database migrated!')
+
+// npx ts-node src/infra/database/migrate.ts
