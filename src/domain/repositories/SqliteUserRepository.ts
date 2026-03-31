@@ -17,6 +17,14 @@ export class SqliteUserRepository implements IUserRepository {
     )
   }
 
+  async findAll(): Promise<User[]> {
+    const rows = db.prepare(`SELECT * FROM users`).all() as any[]
+
+    return rows.map((row) =>
+      new User(row.id, row.type, row.username, row.password, row.phone, row.email)
+    )
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     const row = db.prepare(`SELECT * FROM users WHERE email = ?`).get(email) as any
 
