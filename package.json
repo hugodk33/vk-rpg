@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn src/server.ts"
+    "dev": "ts-node-dev --respawn src/server.ts",
+    "migration": "ts-node-dev --respawn src/infra/database/migration.ts",
+    "seed": "ts-node-dev --respawn src/infra/database/seed.ts"
   },
   "keywords": [],
   "author": "",

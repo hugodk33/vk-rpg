@@ -11,6 +11,8 @@ npm install
 ```
 
 ## Database Model
+### sqlite
 ```Database migrations
-npx ts-node src/infra/database/migrate.ts
+npm run migration
+npm run seed
 ```

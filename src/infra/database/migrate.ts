@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS narrations (
 -- =========================
 CREATE TABLE IF NOT EXISTS locations (
   id TEXT PRIMARY KEY,
+  table_id TEXT,
   name TEXT,
   region TEXT,
   address TEXT,
@@ -127,7 +128,8 @@ CREATE TABLE IF NOT EXISTS locations (
   country TEXT,
   area TEXT,
   dimensions TEXT,
-  description TEXT
+  description TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
 -- =========================
@@ -172,6 +174,13 @@ CREATE TABLE IF NOT EXISTS item_images (
   FOREIGN KEY (item_id) REFERENCES items(id)
 );
 
+CREATE TABLE IF NOT EXISTS table_images (
+  id TEXT PRIMARY KEY,
+  table_id TEXT,
+  url TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+);
+
 -- =========================
 -- DAMAGES
 -- =========================
@@ -185,7 +194,11 @@ CREATE TABLE IF NOT EXISTS damages (
   character_id TEXT,
   item_id TEXT,
   skill_id TEXT,
-  advantage_id TEXT
+  advantage_id TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (item_id) REFERENCES items(id),
+  FOREIGN KEY (skill_id) REFERENCES skills(id),
+  FOREIGN KEY (advantage_id) REFERENCES advantages(id)
 );
 
 -- =========================
@@ -260,38 +273,58 @@ CREATE TABLE IF NOT EXISTS peculiarities (
 -- =========================
 CREATE TABLE IF NOT EXISTS modifiers (
   id TEXT PRIMARY KEY,
-  duration TEXT
+  table_id TEXT,
+  name TEXT,
+  duration TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
 -- RELAÇÕES (arrays)
 CREATE TABLE IF NOT EXISTS modifier_scenes (
   id TEXT PRIMARY KEY,
   modifier_id TEXT,
-  scene_id TEXT
+  scene_id TEXT,
+  FOREIGN KEY (modifier_id) REFERENCES modifiers(id),
+  FOREIGN KEY (scene_id) REFERENCES scenes(id)
 );
 
 CREATE TABLE IF NOT EXISTS modifier_attributes (
   id TEXT PRIMARY KEY,
   modifier_id TEXT,
-  attribute TEXT
+  attribute TEXT,
+  FOREIGN KEY (modifier_id) REFERENCES modifiers(id)
 );
 
 CREATE TABLE IF NOT EXISTS modifier_skills (
   id TEXT PRIMARY KEY,
   modifier_id TEXT,
-  skill_id TEXT
+  skill_id TEXT,
+  FOREIGN KEY (modifier_id) REFERENCES modifiers(id),
+  FOREIGN KEY (skill_id) REFERENCES skills(id)
 );
 
 CREATE TABLE IF NOT EXISTS modifier_advantages (
   id TEXT PRIMARY KEY,
   modifier_id TEXT,
-  advantage_id TEXT
+  advantage_id TEXT,
+  FOREIGN KEY (modifier_id) REFERENCES modifiers(id),
+  FOREIGN KEY (advantage_id) REFERENCES advantages(id)
 );
 
 CREATE TABLE IF NOT EXISTS modifier_items (
   id TEXT PRIMARY KEY,
   modifier_id TEXT,
-  item_id TEXT
+  item_id TEXT,
+  FOREIGN KEY (item_id) REFERENCES items(id),
+  FOREIGN KEY (modifier_id) REFERENCES modifiers(id)
+);
+
+CREATE TABLE IF NOT EXISTS log (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  action TEXT,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 `)
@@ -299,3 +332,4 @@ CREATE TABLE IF NOT EXISTS modifier_items (
 console.log('✅ Full database migrated!')
 
 // npx ts-node src/infra/database/migrate.ts
+// npx ts-node src/infra/database/seed.ts

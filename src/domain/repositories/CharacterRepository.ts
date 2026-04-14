@@ -1,6 +1,6 @@
 import { db } from '../../infra/database/database'
-import type { IUserRepository } from '../../infra/repositories/IUserRepository'
-import { User } from '../../domain/entities/User'
+import type { IUserRepository } from '../irepositories/IUserRepository'
+import { User } from '../entities/User'
 
 export class SqliteUserRepository implements IUserRepository {
   async create(user: User): Promise<void> {
@@ -14,6 +14,14 @@ export class SqliteUserRepository implements IUserRepository {
       user.password,
       user.phone,
       user.email
+    )
+  }
+
+  async findAll(): Promise<User[]> {
+    const rows = db.prepare(`SELECT * FROM users`).all() as any[]
+
+    return rows.map((row) =>
+      new User(row.id, row.type, row.username, row.password, row.phone, row.email)
     )
   }
 
