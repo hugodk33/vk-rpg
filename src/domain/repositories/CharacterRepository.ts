@@ -1,6 +1,6 @@
 import { db } from '../../infra/database/database'
-import type { IUserRepository } from '../../infra/repositories/IUserRepository'
-import { User } from '../../domain/entities/User'
+import type { IUserRepository } from '../irepositories/IUserRepository'
+import { User } from '../entities/User'
 
 export class SqliteUserRepository implements IUserRepository {
   async create(user: User): Promise<void> {
