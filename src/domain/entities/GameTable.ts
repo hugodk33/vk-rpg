@@ -2,6 +2,7 @@ export class GameTable {
   constructor(
     public id: string,
     public narratorId: string,
+    public title: string,
     public intro: string
   ) {}
 }

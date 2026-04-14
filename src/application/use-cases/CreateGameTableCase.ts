@@ -11,6 +11,7 @@ export class CreateGameTableUseCase {
 
   const gameTable = new GameTable(
     crypto.randomUUID(),
+    data.title,
     data.userId,
     data.name
   )

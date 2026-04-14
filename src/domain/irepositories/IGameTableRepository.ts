@@ -12,6 +12,7 @@ export type GameTableWithNarrator = {
   id: string
   narratorId: string
   intro: string
+  title: string
   narrator: {
     id: string
     userId: string

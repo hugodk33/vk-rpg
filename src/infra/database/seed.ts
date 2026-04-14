@@ -4,10 +4,10 @@ import crypto from 'crypto'
 
 // limpa dados (opcional, mas útil em dev)
 db.exec(`
-DELETE FROM game_table_players;
-DELETE FROM game_tables;
-DELETE FROM narrators;
-DELETE FROM users;
+  DELETE FROM game_table_players;
+  DELETE FROM game_tables;
+  DELETE FROM narrators;
+  DELETE FROM users;
 `)
 
 const adminId = crypto.randomUUID()
@@ -106,6 +106,7 @@ const narratorId = narrators[0]!.id
 
 type SeedGameTable = {
   id: string
+  title: string
   narratorId: string
   intro: string
 }
@@ -114,16 +115,19 @@ const gameTables: [SeedGameTable, SeedGameTable, SeedGameTable] = [
   {
     id: crypto.randomUUID(),
     narratorId,
+    title: 'title of Table 1',
     intro: 'Table 1 - three players'
   },
   {
     id: crypto.randomUUID(),
     narratorId,
+    title: 'title of Table 2',
     intro: 'Table 2 - two players'
   },
   {
     id: crypto.randomUUID(),
     narratorId,
+    title: 'title of Table 3',
     intro: 'Table 3 - admin only'
   }
 ]
