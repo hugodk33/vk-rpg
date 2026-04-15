@@ -28,5 +28,7 @@ Thumbs.db
 # Database files
 database.sqlite
 
-# Misc
+# Jest
 coverage/
+.jest/
+node_modules/.cache/jest/

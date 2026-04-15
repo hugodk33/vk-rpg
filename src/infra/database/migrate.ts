@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS game_tables (
   id TEXT PRIMARY KEY,
   narrator_id TEXT,
   title TEXT,
+  system TEXT,
   intro TEXT,
   FOREIGN KEY (narrator_id) REFERENCES narrators(id)
 );
