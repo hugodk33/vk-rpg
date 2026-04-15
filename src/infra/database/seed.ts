@@ -4,21 +4,32 @@ import crypto from 'crypto'
 
 // limpa dados (opcional, mas útil em dev)
 db.exec(`
+  DELETE FROM log;
+  DELETE FROM modifier_scenes;
   DELETE FROM modifier_items;
   DELETE FROM modifier_advantages;
   DELETE FROM modifier_skills;
   DELETE FROM modifier_attributes;
+  DELETE FROM narrations;
+  DELETE FROM actions;
+  DELETE FROM locations;
+  DELETE FROM scenes;
   DELETE FROM modifiers;
+  DELETE FROM npcs;
   DELETE FROM damages;
   DELETE FROM character_skills;
   DELETE FROM character_advantages;
   DELETE FROM peculiarities;
+  DELETE FROM character_images;
   DELETE FROM character_sheets;
   DELETE FROM characters;
+  DELETE FROM item_images;
   DELETE FROM items;
+  DELETE FROM table_images;
   DELETE FROM skill_dependencies;
   DELETE FROM skills;
   DELETE FROM game_table_players;
+  DELETE FROM narrator_images;
   DELETE FROM game_tables;
   DELETE FROM narrators;
   DELETE FROM users;
@@ -635,6 +646,83 @@ const modifierItems: SeedModifierItem[] = [
   }
 ]
 
+type SeedModifierScene= {
+  id: string
+  table_id: string
+}
+
+const modifierScenes: [SeedModifierScene ,  SeedModifierScene , SeedModifierScene , SeedModifierScene ] = [
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id
+  }
+]
+
+type SeedModifierNarration= {
+  id: string
+  table_id: string
+  scene_id: string
+  narration: string
+  moment: number
+}
+
+const modifierNarrations: [SeedModifierNarration , SeedModifierNarration , SeedModifierNarration , SeedModifierNarration , SeedModifierNarration , SeedModifierNarration ] = [
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    scene_id: modifierScenes[0].id, 
+    narration: 'The party enters the forest.',
+    moment: 0 
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    scene_id: modifierScenes[0].id, 
+    narration: 'The party enters the forest.',
+    moment: 1 
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    scene_id: modifierScenes[1].id, 
+    narration: 'The party enters the forest.',
+    moment: 2 
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    scene_id: modifierScenes[2].id, 
+    narration: 'The party enters the forest.',
+    moment: 2 
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    scene_id: modifierScenes[2].id, 
+    narration: 'The party enters the forest.',
+    moment: 3 
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    scene_id: modifierScenes[3].id, 
+    narration: 'The party enters the forest.',
+    moment: 3 
+  }
+]
+
 // insert users
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -867,6 +955,24 @@ const modifierItemStmt = db.prepare(`
 
 for (const modifierItem of modifierItems) {
   modifierItemStmt.run(modifierItem.id, modifierItem.modifierId, modifierItem.itemId)
+}
+
+const modifierSceneStmt = db.prepare(`
+  INSERT INTO scenes(id, table_id)
+  VALUES (?, ?)
+`)
+
+for (const modifierScene of modifierScenes) {
+  modifierSceneStmt.run(modifierScene.id, modifierScene.table_id)
+}
+
+const modifierNarrationstmt = db.prepare(`
+  INSERT INTO narrations(id, table_id, scene_id, narration, moment)
+  VALUES (?, ?, ?, ?, ?)
+`)
+
+for (const modifierNarration of modifierNarrations) {
+  modifierNarrationstmt.run(modifierNarration.id, modifierNarration.table_id, modifierNarration.scene_id, modifierNarration.narration, modifierNarration.moment)
 }
 
 console.log('🌱 Seed executed successfully!')
