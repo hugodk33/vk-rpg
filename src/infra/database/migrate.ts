@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS narrator_images (
 CREATE TABLE IF NOT EXISTS game_tables (
   id TEXT PRIMARY KEY,
   narrator_id TEXT,
+  title TEXT,
+  system TEXT,
   intro TEXT,
   FOREIGN KEY (narrator_id) REFERENCES narrators(id)
 );
@@ -198,7 +200,7 @@ CREATE TABLE IF NOT EXISTS damages (
   FOREIGN KEY (character_id) REFERENCES characters(id),
   FOREIGN KEY (item_id) REFERENCES items(id),
   FOREIGN KEY (skill_id) REFERENCES skills(id),
-  FOREIGN KEY (advantage_id) REFERENCES advantages(id)
+  FOREIGN KEY (advantage_id) REFERENCES character_advantages(id)
 );
 
 -- =========================
@@ -247,7 +249,7 @@ CREATE TABLE IF NOT EXISTS character_skills (
 -- =========================
 -- ADVANTAGES
 -- =========================
-CREATE TABLE IF NOT EXISTS advantages (
+CREATE TABLE IF NOT EXISTS character_advantages (
   id TEXT PRIMARY KEY,
   name TEXT,
   character_id TEXT,
@@ -308,7 +310,7 @@ CREATE TABLE IF NOT EXISTS modifier_advantages (
   modifier_id TEXT,
   advantage_id TEXT,
   FOREIGN KEY (modifier_id) REFERENCES modifiers(id),
-  FOREIGN KEY (advantage_id) REFERENCES advantages(id)
+  FOREIGN KEY (advantage_id) REFERENCES character_advantages(id)
 );
 
 CREATE TABLE IF NOT EXISTS modifier_items (
