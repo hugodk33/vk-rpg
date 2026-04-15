@@ -95,7 +95,7 @@ export class GameTableRepository implements IGameTableRepository {
       LEFT JOIN character_sheets cs ON cs.character_id = c.id
       LEFT JOIN damages d ON d.character_id = c.id
       LEFT JOIN items i ON i.holder_id = p.user_id
-      LEFT JOIN advantages a ON a.character_id = c.id
+      LEFT JOIN character_advantages a ON a.character_id = c.id
       LEFT JOIN character_skills csk ON csk.character_id = c.id
       LEFT JOIN peculiarities pec ON pec.character_id = c.id
     `).all() as any[]
@@ -306,7 +306,7 @@ export class GameTableRepository implements IGameTableRepository {
       LEFT JOIN character_sheets cs ON cs.character_id = c.id
       LEFT JOIN damages d ON d.character_id = c.id
       LEFT JOIN items i ON i.holder_id = p.user_id
-      LEFT JOIN advantages a ON a.character_id = c.id
+      LEFT JOIN character_advantages a ON a.character_id = c.id
       LEFT JOIN character_skills csk ON csk.character_id = c.id
       LEFT JOIN peculiarities pec ON pec.character_id = c.id
       WHERE g.id = ?

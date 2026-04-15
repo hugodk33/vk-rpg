@@ -11,7 +11,7 @@ db.exec(`
   DELETE FROM modifiers;
   DELETE FROM damages;
   DELETE FROM character_skills;
-  DELETE FROM advantages;
+  DELETE FROM character_advantages;
   DELETE FROM peculiarities;
   DELETE FROM character_sheets;
   DELETE FROM characters;
@@ -752,7 +752,7 @@ for (const item of items) {
 
 // insert advantages
 const advantageStmt = db.prepare(`
-  INSERT INTO advantages (id, name, character_id, cost_points, effect)
+  INSERT INTO character_advantages (id, name, character_id, cost_points, effect)
   VALUES (?, ?, ?, ?, ?)
 `)
 
