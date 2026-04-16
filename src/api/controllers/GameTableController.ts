@@ -2,26 +2,33 @@ import { Request , Response } from 'express'
 import { CreateGameTableUseCase } from '../../application/use-cases/CreateGameTableCase'
 import { FindGameTableUseCase } from '../../application/use-cases/FindGameTableUseCase'
 import { FindAllGameTablesUseCase } from '../../application/use-cases/FindAllGameTablesUseCase'
+import { FindAllTableGameScenesUseCase } from '../../application/use-cases/FindAllTableGameScenesUseCase'
 
 export class GameTableController {
   constructor(
-    private useCase: CreateGameTableUseCase,
+    private createGameTableUseCase: CreateGameTableUseCase,
     private findGameTableUseCase: FindGameTableUseCase,
-    private findAllGameTablesUseCase: FindAllGameTablesUseCase
+    private findAllGameTablesUseCase: FindAllGameTablesUseCase,
+    private findAllTableGameScenesUseCase: FindAllTableGameScenesUseCase
   ) {}
 
   async create(req: Request, res: Response) {
-    const user = await this.useCase.execute(req.body)
+    const user = await this.createGameTableUseCase.execute(req.body)
     return res.json(user)
   }
 
   async findById(req: Request, res: Response) {
-    const gameTables = await this.findGameTableUseCase.execute(req.params.id as string) 
-    return res.json(gameTables)
+    const gameTablesById = await this.findGameTableUseCase.execute(req.params.id as string) 
+    return res.json(gameTablesById)
   }
 
   async findAll(req: Request, res: Response) {
-    const gameTables = await this.findAllGameTablesUseCase.execute() 
-    return res.json(gameTables) 
+    const gameAllTables = await this.findAllGameTablesUseCase.execute() 
+    return res.json(gameAllTables) 
   }
+
+  async findByAllScenes(req: Request, res: Response) {
+    const gameTablesScenes = await this.findAllTableGameScenesUseCase.execute(req.params.id as string) 
+    return res.json(gameTablesScenes)
+  } 
 }
