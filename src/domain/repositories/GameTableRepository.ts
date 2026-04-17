@@ -478,27 +478,52 @@ export class GameTableRepository implements IGameTableRepository {
   async findByAllScenes(tableId: string): Promise<GameTableWithScenes> {
     const rows = db.prepare(`
       SELECT
+        -- SCENE
         s.id AS scene_id,
         s.table_id AS scene_table_id,
+
+        -- NARRATION
         n.id AS narration_id,
         n.scene_id AS narration_scene_id,
         n.table_id AS narration_table_id,
         n.narration AS narration_text,
         n.moment AS narration_moment,
-        a.id AS action_id,
-        a.name AS action_name,
-        a.description AS action_description,
-        a.user_id AS action_user_id,
-        c.id AS character_id,
-        c.name AS character_name
+
+        -- ACTION (nova tabela)
+        na.id AS action_id,
+        na.test AS action_test,
+        na.character_id AS action_character_id,
+
+        -- CHARACTER (via action)
+        ca.id AS action_character_ref_id,
+        ca.name AS action_character_name,
+
+        -- CHARACTER (narration_characters)
+        nc.id AS narration_character_link_id,
+        nc.character_id AS narration_character_id,
+
+        cn.id AS narration_character_ref_id,
+        cn.name AS narration_character_name
+
       FROM scenes s
-      LEFT JOIN narrations n ON n.scene_id = s.id
-      LEFT JOIN actions a ON a.scene_id = s.id
-      LEFT JOIN characters c 
-        ON c.user_id = a.user_id 
-        AND c.table_id = s.table_id
+
+      LEFT JOIN narrations n 
+        ON n.scene_id = s.id
+
+      LEFT JOIN narration_actions na 
+        ON na.narrations_id = n.id
+
+      LEFT JOIN characters ca 
+        ON ca.id = na.character_id
+
+      LEFT JOIN narration_characters nc 
+        ON nc.narrations_id = n.id
+
+      LEFT JOIN characters cn 
+        ON cn.id = nc.character_id
+
       WHERE s.table_id = ?
-      ORDER BY s.id ASC, n.moment ASC, a.id ASC
+      ORDER BY s.id ASC, n.moment ASC, na.id ASC
     `).all(tableId) as any[]
 
     const table = await this.findTableById(tableId)
@@ -602,7 +627,8 @@ export class GameTableRepository implements IGameTableRepository {
       SELECT
         id,
         narrator_id,
-        intro
+        intro,
+        title
       FROM game_tables
       WHERE id = ?
     `).get(tableId) as any
@@ -613,7 +639,7 @@ export class GameTableRepository implements IGameTableRepository {
       id: row.id,
       narratorId: row.narrator_id,
       intro: row.intro,
-      title: 'teste'
+      title: row.title
     }
   }
 

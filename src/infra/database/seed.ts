@@ -11,7 +11,8 @@ db.exec(`
   DELETE FROM modifier_skills;
   DELETE FROM modifier_attributes;
   DELETE FROM narrations;
-  DELETE FROM actions;
+  DELETE FROM narration_actions;
+  DELETE FROM narration_characters;
   DELETE FROM locations;
   DELETE FROM scenes;
   DELETE FROM modifiers;
@@ -723,6 +724,45 @@ const modifierNarrations: [SeedModifierNarration , SeedModifierNarration , SeedM
   }
 ]
 
+type SeedModifierNarrationActions= {
+  id: string,
+  narrations_id: string,
+  value: string,
+  test: string,
+  character_id: string,
+}
+
+const modifierNarrationsActions: [SeedModifierNarrationActions , SeedModifierNarrationActions , SeedModifierNarrationActions , SeedModifierNarrationActions ] = [
+  {
+    id: crypto.randomUUID(),
+    narrations_id: modifierNarrations[0].id,
+    value: '10',
+    test: 'Mira usou a habilidade de ataque e deu certo',
+    character_id: characterMiraId,
+  },
+  {
+    id: crypto.randomUUID(),
+    narrations_id: modifierNarrations[0].id,
+    value: '17',
+    test: 'Garrick usou a habilidade de defesa e deu errado',
+    character_id: characterGarrickId,
+  },
+  {
+    id: crypto.randomUUID(),
+    narrations_id: modifierNarrations[0].id,
+    value: '',
+    test: 'Kasumi não fez nada',
+    character_id: characterKasumiId,
+  },
+  {
+    id: crypto.randomUUID(),
+    narrations_id: modifierNarrations[0].id,
+    value: '11',
+    test: 'Mira usou a habilidade de ataque novamente e deu certo',
+    character_id: characterMiraId,
+  }
+]
+
 // insert users
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -973,6 +1013,15 @@ const modifierNarrationstmt = db.prepare(`
 
 for (const modifierNarration of modifierNarrations) {
   modifierNarrationstmt.run(modifierNarration.id, modifierNarration.table_id, modifierNarration.scene_id, modifierNarration.narration, modifierNarration.moment)
+}
+
+const modifierNarrationsActionstmt = db.prepare(`
+  INSERT INTO narration_actions(id, narrations_id, value, test, character_id)
+  VALUES (?, ?, ?, ?, ?)
+`)
+
+for (const modifierNarrationAction of modifierNarrationsActions) {
+  modifierNarrationsActionstmt.run(modifierNarrationAction.id, modifierNarrationAction.narrations_id, modifierNarrationAction.value, modifierNarrationAction.test, modifierNarrationAction.character_id)
 }
 
 console.log('🌱 Seed executed successfully!')

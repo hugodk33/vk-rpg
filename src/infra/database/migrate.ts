@@ -137,14 +137,22 @@ CREATE TABLE IF NOT EXISTS locations (
 -- =========================
 -- ACTIONS
 -- =========================
-CREATE TABLE IF NOT EXISTS actions (
+CREATE TABLE IF NOT EXISTS narration_actions (
   id TEXT PRIMARY KEY,
-  name TEXT,
-  user_id TEXT,
-  description TEXT,
-  scene_id TEXT,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (scene_id) REFERENCES scenes(id)
+  narrations_id TEXT,
+  value TEXT,
+  test TEXT,
+  character_id TEXT,
+  FOREIGN KEY (narrations_id) REFERENCES narrations(id),
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+CREATE TABLE IF NOT EXISTS narration_characters (
+  id TEXT PRIMARY KEY,
+  character_id TEXT,
+  narrations_id TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (narrations_id) REFERENCES narrations(id)
 );
 
 -- =========================
