@@ -88,6 +88,26 @@ export type GameTablePlayerWithCharacter = {
   character: GameTableCharacter
 }
 
+export type GameTableSceneNarration = {
+  id: string
+  tableId: string
+  sceneId: string
+  narration: string
+  moment: number
+  actions: GameTableSceneAction[]
+}
+
+export type GameTableScenes = {
+  id: string
+  tableId: string
+  narrations: GameTableSceneNarration[]
+}
+
+export type GameTableWithScenes = {
+  table: GameTable | null
+  scenes: GameTableScenes[]
+}
+
 export type GameTableWithNarrator = {
   id: string
   narratorId: string
@@ -105,8 +125,21 @@ export type GameTableWithNarrator = {
   players: GameTablePlayerWithCharacter[]
 }
 
+type GameTableSceneAction = {
+  id: string
+  name: string
+  description: string
+  userId: string
+  character: {
+    id: string
+    name: string
+  } | null
+}
+
 export interface IGameTableRepository {
   create(gameTable: GameTable): Promise<void>
   findById(id: string): Promise<GameTableWithNarrator | null>
   findAll(): Promise<GameTableWithNarrator[]>
+  // findBySceneId(sceneId: string): Promise<GameTableScene >
+  findByAllScenes(tableId: string): Promise<GameTableWithScenes>
 }

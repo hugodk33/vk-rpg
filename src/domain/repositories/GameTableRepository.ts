@@ -2,7 +2,9 @@ import { db } from '../../infra/database/database'
 import type {
   IGameTableRepository,
   GameTableWithNarrator,
-  GameTablePlayerWithCharacter
+  GameTablePlayerWithCharacter,
+  GameTableScenes,
+  GameTableWithScenes
 } from '../irepositories/IGameTableRepository'
 import { GameTable } from '../entities/GameTable'
 
@@ -144,19 +146,19 @@ export class GameTableRepository implements IGameTableRepository {
             name: row.character_name,
             sheet: row.sheet_id
               ? {
-                  id: row.sheet_id,
-                  name: row.sheet_name,
-                  bio: row.sheet_bio,
-                  backstory: row.sheet_backstory,
-                  points: row.sheet_points,
-                  hp: row.sheet_hp,
-                  st: row.sheet_st,
-                  dx: row.sheet_dx,
-                  iq: row.sheet_iq,
-                  ht: row.sheet_ht,
-                  fatigue: row.sheet_fatigue,
-                  encumbrance: row.sheet_encumbrance
-                }
+                id: row.sheet_id,
+                name: row.sheet_name,
+                bio: row.sheet_bio,
+                backstory: row.sheet_backstory,
+                points: row.sheet_points,
+                hp: row.sheet_hp,
+                st: row.sheet_st,
+                dx: row.sheet_dx,
+                iq: row.sheet_iq,
+                ht: row.sheet_ht,
+                fatigue: row.sheet_fatigue,
+                encumbrance: row.sheet_encumbrance
+              }
               : null,
             damages: [],
             items: [],
@@ -348,19 +350,19 @@ export class GameTableRepository implements IGameTableRepository {
             name: row.character_name,
             sheet: row.sheet_id
               ? {
-                  id: row.sheet_id,
-                  name: row.sheet_name,
-                  bio: row.sheet_bio,
-                  backstory: row.sheet_backstory,
-                  points: row.sheet_points,
-                  hp: row.sheet_hp,
-                  st: row.sheet_st,
-                  dx: row.sheet_dx,
-                  iq: row.sheet_iq,
-                  ht: row.sheet_ht,
-                  fatigue: row.sheet_fatigue,
-                  encumbrance: row.sheet_encumbrance
-                }
+                id: row.sheet_id,
+                name: row.sheet_name,
+                bio: row.sheet_bio,
+                backstory: row.sheet_backstory,
+                points: row.sheet_points,
+                hp: row.sheet_hp,
+                st: row.sheet_st,
+                dx: row.sheet_dx,
+                iq: row.sheet_iq,
+                ht: row.sheet_ht,
+                fatigue: row.sheet_fatigue,
+                encumbrance: row.sheet_encumbrance
+              }
               : null,
             damages: [],
             items: [],
@@ -437,4 +439,182 @@ export class GameTableRepository implements IGameTableRepository {
 
     return result
   }
+
+  async findBySceneId(sceneId: string): Promise<GameTableScenes> {
+    const rows = db.prepare(`
+      SELECT
+        s.id AS scene_id,
+        s.table_id AS scene_table_id,
+        n.id AS narration_id,
+        n.scene_id AS narration_scene_id,
+        n.table_id AS narration_table_id,
+        n.narration AS narration_text,
+        n.moment AS narration_moment,
+        a.id AS action_id,
+        a.name AS action_name,
+        a.description AS action_description,
+        a.user_id AS action_user_id,
+        c.id AS character_id,
+        c.name AS character_name
+      FROM scenes s
+      LEFT JOIN narrations n ON n.scene_id = s.id
+      LEFT JOIN actions a ON a.scene_id = s.id
+      LEFT JOIN characters c ON c.user_id = a.user_id AND c.table_id = s.table_id
+      WHERE s.id = ?
+      ORDER BY n.moment ASC, a.id ASC
+    `).all(sceneId) as any[]
+
+    if (!rows.length) {
+      return {
+        id: sceneId,
+        tableId: '',
+        narrations: []
+      }
+    }
+
+    return this.mapSceneRows(rows)[0]!
+  }
+
+  async findByAllScenes(tableId: string): Promise<GameTableWithScenes> {
+    const rows = db.prepare(`
+      SELECT
+        s.id AS scene_id,
+        s.table_id AS scene_table_id,
+        n.id AS narration_id,
+        n.scene_id AS narration_scene_id,
+        n.table_id AS narration_table_id,
+        n.narration AS narration_text,
+        n.moment AS narration_moment,
+        a.id AS action_id,
+        a.name AS action_name,
+        a.description AS action_description,
+        a.user_id AS action_user_id,
+        c.id AS character_id,
+        c.name AS character_name
+      FROM scenes s
+      LEFT JOIN narrations n ON n.scene_id = s.id
+      LEFT JOIN actions a ON a.scene_id = s.id
+      LEFT JOIN characters c 
+        ON c.user_id = a.user_id 
+        AND c.table_id = s.table_id
+      WHERE s.table_id = ?
+      ORDER BY s.id ASC, n.moment ASC, a.id ASC
+    `).all(tableId) as any[]
+
+    const table = await this.findTableById(tableId)
+
+    if (!rows.length) {
+      return {
+        table,
+        scenes: []
+      }
+    }
+
+    return {
+      table,
+      scenes: this.mapSceneRows(rows)
+    }
+  }
+
+  private mapSceneRows(rows: any[]): GameTableScenes[] {
+    const scenesMap = new Map<
+      string,
+      {
+        id: string
+        tableId: string
+        narrations: Map<
+          string,
+          {
+            id: string
+            tableId: string
+            sceneId: string
+            narration: string
+            moment: number
+            actions: Array<{
+              id: string
+              name: string
+              description: string
+              userId: string
+              character: { id: string; name: string } | null
+            }>
+          }
+        >
+      }
+    >()
+
+    for (const row of rows) {
+      if (!scenesMap.has(row.scene_id)) {
+        scenesMap.set(row.scene_id, {
+          id: row.scene_id,
+          tableId: row.scene_table_id,
+          narrations: new Map()
+        })
+      }
+
+      const scene = scenesMap.get(row.scene_id)!
+
+      if (!row.narration_id) {
+        continue
+      }
+
+      if (!scene.narrations.has(row.narration_id)) {
+        scene.narrations.set(row.narration_id, {
+          id: row.narration_id,
+          tableId: row.narration_table_id,
+          sceneId: row.narration_scene_id,
+          narration: row.narration_text,
+          moment: row.narration_moment,
+          actions: []
+        })
+      }
+
+      const narration = scene.narrations.get(row.narration_id)!
+
+      if (
+        row.action_id &&
+        !narration.actions.some((action) => action.id === row.action_id)
+      ) {
+        narration.actions.push({
+          id: row.action_id,
+          name: row.action_name,
+          description: row.action_description,
+          userId: row.action_user_id,
+          character: row.character_id
+            ? {
+              id: row.character_id,
+              name: row.character_name
+            }
+            : null
+        })
+      }
+    }
+
+    return  Array.from(scenesMap.values()).map((scene) => ({
+        id: scene.id,
+        tableId: scene.tableId,
+        narrations: Array.from(scene.narrations.values())
+    }))
+  
+  }
+
+  async findTableById(tableId: string): Promise<GameTable | null> {
+    const row = db.prepare(`
+      SELECT
+        id,
+        narrator_id,
+        intro
+      FROM game_tables
+      WHERE id = ?
+    `).get(tableId) as any
+
+    if (!row) return null
+
+    return {
+      id: row.id,
+      narratorId: row.narrator_id,
+      intro: row.intro,
+      title: 'teste'
+    }
+  }
+
 }
