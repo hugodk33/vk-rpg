@@ -97,10 +97,15 @@ export type GameTableSceneNarration = {
   actions: GameTableSceneAction[]
 }
 
-export type GameTableScene = {
+export type GameTableScenes = {
   id: string
   tableId: string
   narrations: GameTableSceneNarration[]
+}
+
+export type GameTableWithScenes = {
+  table: GameTable | null
+  scenes: GameTableScenes[]
 }
 
 export type GameTableWithNarrator = {
@@ -136,5 +141,5 @@ export interface IGameTableRepository {
   findById(id: string): Promise<GameTableWithNarrator | null>
   findAll(): Promise<GameTableWithNarrator[]>
   // findBySceneId(sceneId: string): Promise<GameTableScene >
-  findByAllScenes(tableId: string): Promise<GameTableScene[]>
+  findByAllScenes(tableId: string): Promise<GameTableWithScenes>
 }

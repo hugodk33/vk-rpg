@@ -3,7 +3,8 @@ import type {
   IGameTableRepository,
   GameTableWithNarrator,
   GameTablePlayerWithCharacter,
-  GameTableScene
+  GameTableScenes,
+  GameTableWithScenes
 } from '../irepositories/IGameTableRepository'
 import { GameTable } from '../entities/GameTable'
 
@@ -439,7 +440,7 @@ export class GameTableRepository implements IGameTableRepository {
     return result
   }
 
-  async findBySceneId(sceneId: string): Promise<GameTableScene> {
+  async findBySceneId(sceneId: string): Promise<GameTableScenes> {
     const rows = db.prepare(`
       SELECT
         s.id AS scene_id,
@@ -474,7 +475,7 @@ export class GameTableRepository implements IGameTableRepository {
     return this.mapSceneRows(rows)[0]!
   }
 
-  async findByAllScenes(tableId: string): Promise<GameTableScene[]> {
+  async findByAllScenes(tableId: string): Promise<GameTableWithScenes> {
     const rows = db.prepare(`
       SELECT
         s.id AS scene_id,
@@ -493,19 +494,29 @@ export class GameTableRepository implements IGameTableRepository {
       FROM scenes s
       LEFT JOIN narrations n ON n.scene_id = s.id
       LEFT JOIN actions a ON a.scene_id = s.id
-      LEFT JOIN characters c ON c.user_id = a.user_id AND c.table_id = s.table_id
+      LEFT JOIN characters c 
+        ON c.user_id = a.user_id 
+        AND c.table_id = s.table_id
       WHERE s.table_id = ?
       ORDER BY s.id ASC, n.moment ASC, a.id ASC
     `).all(tableId) as any[]
 
+    const table = await this.findTableById(tableId)
+
     if (!rows.length) {
-      return []
+      return {
+        table,
+        scenes: []
+      }
     }
 
-    return this.mapSceneRows(rows)
+    return {
+      table,
+      scenes: this.mapSceneRows(rows)
+    }
   }
 
-  private mapSceneRows(rows: any[]): GameTableScene[] {
+  private mapSceneRows(rows: any[]): GameTableScenes[] {
     const scenesMap = new Map<
       string,
       {
@@ -578,11 +589,32 @@ export class GameTableRepository implements IGameTableRepository {
       }
     }
 
-    return Array.from(scenesMap.values()).map((scene) => ({
-      id: scene.id,
-      tableId: scene.tableId,
-      narrations: Array.from(scene.narrations.values())
+    return  Array.from(scenesMap.values()).map((scene) => ({
+        id: scene.id,
+        tableId: scene.tableId,
+        narrations: Array.from(scene.narrations.values())
     }))
+  
+  }
+
+  async findTableById(tableId: string): Promise<GameTable | null> {
+    const row = db.prepare(`
+      SELECT
+        id,
+        narrator_id,
+        intro
+      FROM game_tables
+      WHERE id = ?
+    `).get(tableId) as any
+
+    if (!row) return null
+
+    return {
+      id: row.id,
+      narratorId: row.narrator_id,
+      intro: row.intro,
+      title: 'teste'
+    }
   }
 
 }
