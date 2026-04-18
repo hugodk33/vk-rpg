@@ -467,7 +467,6 @@ export class GameTableRepository implements IGameTableRepository {
     if (!rows.length) {
       return {
         id: sceneId,
-        tableId: '',
         narrations: []
       }
     }
@@ -587,14 +586,12 @@ export class GameTableRepository implements IGameTableRepository {
       string,
       {
         id: string
-        tableId: string
         chapter: number
         moment: number
         narrations: Map<
           string,
           {
             id: string
-            tableId: string
             sceneId: string
             narration: string
             moment: number
@@ -644,7 +641,6 @@ export class GameTableRepository implements IGameTableRepository {
       if (!scenesMap.has(row.scene_id)) {
         scenesMap.set(row.scene_id, {
           id: row.scene_id,
-          tableId: row.scene_table_id,
           chapter: row.scene_chapter,
           moment: row.scene_moment,
           narrations: new Map()
@@ -660,7 +656,6 @@ export class GameTableRepository implements IGameTableRepository {
       if (!scene.narrations.has(row.narration_id)) {
         scene.narrations.set(row.narration_id, {
           id: row.narration_id,
-          tableId: row.narration_table_id,
           sceneId: row.narration_scene_id,
           narration: row.narration_text,
           moment: row.narration_moment,
@@ -737,14 +732,12 @@ export class GameTableRepository implements IGameTableRepository {
 
     return Array.from(scenesMap.values()).map((scene) => ({
       id: scene.id,
-      tableId: scene.tableId,
       chapter: scene.chapter,
       moment: scene.moment,
       narrations: Array.from(scene.narrations.values())
         .sort((a, b) => (a.moment ?? 0) - (b.moment ?? 0)) // ✅ ordenação aqui
         .map((narration) => ({
           id: narration.id,
-          tableId: narration.tableId,
           sceneId: narration.sceneId,
           narration: narration.narration,
           moment: narration.moment,
