@@ -13,7 +13,8 @@ db.exec(`
   DELETE FROM narrations;
   DELETE FROM narration_actions;
   DELETE FROM narration_characters;
-  DELETE FROM locations;
+  DELETE FROM narration_locations;
+  DELETE FROM narration_npcs;
   DELETE FROM scenes;
   DELETE FROM modifiers;
   DELETE FROM npcs;
@@ -27,6 +28,7 @@ db.exec(`
   DELETE FROM item_images;
   DELETE FROM items;
   DELETE FROM table_images;
+  DELETE FROM table_locations;
   DELETE FROM skill_dependencies;
   DELETE FROM skills;
   DELETE FROM game_table_players;
@@ -813,6 +815,8 @@ type SeedModifierNarration= {
 }
 
 const narration1 = crypto.randomUUID()
+const narration2 = crypto.randomUUID()
+const narration3 = crypto.randomUUID()
 
 const modifierNarrations: SeedModifierNarration[] = [
   {
@@ -823,14 +827,14 @@ const modifierNarrations: SeedModifierNarration[] = [
     moment: 0 
   },
   {
-    id: crypto.randomUUID(),
+    id: narration2,
     table_id: gameTables[0].id,
     scene_id: modifierScenes[0].id, 
     narration: 'The party enters the forest.',
     moment: 1 
   },
   {
-    id: crypto.randomUUID(),
+    id: narration3,
     table_id: gameTables[0].id,
     scene_id: modifierScenes[0].id, 
     narration: 'The party enters the forest.',
@@ -853,7 +857,7 @@ const modifierNarrations: SeedModifierNarration[] = [
   {
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
-    scene_id: modifierScenes[3].id, 
+    scene_id: modifierScenes[1].id, 
     narration: 'The party enters the forest.',
     moment: 3 
   }
@@ -944,6 +948,192 @@ const modifierNarrationsNPCs: SeedModifierNarrationNPCs[] = [
     narration_id: narration1,
     npc_id: Npc3Id
   }
+]
+
+type SeedModifierLocation= {
+  id: string
+  table_id: string
+  name: string
+  region: string
+  address: string
+  sub_region: string
+  is_indoor: number
+  other: string
+  country: string
+  area: string
+  dimensions: string
+  description: string
+}
+
+const locationId1 = crypto.randomUUID()
+const locationId2 = crypto.randomUUID()
+const locationId3 = crypto.randomUUID()
+
+const modifierTableLocations: SeedModifierLocation[] = [
+  {
+    id: locationId1,
+    table_id: gameTables[0].id,
+    name: 'Iron Alley',
+    region: 'Industrial District',
+    sub_region: 'Backstreets',
+    address: 'Sector 7, Alley 3',
+    is_indoor: 0,
+    country: 'Valorian Empire',
+    area: 'Narrow street',
+    dimensions: '40m x 3m',
+    description: 'A tight alley filled with pipes, steam vents, and constant dripping water. Perfect for ambushes.',
+    other: 'Low visibility due to steam'
+  },
+  {
+    id: locationId2,
+    table_id: gameTables[0].id,
+    name: 'Steel Market',
+    region: 'Central District',
+    sub_region: 'Commerce Hub',
+    address: 'Main Plaza',
+    is_indoor: 0,
+    country: 'Valorian Empire',
+    area: 'Open market',
+    dimensions: '120m x 120m',
+    description: 'A crowded marketplace full of merchants, guards, and noise. Ideal for social interactions and stealth.',
+    other: 'High civilian density'
+  },
+  {
+    id: locationId3,
+    table_id: gameTables[0].id,
+    name: 'Underground Sewers',
+    region: 'Lower City',
+    sub_region: 'Maintenance Tunnels',
+    address: 'Access Gate 12',
+    is_indoor: 1,
+    country: 'Valorian Empire',
+    area: 'Tunnel system',
+    dimensions: 'Variable',
+    description: 'Dark tunnels beneath the city with foul smell and dangerous footing.',
+    other: 'Slippery terrain, disease risk'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    name: 'The Broken Tower',
+    region: 'Old District',
+    sub_region: 'Ruins',
+    address: 'Hilltop Sector',
+    is_indoor: 1,
+    country: 'Valorian Empire',
+    area: 'Ruined structure',
+    dimensions: '60m height',
+    description: 'An ancient collapsed tower rumored to hold magical remnants.',
+    other: 'Unstable structure'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    name: 'Blacksmith Forge',
+    region: 'Industrial District',
+    sub_region: 'Workshop Area',
+    address: 'Forge Street 22',
+    is_indoor: 1,
+    country: 'Valorian Empire',
+    area: 'Workshop',
+    dimensions: '20m x 15m',
+    description: 'A hot and noisy forge filled with weapons, tools, and molten metal.',
+    other: 'Extreme heat'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    name: 'City Watch Barracks',
+    region: 'Central District',
+    sub_region: 'Security Zone',
+    address: 'Guard Avenue',
+    is_indoor: 1,
+    country: 'Valorian Empire',
+    area: 'Military building',
+    dimensions: '80m x 50m',
+    description: 'Headquarters of the city guards, heavily patrolled and organized.',
+    other: 'High security'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    name: 'Shadow Tavern',
+    region: 'Lower City',
+    sub_region: 'Underground Social',
+    address: 'Hidden Entrance',
+    is_indoor: 1,
+    country: 'Valorian Empire',
+    area: 'Bar',
+    dimensions: '25m x 20m',
+    description: 'A dim tavern where criminals and mercenaries gather.',
+    other: 'Illegal activities common'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    name: 'Abandoned Warehouse',
+    region: 'Dock District',
+    sub_region: 'Storage Zone',
+    address: 'Pier 9',
+    is_indoor: 1,
+    country: 'Valorian Empire',
+    area: 'Storage building',
+    dimensions: '100m x 70m',
+    description: 'An empty warehouse with crates and shadows — perfect for encounters.',
+    other: 'Echoing acoustics'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    name: 'Rooftops of Steel',
+    region: 'Central District',
+    sub_region: 'Upper Levels',
+    address: 'Various buildings',
+    is_indoor: 0,
+    country: 'Valorian Empire',
+    area: 'Urban rooftops',
+    dimensions: 'Connected area',
+    description: 'A dangerous network of rooftops ideal for chases and stealth movement.',
+    other: 'Fall risk'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: gameTables[0].id,
+    name: 'Arcane Library',
+    region: 'Scholars Quarter',
+    sub_region: 'Magic District',
+    address: 'Knowledge Street 1',
+    is_indoor: 1,
+    country: 'Valorian Empire',
+    area: 'Library',
+    dimensions: '60m x 60m',
+    description: 'A massive library containing forbidden knowledge and magical texts.',
+    other: 'Magical interference'
+  }
+]
+
+type SeedModifierNarrationLocations= {
+  id: string,
+  location_id: string,
+  narrations_id: string,
+}
+
+const modifierNarrationsLocations: SeedModifierNarrationLocations[] = [
+  {
+    id: crypto.randomUUID(),
+    location_id: locationId1,
+    narrations_id: narration1
+  },
+  {
+    id: crypto.randomUUID(),
+    location_id: locationId2,
+    narrations_id: narration2
+  },
+  {
+    id: crypto.randomUUID(),
+    location_id: locationId3,
+    narrations_id: narration3
+  }  
 ]
 
 /* CENTRO DA FOLHA */
@@ -1237,6 +1427,24 @@ const modifierNarrationsNPCstmt = db.prepare(`
 
 for (const modifierNarrationsNPC of modifierNarrationsNPCs) {
   modifierNarrationsNPCstmt.run(modifierNarrationsNPC.id, modifierNarrationsNPC.narration_id, modifierNarrationsNPC.npc_id)
+}
+
+const modifierTableLocationstmt = db.prepare(`
+  INSERT INTO table_locations(id, table_id, name, region, address, sub_region, is_indoor, other, country, area, dimensions, description )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const modifierTableLocation of modifierTableLocations) {
+  modifierTableLocationstmt.run(modifierTableLocation.id, modifierTableLocation.table_id, modifierTableLocation.name, modifierTableLocation.region, modifierTableLocation.address, modifierTableLocation.sub_region, modifierTableLocation.is_indoor, modifierTableLocation.other, modifierTableLocation.country, modifierTableLocation.area, modifierTableLocation.dimensions, modifierTableLocation.description)
+}
+
+const modifierNarrationsLocationstmt = db.prepare(`
+  INSERT INTO narration_locations(id, location_id, narrations_id)
+  VALUES (?, ?, ?)
+`)
+
+for (const modifierNarrationsLocation of modifierNarrationsLocations) {
+  modifierNarrationsLocationstmt.run(modifierNarrationsLocation.id, modifierNarrationsLocation.location_id, modifierNarrationsLocation.narrations_id)
 }
 
 console.log('🌱 Seed executed successfully!')

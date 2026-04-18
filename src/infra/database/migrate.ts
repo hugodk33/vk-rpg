@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS narrations (
 -- =========================
 -- LOCATIONS
 -- =========================
-CREATE TABLE IF NOT EXISTS locations (
+CREATE TABLE IF NOT EXISTS table_locations (
   id TEXT PRIMARY KEY,
   table_id TEXT,
   name TEXT,
@@ -136,9 +136,6 @@ CREATE TABLE IF NOT EXISTS locations (
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
--- =========================
--- ACTIONS
--- =========================
 CREATE TABLE IF NOT EXISTS narration_actions (
   id TEXT PRIMARY KEY,
   narrations_id TEXT,
@@ -154,6 +151,14 @@ CREATE TABLE IF NOT EXISTS narration_characters (
   character_id TEXT,
   narrations_id TEXT,
   FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (narrations_id) REFERENCES narrations(id)
+);
+
+CREATE TABLE IF NOT EXISTS narration_locations (
+  id TEXT PRIMARY KEY,
+  location_id TEXT,
+  narrations_id TEXT,
+  FOREIGN KEY (location_id) REFERENCES table_locations(id),
   FOREIGN KEY (narrations_id) REFERENCES narrations(id)
 );
 
