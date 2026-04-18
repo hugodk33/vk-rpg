@@ -95,12 +95,16 @@ export type GameTableSceneNarration = {
   narration: string
   moment: number
   actions: GameTableSceneAction[]
+  characters?: []
+  npcs?: []
+  locals?:[]
 }
 
 export type GameTableScenes = {
   id: string
   tableId: string
   narrations: GameTableSceneNarration[]
+  characters?: any[]
 }
 
 export type GameTableWithScenes = {

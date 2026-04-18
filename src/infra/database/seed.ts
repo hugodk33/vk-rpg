@@ -233,6 +233,8 @@ const characterMiraId = crypto.randomUUID()
 const characterGarrickId = crypto.randomUUID()
 const characterKasumiId = crypto.randomUUID()
 
+const characterNPCsIds = Array.from({ length: 10 }, () => crypto.randomUUID())
+
 const characters: SeedCharacter[] = [
   {
     id: characterMiraId,
@@ -251,7 +253,18 @@ const characters: SeedCharacter[] = [
     userId: users[3].id,
     tableId: gameTables[0].id,
     name: 'Kasumi Noh'
-  }
+  },
+  { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Riven Kael' },
+  { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Thorne Black' },
+  { id: characterNPCsIds[2] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Selene Voss' },
+  { id: characterNPCsIds[3] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Kael Draven' },
+  { id: characterNPCsIds[4] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Lyra Moonfall' },
+  { id: characterNPCsIds[5] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Borin Stonehelm' },
+  { id: characterNPCsIds[6] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Nyx Shadowend' },
+  { id: characterNPCsIds[7] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Eldric Vale' },
+  { id: characterNPCsIds[8] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Vera Hollow' },
+  { id: characterNPCsIds[9] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Dante Crowe' }
+
 ]
 
 type SeedCharacterSheet = {
@@ -315,7 +328,117 @@ const characterSheets: SeedCharacterSheet[] = [
     ht: 10,
     fatigue: 10,
     encumbrance: 'Light'
+  },
+    {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[0] as string,
+    name: 'Riven Kael Sheet',
+    bio: 'A fast dual-blade fighter.',
+    backstory: 'Survived by speed and instinct.',
+    points: 150, hp: 11, st: 11, dx: 14, iq: 11, ht: 10, fatigue: 10, encumbrance: 'Light'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[1] as string,
+    name: 'Thorne Black Sheet',
+    bio: 'A grim bounty hunter.',
+    backstory: 'Tracks targets across kingdoms.',
+    points: 155, hp: 12, st: 12, dx: 12, iq: 11, ht: 11, fatigue: 11, encumbrance: 'Medium'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[2] as string,
+    name: 'Selene Voss Sheet',
+    bio: 'A shadow mage.',
+    backstory: 'Manipulates darkness itself.',
+    points: 160, hp: 10, st: 9, dx: 12, iq: 15, ht: 10, fatigue: 12, encumbrance: 'Light'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[3] as string,
+    name: 'Kael Draven Sheet',
+    bio: 'A ruthless duelist.',
+    backstory: 'Seeks perfection in combat.',
+    points: 150, hp: 11, st: 11, dx: 13, iq: 11, ht: 11, fatigue: 10, encumbrance: 'Light'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[4] as string,
+    name: 'Lyra Moonfall Sheet',
+    bio: 'A celestial sorcerer.',
+    backstory: 'Gifted by ancient stars.',
+    points: 165, hp: 10, st: 9, dx: 11, iq: 15, ht: 11, fatigue: 13, encumbrance: 'Light'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[5] as string,
+    name: 'Borin Stonehelm Sheet',
+    bio: 'A dwarven tank.',
+    backstory: 'Unbreakable in battle.',
+    points: 160, hp: 14, st: 14, dx: 10, iq: 10, ht: 13, fatigue: 12, encumbrance: 'Heavy'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[6] as string,
+    name: 'Nyx Shadowend Sheet',
+    bio: 'An elite assassin.',
+    backstory: 'Never seen, always lethal.',
+    points: 155, hp: 10, st: 10, dx: 15, iq: 12, ht: 10, fatigue: 10, encumbrance: 'Light'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[7] as string,
+    name: 'Eldric Vale Sheet',
+    bio: 'A wise mage.',
+    backstory: 'Keeper of forbidden lore.',
+    points: 170, hp: 10, st: 9, dx: 10, iq: 16, ht: 11, fatigue: 13, encumbrance: 'Light'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[8] as string,
+    name: 'Vera Hollow Sheet',
+    bio: 'A cursed archer.',
+    backstory: 'Haunted by past battles.',
+    points: 150, hp: 11, st: 11, dx: 13, iq: 11, ht: 11, fatigue: 10, encumbrance: 'Light'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterNPCsIds[9] as string,
+    name: 'Dante Crowe Sheet',
+    bio: 'A charismatic warlock.',
+    backstory: 'Power at a terrible cost.',
+    points: 165, hp: 10, st: 10, dx: 11, iq: 15, ht: 11, fatigue: 12, encumbrance: 'Light'
   }
+]
+
+type SeedNpc = {
+  id: string
+  character_id: string
+  status: 'enemy' | 'ally' | 'neutral' | 'boss'
+}
+
+const Npc1Id = crypto.randomUUID()
+const Npc2Id = crypto.randomUUID()
+const Npc3Id = crypto.randomUUID()
+const Npc4Id = crypto.randomUUID()
+const Npc5Id = crypto.randomUUID()
+const Npc6Id = crypto.randomUUID()
+const Npc7Id = crypto.randomUUID()
+const Npc8Id = crypto.randomUUID()
+const Npc9Id = crypto.randomUUID()
+const Npc10Id = crypto.randomUUID()
+
+const newNpcs: SeedNpc[] = [
+  { id: Npc1Id, character_id: characterNPCsIds[0] as string, status: 'enemy' },
+  { id: Npc2Id, character_id: characterNPCsIds[1] as string, status: 'enemy' },
+  { id: Npc3Id, character_id: characterNPCsIds[2] as string, status: 'boss' },
+  { id: Npc4Id, character_id: characterNPCsIds[3] as string, status: 'neutral' },
+  { id: Npc5Id, character_id: characterNPCsIds[4] as string, status: 'ally' },
+  { id: Npc6Id, character_id: characterNPCsIds[5] as string, status: 'enemy' },
+  { id: Npc7Id, character_id: characterNPCsIds[6] as string, status: 'enemy' },
+  { id: Npc8Id, character_id: characterNPCsIds[7] as string, status: 'ally' },
+  { id: Npc9Id, character_id: characterNPCsIds[8] as string, status: 'neutral' },
+  { id: Npc10Id, character_id: characterNPCsIds[9] as string, status: 'boss' }
 ]
 
 type SeedItem = {
@@ -650,24 +773,34 @@ const modifierItems: SeedModifierItem[] = [
 type SeedModifierScene= {
   id: string
   table_id: string
+  chapter: number
+  moment: number
 }
 
 const modifierScenes: [SeedModifierScene ,  SeedModifierScene , SeedModifierScene , SeedModifierScene ] = [
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id
+    table_id: gameTables[0].id,
+    chapter: 1,
+    moment: 0,
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id
+    table_id: gameTables[0].id,
+    chapter: 1,
+    moment: 1,
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id
+    table_id: gameTables[0].id,
+    chapter: 1,
+    moment: 2
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id
+    table_id: gameTables[0].id,
+    chapter: 1,
+    moment: 3
   }
 ]
 
@@ -679,9 +812,11 @@ type SeedModifierNarration= {
   moment: number
 }
 
-const modifierNarrations: [SeedModifierNarration , SeedModifierNarration , SeedModifierNarration , SeedModifierNarration , SeedModifierNarration , SeedModifierNarration ] = [
+const narration1 = crypto.randomUUID()
+
+const modifierNarrations: SeedModifierNarration[] = [
   {
-    id: crypto.randomUUID(),
+    id: narration1,
     table_id: gameTables[0].id,
     scene_id: modifierScenes[0].id, 
     narration: 'The party enters the forest.',
@@ -697,21 +832,21 @@ const modifierNarrations: [SeedModifierNarration , SeedModifierNarration , SeedM
   {
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
-    scene_id: modifierScenes[1].id, 
+    scene_id: modifierScenes[0].id, 
     narration: 'The party enters the forest.',
     moment: 2 
   },
   {
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
-    scene_id: modifierScenes[2].id, 
+    scene_id: modifierScenes[0].id, 
     narration: 'The party enters the forest.',
     moment: 2 
   },
   {
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
-    scene_id: modifierScenes[2].id, 
+    scene_id: modifierScenes[0].id, 
     narration: 'The party enters the forest.',
     moment: 3 
   },
@@ -732,37 +867,86 @@ type SeedModifierNarrationActions= {
   character_id: string,
 }
 
-const modifierNarrationsActions: [SeedModifierNarrationActions , SeedModifierNarrationActions , SeedModifierNarrationActions , SeedModifierNarrationActions ] = [
+const modifierNarrationsActions: SeedModifierNarrationActions[] = [
   {
     id: crypto.randomUUID(),
-    narrations_id: modifierNarrations[0].id,
+    narrations_id: narration1,
     value: '10',
     test: 'Mira usou a habilidade de ataque e deu certo',
     character_id: characterMiraId,
   },
   {
     id: crypto.randomUUID(),
-    narrations_id: modifierNarrations[0].id,
+    narrations_id: narration1,
     value: '17',
     test: 'Garrick usou a habilidade de defesa e deu errado',
     character_id: characterGarrickId,
   },
   {
     id: crypto.randomUUID(),
-    narrations_id: modifierNarrations[0].id,
+    narrations_id: narration1,
     value: '',
     test: 'Kasumi não fez nada',
     character_id: characterKasumiId,
   },
   {
     id: crypto.randomUUID(),
-    narrations_id: modifierNarrations[0].id,
+    narrations_id: narration1,
     value: '11',
     test: 'Mira usou a habilidade de ataque novamente e deu certo',
     character_id: characterMiraId,
   }
 ]
 
+type SeedModifierNarrationCharacter= {
+  id: string
+  character_id: string
+  narrations_id: string
+}
+
+const modifierNarrationsCharacters: SeedModifierNarrationCharacter[] = [
+  {
+    id: crypto.randomUUID(),
+    character_id: characterMiraId,
+    narrations_id: narration1
+  },
+  {
+    id: crypto.randomUUID(),
+    character_id: characterGarrickId,
+    narrations_id: narration1
+  },
+  {
+    id: crypto.randomUUID(),
+    character_id: characterKasumiId,
+    narrations_id: narration1
+  }
+]
+
+type SeedModifierNarrationNPCs= {
+  id: string,
+  narration_id: string,
+  npc_id: string,
+}
+
+const modifierNarrationsNPCs: SeedModifierNarrationNPCs[] = [
+  {
+    id: crypto.randomUUID(),
+    narration_id: narration1,
+    npc_id: Npc1Id
+  },
+  {
+    id: crypto.randomUUID(),
+    narration_id: narration1,
+    npc_id: Npc2Id
+  },
+  {
+    id: crypto.randomUUID(),
+    narration_id: narration1,
+    npc_id: Npc3Id
+  }
+]
+
+/* CENTRO DA FOLHA */
 // insert users
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -851,6 +1035,19 @@ for (const sheet of characterSheets) {
     sheet.ht,
     sheet.fatigue,
     sheet.encumbrance
+  )
+}
+
+const npcSheetStmt = db.prepare(`
+  INSERT INTO npcs (id, character_id , status)
+  VALUES (?, ?, ? )
+`)
+
+for (const npcSheet of newNpcs) {
+  npcSheetStmt.run(
+    npcSheet.id,
+    npcSheet.character_id,
+    npcSheet.status
   )
 }
 
@@ -998,12 +1195,12 @@ for (const modifierItem of modifierItems) {
 }
 
 const modifierSceneStmt = db.prepare(`
-  INSERT INTO scenes(id, table_id)
-  VALUES (?, ?)
+  INSERT INTO scenes(id, table_id , chapter , moment)
+  VALUES (?, ?, ?, ?)
 `)
 
 for (const modifierScene of modifierScenes) {
-  modifierSceneStmt.run(modifierScene.id, modifierScene.table_id)
+  modifierSceneStmt.run(modifierScene.id, modifierScene.table_id , modifierScene.chapter, modifierScene.moment)
 }
 
 const modifierNarrationstmt = db.prepare(`
@@ -1022,6 +1219,24 @@ const modifierNarrationsActionstmt = db.prepare(`
 
 for (const modifierNarrationAction of modifierNarrationsActions) {
   modifierNarrationsActionstmt.run(modifierNarrationAction.id, modifierNarrationAction.narrations_id, modifierNarrationAction.value, modifierNarrationAction.test, modifierNarrationAction.character_id)
+}
+
+const modifierNarrationsCharacterstmt = db.prepare(`
+  INSERT INTO narration_characters(id, character_id, narrations_id)
+  VALUES (?, ?, ?)
+`)
+
+for (const modifierNarrationCharacter of modifierNarrationsCharacters) {
+  modifierNarrationsCharacterstmt.run(modifierNarrationCharacter.id, modifierNarrationCharacter.character_id, modifierNarrationCharacter.narrations_id)
+}
+
+const modifierNarrationsNPCstmt = db.prepare(`
+  INSERT INTO narration_npcs(id, narration_id, npc_id)
+  VALUES (?, ?, ?)
+`)
+
+for (const modifierNarrationsNPC of modifierNarrationsNPCs) {
+  modifierNarrationsNPCstmt.run(modifierNarrationsNPC.id, modifierNarrationsNPC.narration_id, modifierNarrationsNPC.npc_id)
 }
 
 console.log('🌱 Seed executed successfully!')

@@ -99,6 +99,8 @@ CREATE TABLE IF NOT EXISTS character_sheets (
 CREATE TABLE IF NOT EXISTS scenes (
   id TEXT PRIMARY KEY,
   table_id TEXT,
+  chapter INTEGER,
+  moment INTEGER,
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
@@ -217,10 +219,16 @@ CREATE TABLE IF NOT EXISTS damages (
 CREATE TABLE IF NOT EXISTS npcs (
   id TEXT PRIMARY KEY,
   character_id TEXT,
-  table_id TEXT,
   status TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id),
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+CREATE TABLE IF NOT EXISTS narration_npcs (
+  id TEXT PRIMARY KEY,
+  narration_id TEXT NOT NULL,
+  npc_id TEXT NOT NULL,
+  FOREIGN KEY (narration_id) REFERENCES narrations(id),
+  FOREIGN KEY (npc_id) REFERENCES npcs(id)
 );
 
 -- =========================

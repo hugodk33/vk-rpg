@@ -489,7 +489,7 @@ export class GameTableRepository implements IGameTableRepository {
         n.narration AS narration_text,
         n.moment AS narration_moment,
 
-        -- ACTION (nova tabela)
+        -- ACTION
         na.id AS action_id,
         na.test AS action_test,
         na.character_id AS action_character_id,
@@ -503,7 +503,16 @@ export class GameTableRepository implements IGameTableRepository {
         nc.character_id AS narration_character_id,
 
         cn.id AS narration_character_ref_id,
-        cn.name AS narration_character_name
+        cn.name AS narration_character_name,
+
+        -- NPC (via narration_npcs)
+        nn.id AS narration_npc_link_id,
+        npc.id AS narration_npc_id,
+        npc.character_id AS narration_npc_character_id,
+        npc.status AS narration_npc_status,
+
+        c_npc.id AS narration_npc_ref_id,
+        c_npc.name AS narration_npc_name
 
       FROM scenes s
 
@@ -521,6 +530,16 @@ export class GameTableRepository implements IGameTableRepository {
 
       LEFT JOIN characters cn 
         ON cn.id = nc.character_id
+
+      -- 🔥 NOVO FLUXO CORRETO
+      LEFT JOIN narration_npcs nn
+        ON nn.narration_id = n.id
+
+      LEFT JOIN npcs npc
+        ON npc.id = nn.npc_id
+
+      LEFT JOIN characters c_npc 
+        ON c_npc.id = npc.character_id
 
       WHERE s.table_id = ?
       ORDER BY s.id ASC, n.moment ASC, na.id ASC
@@ -562,12 +581,30 @@ export class GameTableRepository implements IGameTableRepository {
               userId: string
               character: { id: string; name: string } | null
             }>
+            characters: Map<
+              string,
+              {
+                id: string
+                name: string
+              }
+            >
+            npcs: Map<
+              string,
+              {
+                id: string
+                characterId: string
+                name: string
+                status: string
+              }
+            >,
+            locals: []
           }
         >
       }
     >()
 
     for (const row of rows) {
+      // SCENE
       if (!scenesMap.has(row.scene_id)) {
         scenesMap.set(row.scene_id, {
           id: row.scene_id,
@@ -578,10 +615,10 @@ export class GameTableRepository implements IGameTableRepository {
 
       const scene = scenesMap.get(row.scene_id)!
 
-      if (!row.narration_id) {
-        continue
-      }
+      // sem narration, ignora
+      if (!row.narration_id) continue
 
+      // NARRATION
       if (!scene.narrations.has(row.narration_id)) {
         scene.narrations.set(row.narration_id, {
           id: row.narration_id,
@@ -589,12 +626,16 @@ export class GameTableRepository implements IGameTableRepository {
           sceneId: row.narration_scene_id,
           narration: row.narration_text,
           moment: row.narration_moment,
-          actions: []
+          actions: [],
+          characters: new Map(),
+          npcs: new Map(),
+          locals: []
         })
       }
 
       const narration = scene.narrations.get(row.narration_id)!
 
+      // ACTIONS (sem duplicar)
       if (
         row.action_id &&
         !narration.actions.some((action) => action.id === row.action_id)
@@ -612,14 +653,47 @@ export class GameTableRepository implements IGameTableRepository {
             : null
         })
       }
+
+      // CHARACTERS (narration_characters) sem duplicar
+      if (
+        row.narration_character_id &&
+        !narration.characters.has(row.narration_character_id)
+      ) {
+        narration.characters.set(row.narration_character_id, {
+          id: row.narration_character_ref_id,
+          name: row.narration_character_name
+        })
+      }
+
+      if (
+        row.narration_npc_link_id &&
+        !narration.npcs.has(row.narration_npc_link_id)
+      ) {
+        narration.npcs.set(row.narration_npc_link_id, {
+          id: row.narration_npc_id,
+          characterId: row.narration_npc_character_id,
+          name: row.narration_npc_name,
+          status: row.narration_npc_status
+        })
+      }
     }
 
-    return  Array.from(scenesMap.values()).map((scene) => ({
-        id: scene.id,
-        tableId: scene.tableId,
-        narrations: Array.from(scene.narrations.values())
+    return Array.from(scenesMap.values()).map((scene) => ({
+      id: scene.id,
+      tableId: scene.tableId,
+      narrations: Array.from(scene.narrations.values())
+        .sort((a, b) => (a.moment ?? 0) - (b.moment ?? 0)) // ✅ ordenação aqui
+        .map((narration) => ({
+          id: narration.id,
+          tableId: narration.tableId,
+          sceneId: narration.sceneId,
+          narration: narration.narration,
+          moment: narration.moment,
+          actions: narration.actions,
+          characters: Array.from(narration.characters.values()) as any,
+          npcs: Array.from(narration.npcs.values()) as any,
+        }))
     }))
-  
   }
 
   async findTableById(tableId: string): Promise<GameTable | null> {
