@@ -478,27 +478,93 @@ export class GameTableRepository implements IGameTableRepository {
   async findByAllScenes(tableId: string): Promise<GameTableWithScenes> {
     const rows = db.prepare(`
       SELECT
-        s.id AS scene_id,
-        s.table_id AS scene_table_id,
-        n.id AS narration_id,
-        n.scene_id AS narration_scene_id,
-        n.table_id AS narration_table_id,
-        n.narration AS narration_text,
-        n.moment AS narration_moment,
-        a.id AS action_id,
-        a.name AS action_name,
-        a.description AS action_description,
-        a.user_id AS action_user_id,
-        c.id AS character_id,
-        c.name AS character_name
-      FROM scenes s
-      LEFT JOIN narrations n ON n.scene_id = s.id
-      LEFT JOIN actions a ON a.scene_id = s.id
-      LEFT JOIN characters c 
-        ON c.user_id = a.user_id 
-        AND c.table_id = s.table_id
-      WHERE s.table_id = ?
-      ORDER BY s.id ASC, n.moment ASC, a.id ASC
+      -- SCENE
+      s.id AS scene_id,
+      s.chapter AS scene_chapter,
+      s.moment AS scene_moment,
+      s.table_id AS scene_table_id,
+
+      -- NARRATION
+      n.id AS narration_id,
+      n.scene_id AS narration_scene_id,
+      n.table_id AS narration_table_id,
+      n.narration AS narration_text,
+      n.moment AS narration_moment,
+
+      -- ACTION
+      na.id AS action_id,
+      na.test AS action_test,
+      na.character_id AS action_character_id,
+
+      -- CHARACTER (via action)
+      ca.id AS action_character_ref_id,
+      ca.name AS action_character_name,
+
+      -- CHARACTER (narration_characters)
+      nc.id AS narration_character_link_id,
+      nc.character_id AS narration_character_id,
+
+      cn.id AS narration_character_ref_id,
+      cn.name AS narration_character_name,
+
+      -- NPC
+      nn.id AS narration_npc_link_id,
+      npc.id AS narration_npc_id,
+      npc.character_id AS narration_npc_character_id,
+      npc.status AS narration_npc_status,
+
+      c_npc.id AS narration_npc_ref_id,
+      c_npc.name AS narration_npc_name,
+
+      -- LOCATION
+      nl.id AS narration_location_link_id,
+      tl.id AS location_id,
+      tl.name AS location_name,
+      tl.region AS location_region,
+      tl.sub_region AS location_sub_region,
+      tl.address AS location_address,
+      tl.is_indoor AS location_is_indoor,
+      tl.country AS location_country,
+      tl.area AS location_area,
+      tl.dimensions AS location_dimensions,
+      tl.description AS location_description,
+      tl.other AS location_other
+
+    FROM scenes s
+
+    LEFT JOIN narrations n 
+      ON n.scene_id = s.id
+
+    LEFT JOIN narration_actions na 
+      ON na.narrations_id = n.id
+
+    LEFT JOIN characters ca 
+      ON ca.id = na.character_id
+
+    LEFT JOIN narration_characters nc 
+      ON nc.narrations_id = n.id
+
+    LEFT JOIN characters cn 
+      ON cn.id = nc.character_id
+
+    LEFT JOIN narration_npcs nn
+      ON nn.narration_id = n.id
+
+    LEFT JOIN npcs npc
+      ON npc.id = nn.npc_id
+
+    LEFT JOIN characters c_npc 
+      ON c_npc.id = npc.character_id
+
+    -- LOCATION
+    LEFT JOIN narration_locations nl
+      ON nl.narrations_id = n.id
+
+    LEFT JOIN table_locations tl
+      ON tl.id = nl.location_id
+
+    WHERE s.table_id = ?
+      ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, na.id ASC
     `).all(tableId) as any[]
 
     const table = await this.findTableById(tableId)
@@ -522,6 +588,8 @@ export class GameTableRepository implements IGameTableRepository {
       {
         id: string
         tableId: string
+        chapter: number
+        moment: number
         narrations: Map<
           string,
           {
@@ -537,26 +605,58 @@ export class GameTableRepository implements IGameTableRepository {
               userId: string
               character: { id: string; name: string } | null
             }>
+            characters: Map<
+              string,
+              {
+                id: string
+                name: string
+              }
+            >
+            npcs: Map<
+              string,
+              {
+                id: string
+                characterId: string
+                name: string
+                status: string
+              }
+            >,
+            location: {
+              id: string
+              name: string
+              region: string
+              subRegion: string
+              address: string
+              isIndoor: boolean
+              country: string
+              area: string
+              dimensions: string
+              description: string
+              other: string
+            } | null
           }
         >
       }
     >()
 
     for (const row of rows) {
+      // SCENE
       if (!scenesMap.has(row.scene_id)) {
         scenesMap.set(row.scene_id, {
           id: row.scene_id,
           tableId: row.scene_table_id,
+          chapter: row.scene_chapter,
+          moment: row.scene_moment,
           narrations: new Map()
         })
       }
 
       const scene = scenesMap.get(row.scene_id)!
 
-      if (!row.narration_id) {
-        continue
-      }
+      // sem narration, ignora
+      if (!row.narration_id) continue
 
+      // NARRATION
       if (!scene.narrations.has(row.narration_id)) {
         scene.narrations.set(row.narration_id, {
           id: row.narration_id,
@@ -564,12 +664,16 @@ export class GameTableRepository implements IGameTableRepository {
           sceneId: row.narration_scene_id,
           narration: row.narration_text,
           moment: row.narration_moment,
-          actions: []
+          actions: [],
+          characters: new Map(),
+          npcs: new Map(),
+          location:  null
         })
       }
 
       const narration = scene.narrations.get(row.narration_id)!
 
+      // ACTIONS (sem duplicar)
       if (
         row.action_id &&
         !narration.actions.some((action) => action.id === row.action_id)
@@ -587,14 +691,69 @@ export class GameTableRepository implements IGameTableRepository {
             : null
         })
       }
+
+      // CHARACTERS (narration_characters) sem duplicar
+      if (
+        row.narration_character_id &&
+        !narration.characters.has(row.narration_character_id)
+      ) {
+        narration.characters.set(row.narration_character_id, {
+          id: row.narration_character_ref_id,
+          name: row.narration_character_name
+        })
+      }
+
+      if (
+        row.narration_npc_link_id &&
+        !narration.npcs.has(row.narration_npc_link_id)
+      ) {
+        narration.npcs.set(row.narration_npc_link_id, {
+          id: row.narration_npc_id,
+          characterId: row.narration_npc_character_id,
+          name: row.narration_npc_name,
+          status: row.narration_npc_status
+        })
+      }
+
+      if (
+        row.location_id &&
+        !narration.location
+      ) {
+        narration.location = {
+          id: row.location_id,
+          name: row.location_name,
+          region: row.location_region,
+          subRegion: row.location_sub_region,
+          address: row.location_address,
+          isIndoor: !!row.location_is_indoor,
+          country: row.location_country,
+          area: row.location_area,
+          dimensions: row.location_dimensions,
+          description: row.location_description,
+          other: row.location_other
+        }
+      }
     }
 
-    return  Array.from(scenesMap.values()).map((scene) => ({
-        id: scene.id,
-        tableId: scene.tableId,
-        narrations: Array.from(scene.narrations.values())
+    return Array.from(scenesMap.values()).map((scene) => ({
+      id: scene.id,
+      tableId: scene.tableId,
+      chapter: scene.chapter,
+      moment: scene.moment,
+      narrations: Array.from(scene.narrations.values())
+        .sort((a, b) => (a.moment ?? 0) - (b.moment ?? 0)) // ✅ ordenação aqui
+        .map((narration) => ({
+          id: narration.id,
+          tableId: narration.tableId,
+          sceneId: narration.sceneId,
+          narration: narration.narration,
+          moment: narration.moment,
+          actions: narration.actions,
+          characters: Array.from(narration.characters.values()) as any,
+          npcs: Array.from(narration.npcs.values()) as any,
+          location: narration.location
+        }))
     }))
-  
   }
 
   async findTableById(tableId: string): Promise<GameTable | null> {
@@ -602,7 +761,8 @@ export class GameTableRepository implements IGameTableRepository {
       SELECT
         id,
         narrator_id,
-        intro
+        intro,
+        title
       FROM game_tables
       WHERE id = ?
     `).get(tableId) as any
@@ -613,7 +773,7 @@ export class GameTableRepository implements IGameTableRepository {
       id: row.id,
       narratorId: row.narrator_id,
       intro: row.intro,
-      title: 'teste'
+      title: row.title
     }
   }
 

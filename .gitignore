@@ -34,3 +34,4 @@ jest.config.js
 .jest/
 .test.ts
 node_modules/.cache/jest/
+src/application/use-cases/CreateUserUseCase.test.ts

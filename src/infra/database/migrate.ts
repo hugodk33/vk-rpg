@@ -99,6 +99,8 @@ CREATE TABLE IF NOT EXISTS character_sheets (
 CREATE TABLE IF NOT EXISTS scenes (
   id TEXT PRIMARY KEY,
   table_id TEXT,
+  chapter INTEGER,
+  moment INTEGER,
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
@@ -118,7 +120,7 @@ CREATE TABLE IF NOT EXISTS narrations (
 -- =========================
 -- LOCATIONS
 -- =========================
-CREATE TABLE IF NOT EXISTS locations (
+CREATE TABLE IF NOT EXISTS table_locations (
   id TEXT PRIMARY KEY,
   table_id TEXT,
   name TEXT,
@@ -134,17 +136,30 @@ CREATE TABLE IF NOT EXISTS locations (
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
--- =========================
--- ACTIONS
--- =========================
-CREATE TABLE IF NOT EXISTS actions (
+CREATE TABLE IF NOT EXISTS narration_actions (
   id TEXT PRIMARY KEY,
-  name TEXT,
-  user_id TEXT,
-  description TEXT,
-  scene_id TEXT,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (scene_id) REFERENCES scenes(id)
+  narrations_id TEXT,
+  value TEXT,
+  test TEXT,
+  character_id TEXT,
+  FOREIGN KEY (narrations_id) REFERENCES narrations(id),
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+CREATE TABLE IF NOT EXISTS narration_characters (
+  id TEXT PRIMARY KEY,
+  character_id TEXT,
+  narrations_id TEXT,
+  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (narrations_id) REFERENCES narrations(id)
+);
+
+CREATE TABLE IF NOT EXISTS narration_locations (
+  id TEXT PRIMARY KEY,
+  location_id TEXT,
+  narrations_id TEXT,
+  FOREIGN KEY (location_id) REFERENCES table_locations(id),
+  FOREIGN KEY (narrations_id) REFERENCES narrations(id)
 );
 
 -- =========================
@@ -209,10 +224,16 @@ CREATE TABLE IF NOT EXISTS damages (
 CREATE TABLE IF NOT EXISTS npcs (
   id TEXT PRIMARY KEY,
   character_id TEXT,
-  table_id TEXT,
   status TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id),
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  FOREIGN KEY (character_id) REFERENCES characters(id)
+);
+
+CREATE TABLE IF NOT EXISTS narration_npcs (
+  id TEXT PRIMARY KEY,
+  narration_id TEXT NOT NULL,
+  npc_id TEXT NOT NULL,
+  FOREIGN KEY (narration_id) REFERENCES narrations(id),
+  FOREIGN KEY (npc_id) REFERENCES npcs(id)
 );
 
 -- =========================
