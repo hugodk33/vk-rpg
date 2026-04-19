@@ -1,11 +1,14 @@
 import { db } from '../../infra/database/database'
+
 import type {
-  IGameTableRepository,
   GameTableWithNarrator,
   GameTablePlayerWithCharacter,
   GameTableScenes,
   GameTableWithScenes
-} from '../irepositories/IGameTableRepository'
+} from '../types/GameTableTypes'
+
+import type { IGameTableRepository } from '../irepositories/IGameTableRepository'
+
 import { GameTable } from '../entities/GameTable'
 
 type GameTableWithPlayers = GameTableWithNarrator & {
