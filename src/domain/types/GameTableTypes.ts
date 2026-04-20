@@ -137,11 +137,3 @@ type GameTableSceneAction = {
     name: string
   } | null
 }
-
-export interface IGameTableRepository {
-  create(gameTable: GameTable): Promise<void>
-  findById(id: string): Promise<GameTableWithNarrator | null>
-  findAll(): Promise<GameTableWithNarrator[]>
-  // findBySceneId(sceneId: string): Promise<GameTableScene >
-  findByAllScenes(tableId: string): Promise<GameTableWithScenes>
-}
