@@ -1,8 +1,8 @@
 import { Request , Response } from 'express'
-import { CreateGameTableUseCase } from '../../application/use-cases/CreateGameTableCase'
-import { FindGameTableUseCase } from '../../application/use-cases/FindGameTableUseCase'
-import { FindAllGameTablesUseCase } from '../../application/use-cases/FindAllGameTablesUseCase'
-import { FindAllTableGameScenesUseCase } from '../../application/use-cases/FindAllTableGameScenesUseCase'
+import { CreateGameTableUseCase } from '../../application/use-cases/tables-use-cases/CreateGameTableCase'
+import { FindGameTableUseCase } from '../../application/use-cases/tables-use-cases/FindGameTableUseCase'
+import { FindAllGameTablesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTablesUseCase'
+import { FindAllTableGameScenesUseCase } from '../../application/use-cases/tables-use-cases/FindAllTableGameScenesUseCase'
 
 export class GameTableController {
   constructor(

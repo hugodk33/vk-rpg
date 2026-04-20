@@ -58,4 +58,19 @@ export class UserRepository implements IUserRepository {
     )
   }
 
+  async editUser(user: User): Promise<void> {
+    db.prepare(`
+      UPDATE users
+      SET type = ?, username = ?, password = ?, phone = ?, email = ?
+      WHERE id = ?
+    `).run(
+      user.type,
+      user.username,
+      user.password,
+      user.phone,
+      user.email,
+      user.id
+    )
+  }
+
 }

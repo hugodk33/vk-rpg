@@ -1,6 +1,6 @@
-import type { IGameTableRepository } from '../../domain/irepositories/IGameTableRepository'
+import type { IGameTableRepository } from '../../../domain/irepositories/IGameTableRepository'
 import crypto from 'crypto'
-import { GameTable } from '../../domain/entities/GameTable'
+import { GameTable } from '../../../domain/entities/GameTable'
 
 export class CreateGameTableUseCase {
   constructor(

@@ -1,4 +1,4 @@
-import type { IUserRepository } from '../../domain/irepositories/IUserRepository'
+import type { IUserRepository } from '../../../domain/irepositories/IUserRepository'
 
 export class FindByStringUserUseCase {
   constructor(

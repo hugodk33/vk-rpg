@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { CreateUserUseCase } from './CreateUserUseCase'
+import { CreateUserUseCase } from './users-use-cases/CreateUserUseCase'
 
 describe('CreateUserUseCase', () => {
   it('creates a narrator and user when type is 0 and falls back to username for narrator name', async () => {
