@@ -10,6 +10,7 @@ import type {
 import type { IGameTableRepository } from '../irepositories/IGameTableRepository'
 
 import { GameTable } from '../entities/GameTable'
+import { title } from 'node:process'
 
 type GameTableWithPlayers = GameTableWithNarrator & {
   players: GameTablePlayerWithCharacter[]
@@ -470,6 +471,7 @@ export class GameTableRepository implements IGameTableRepository {
     if (!rows.length) {
       return {
         id: sceneId,
+        title: '',
         narrations: []
       }
     }
@@ -483,6 +485,7 @@ export class GameTableRepository implements IGameTableRepository {
       -- SCENE
       s.id AS scene_id,
       s.chapter AS scene_chapter,
+      s.title AS scene_title,
       s.moment AS scene_moment,
       s.table_id AS scene_table_id,
 
@@ -490,6 +493,7 @@ export class GameTableRepository implements IGameTableRepository {
       n.id AS narration_id,
       n.scene_id AS narration_scene_id,
       n.table_id AS narration_table_id,
+      n.title AS narration_title,
       n.narration AS narration_text,
       n.moment AS narration_moment,
 
@@ -591,11 +595,13 @@ export class GameTableRepository implements IGameTableRepository {
         id: string
         chapter: number
         moment: number
+        title: string
         narrations: Map<
           string,
           {
             id: string
             sceneId: string
+            title: string
             narration: string
             moment: number
             actions: Array<{
@@ -644,6 +650,7 @@ export class GameTableRepository implements IGameTableRepository {
       if (!scenesMap.has(row.scene_id)) {
         scenesMap.set(row.scene_id, {
           id: row.scene_id,
+          title: row.scene_title,
           chapter: row.scene_chapter,
           moment: row.scene_moment,
           narrations: new Map()
@@ -660,6 +667,7 @@ export class GameTableRepository implements IGameTableRepository {
         scene.narrations.set(row.narration_id, {
           id: row.narration_id,
           sceneId: row.narration_scene_id,
+          title: row.narration_title,
           narration: row.narration_text,
           moment: row.narration_moment,
           actions: [],
@@ -737,11 +745,13 @@ export class GameTableRepository implements IGameTableRepository {
       id: scene.id,
       chapter: scene.chapter,
       moment: scene.moment,
+      title: scene.title,
       narrations: Array.from(scene.narrations.values())
         .sort((a, b) => (a.moment ?? 0) - (b.moment ?? 0)) // ✅ ordenação aqui
         .map((narration) => ({
           id: narration.id,
           sceneId: narration.sceneId,
+          title: narration.title,
           narration: narration.narration,
           moment: narration.moment,
           actions: narration.actions,

@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS character_sheets (
 CREATE TABLE IF NOT EXISTS scenes (
   id TEXT PRIMARY KEY,
   table_id TEXT,
+  title TEXT,
   chapter INTEGER,
   moment INTEGER,
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
@@ -111,6 +112,7 @@ CREATE TABLE IF NOT EXISTS narrations (
   id TEXT PRIMARY KEY,
   table_id TEXT,
   scene_id TEXT,
+  title TEXT,
   narration TEXT,
   moment INTEGER,
   FOREIGN KEY (table_id) REFERENCES game_tables(id),

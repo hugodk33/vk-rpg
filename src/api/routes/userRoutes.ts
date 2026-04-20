@@ -12,6 +12,7 @@ import { GameTableController } from '../controllers/GameTableController'
 import { FindGameTableUseCase } from '../../application/use-cases/FindGameTableUseCase'
 import { FindAllGameTablesUseCase } from '../../application/use-cases/FindAllGameTablesUseCase'
 import { FindAllTableGameScenesUseCase } from '../../application/use-cases/FindAllTableGameScenesUseCase'
+import { FindByStringUserUseCase } from '../../application/use-cases/FindByStringUserUseCase'
 
 const router = Router()
 
@@ -22,8 +23,10 @@ const gameTableRepo = new GameTableRepository()
 /* USERS */
 const findAllUsersUseCase = new FindAllUsersUseCase(repo)
 const createUserUseCase = new CreateUserUseCase(repo, narratorRepo)
+const findByStringUserUseCase = new FindByStringUserUseCase(repo)
+
 /* ========== */
-const userController = new UserController(createUserUseCase, findAllUsersUseCase);
+const userController = new UserController(createUserUseCase, findAllUsersUseCase , findByStringUserUseCase);
 
 /* GAME TABLE */
 const createGameTableUseCase = new CreateGameTableUseCase(gameTableRepo)
@@ -37,9 +40,11 @@ const gameTableController = new GameTableController(createGameTableUseCase, find
 /* ===== USER ===== */
 router.post('/create-user', (req, res) => userController.create(req, res))
 router.get('/users', (req, res) => userController.findAll(req, res))
+router.get('/users/search/:searchTerm', (req, res) => userController.findByString(req, res))
+
 /* ===== GAME TABLES ===== */
 router.get('/game-tables', (req, res) => gameTableController.findAll(req, res))
 router.get('/game-tables/:id', (req, res) => gameTableController.findById(req, res))
-router.get('/game-tables-scenes/:id', (req, res) => gameTableController.findByAllScenes(req, res))
+router.get('/game-tables-scenes/:searchTerm', (req, res) => gameTableController.findByAllScenes(req, res))
 
 export default router

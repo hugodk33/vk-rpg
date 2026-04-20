@@ -93,6 +93,7 @@ export type GameTableSceneNarration = {
   sceneId: string
   narration: string
   moment: number
+  title: string
   actions: GameTableSceneAction[]
   characters?: []
   npcs?: []
@@ -101,6 +102,7 @@ export type GameTableSceneNarration = {
 
 export type GameTableScenes = {
   id: string
+  title: string
   narrations: GameTableSceneNarration[]
   characters?: any[]
 }
