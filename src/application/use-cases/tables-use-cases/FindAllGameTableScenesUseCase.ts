@@ -1,6 +1,6 @@
 import type { IGameTableRepository } from '../../../domain/irepositories/IGameTableRepository'
 
-export class FindAllTableGameScenesUseCase {
+export class FindAllGameTableScenesUseCase {
   constructor(private repo: IGameTableRepository) {}
 
   async execute(id: string) {

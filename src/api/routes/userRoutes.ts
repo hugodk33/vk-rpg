@@ -11,8 +11,8 @@ import { CreateGameTableUseCase } from '../../application/use-cases/tables-use-c
 import { GameTableController } from '../controllers/GameTableController'
 import { FindGameTableUseCase } from '../../application/use-cases/tables-use-cases/FindGameTableUseCase'
 import { FindAllGameTablesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTablesUseCase'
-import { FindAllTableGameScenesUseCase } from '../../application/use-cases/tables-use-cases/FindAllTableGameScenesUseCase'
-import { FindByStringUserUseCase } from '../../application/use-cases/tables-use-cases/FindByStringUserUseCase'
+import { FindAllGameTableScenesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTableScenesUseCase'
+import { FindByStringUserUseCase } from '../../application/use-cases/tables-use-cases/FindByStringGameTableUseCase'
 import { EditUsersUseCase } from '../../application/use-cases/users-use-cases/EditUsersUseCase'
 
 const router = Router()
@@ -34,9 +34,9 @@ const userController = new UserController(createUserUseCase, findAllUsersUseCase
 const createGameTableUseCase = new CreateGameTableUseCase(gameTableRepo)
 const findGameTableUseCase = new FindGameTableUseCase(gameTableRepo)
 const findAllGameTablesUseCase = new FindAllGameTablesUseCase(gameTableRepo)
-const findAllTableGameScenesUseCase = new FindAllTableGameScenesUseCase(gameTableRepo)
+const findAllGameTableScenesUseCase = new FindAllGameTableScenesUseCase(gameTableRepo)
 /* ========== */
-const gameTableController = new GameTableController(createGameTableUseCase, findGameTableUseCase , findAllGameTablesUseCase , findAllTableGameScenesUseCase)
+const gameTableController = new GameTableController(createGameTableUseCase, findGameTableUseCase , findAllGameTablesUseCase , findAllGameTableScenesUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -46,8 +46,9 @@ router.get('/users/search/:searchTerm', (req, res) => userController.findByStrin
 router.put('/users/edit/:id', (req, res) => userController.editUser(req, res))
 
 /* ===== GAME TABLES ===== */
+router.post('/create-game-table', (req, res) => gameTableController.create(req, res))
 router.get('/game-tables', (req, res) => gameTableController.findAll(req, res))
 router.get('/game-tables/:id', (req, res) => gameTableController.findById(req, res))
-router.get('/game-tables-scenes/:searchTerm', (req, res) => gameTableController.findByAllScenes(req, res))
+router.get('/game-tables-scenes/:id', (req, res) => gameTableController.findByAllScenes(req, res))
 
 export default router

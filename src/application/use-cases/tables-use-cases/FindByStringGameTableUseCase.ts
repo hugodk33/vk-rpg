@@ -7,11 +7,9 @@ export class FindByStringUserUseCase {
 
   async execute(data: any) {
     const user = await this.repo.findByString(data.searchTerm)
-
     if (!user) {
       console.log('User not found.')
     }
-
     return user
   }
 }

@@ -1,7 +1,7 @@
 import { Request , Response } from 'express'
 import { CreateUserUseCase } from '../../application/use-cases/users-use-cases/CreateUserUseCase'
 import { FindAllUsersUseCase } from '../../application/use-cases/users-use-cases/FindAllUsersUseCase'
-import { FindByStringUserUseCase } from '../../application/use-cases/tables-use-cases/FindByStringUserUseCase'
+import { FindByStringUserUseCase } from '../../application/use-cases/tables-use-cases/FindByStringGameTableUseCase'
 import { EditUsersUseCase } from '../../application/use-cases/users-use-cases/EditUsersUseCase'
 
 export class UserController {

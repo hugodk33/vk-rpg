@@ -3,6 +3,7 @@ export class GameTable {
     public id: string,
     public narratorId: string,
     public title: string,
+    public system: string,
     public intro: string
   ) {}
 }

@@ -19,12 +19,14 @@ type GameTableWithPlayers = GameTableWithNarrator & {
 export class GameTableRepository implements IGameTableRepository {
   async create(gameTable: GameTable): Promise<void> {
     db.prepare(`
-      INSERT INTO game_tables (id, narrator_id, title, intro)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO game_tables (id, narrator_id, title, system , intro)
+      VALUES (?, ?, ?, ?, ?)
     `).run(
       gameTable.id,
       gameTable.narratorId,
       gameTable.title,
+      gameTable.system,
+
       gameTable.intro
     )
   }
@@ -36,6 +38,7 @@ export class GameTableRepository implements IGameTableRepository {
         g.narrator_id AS table_narrator_id,
         g.intro AS table_intro,
         g.title AS table_title,
+        g.system AS table_system,
         n.id AS narrator_id,
         n.user_id AS narrator_user_id,
         n.name AS narrator_name,
@@ -778,9 +781,22 @@ export class GameTableRepository implements IGameTableRepository {
     return {
       id: row.id,
       narratorId: row.narrator_id,
-      intro: row.intro,
-      title: row.title
+      title: row.title,
+      system: row.table_system, 
+      intro: row.intro
     }
   }
 
+  async edit(gameTable: GameTable): Promise<void> {
+    db.prepare(`
+      UPDATE game_tables
+      SET title = ?, intro = ?, system = ?
+      WHERE id = ?
+    `).run(
+      gameTable.title,
+      gameTable.intro,
+      gameTable.system,
+      gameTable.id
+    ) 
+  }
 }

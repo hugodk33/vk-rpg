@@ -11,9 +11,10 @@ export class CreateGameTableUseCase {
 
   const gameTable = new GameTable(
     crypto.randomUUID(),
+    data.narratorId,
     data.title,
-    data.userId,
-    data.name
+    data.system,
+    data.intro
   )
 
   await this.repo.create(gameTable)

@@ -6,6 +6,7 @@ import type {
 } from '../types/GameTableTypes'
 export interface IGameTableRepository {
   create(gameTable: GameTable): Promise<void>
+  edit(gameTable: GameTable): Promise<void>
   findById(id: string): Promise<GameTableWithNarrator | null>
   findAll(): Promise<GameTableWithNarrator[]>
   // findBySceneId(sceneId: string): Promise<GameTableScene >
