@@ -26,7 +26,6 @@ export class GameTableRepository implements IGameTableRepository {
       gameTable.narratorId,
       gameTable.title,
       gameTable.system,
-
       gameTable.intro
     )
   }

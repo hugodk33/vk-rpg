@@ -3,13 +3,15 @@ import { CreateGameTableUseCase } from '../../application/use-cases/tables-use-c
 import { FindGameTableUseCase } from '../../application/use-cases/tables-use-cases/FindGameTableUseCase'
 import { FindAllGameTablesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTablesUseCase'
 import { FindAllGameTableScenesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTableScenesUseCase'
+import { EditGameTableUseCase } from '../../application/use-cases/tables-use-cases/EditGameTableUseCase'
 
 export class GameTableController {
   constructor(
     private createGameTableUseCase: CreateGameTableUseCase,
     private findGameTableUseCase: FindGameTableUseCase,
     private findAllGameTablesUseCase: FindAllGameTablesUseCase,
-    private findAllGameTableScenesUseCase: FindAllGameTableScenesUseCase
+    private findAllGameTableScenesUseCase: FindAllGameTableScenesUseCase,
+    private editGameTableUseCase: EditGameTableUseCase
   ) {}
 
   async create(req: Request, res: Response) {
@@ -31,4 +33,11 @@ export class GameTableController {
     const gameTablesScenes = await this.findAllGameTableScenesUseCase.execute(req.params.id as string) 
     return res.json(gameTablesScenes)
   } 
+
+  async editGameTable(req: Request, res: Response) {
+    const { id } = req.params
+    const gameTable = await this.editGameTableUseCase.execute({ ...req.body, id })
+    return res.json(gameTable)
+  }
+  
 }
