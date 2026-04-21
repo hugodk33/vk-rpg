@@ -1,7 +1,7 @@
-import type { IUserRepository } from '../../domain/irepositories/IUserRepository'
-import type { INarratorRepository } from '../../domain/irepositories/INarratorRepository'
-import { User } from '../../domain/entities/User'
-import { Narrator } from '../../domain/entities/Narrator'
+import type { IUserRepository } from '../../../domain/irepositories/IUserRepository'
+import type { INarratorRepository } from '../../../domain/irepositories/INarratorRepository'
+import { User } from '../../../domain/entities/User'
+import { Narrator } from '../../../domain/entities/Narrator'
 import crypto from 'crypto'
 
 export class CreateUserUseCase {

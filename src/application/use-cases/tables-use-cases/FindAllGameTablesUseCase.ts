@@ -1,4 +1,4 @@
-import type { IGameTableRepository } from '../../domain/irepositories/IGameTableRepository'
+import type { IGameTableRepository } from '../../../domain/irepositories/IGameTableRepository'
 
 export class FindAllGameTablesUseCase {
   constructor(private repo: IGameTableRepository) {}

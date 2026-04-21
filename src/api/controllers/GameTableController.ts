@@ -1,15 +1,17 @@
 import { Request , Response } from 'express'
-import { CreateGameTableUseCase } from '../../application/use-cases/CreateGameTableCase'
-import { FindGameTableUseCase } from '../../application/use-cases/FindGameTableUseCase'
-import { FindAllGameTablesUseCase } from '../../application/use-cases/FindAllGameTablesUseCase'
-import { FindAllTableGameScenesUseCase } from '../../application/use-cases/FindAllTableGameScenesUseCase'
+import { CreateGameTableUseCase } from '../../application/use-cases/tables-use-cases/CreateGameTableCase'
+import { FindGameTableUseCase } from '../../application/use-cases/tables-use-cases/FindGameTableUseCase'
+import { FindAllGameTablesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTablesUseCase'
+import { FindAllGameTableScenesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTableScenesUseCase'
+import { EditGameTableUseCase } from '../../application/use-cases/tables-use-cases/EditGameTableUseCase'
 
 export class GameTableController {
   constructor(
     private createGameTableUseCase: CreateGameTableUseCase,
     private findGameTableUseCase: FindGameTableUseCase,
     private findAllGameTablesUseCase: FindAllGameTablesUseCase,
-    private findAllTableGameScenesUseCase: FindAllTableGameScenesUseCase
+    private findAllGameTableScenesUseCase: FindAllGameTableScenesUseCase,
+    private editGameTableUseCase: EditGameTableUseCase
   ) {}
 
   async create(req: Request, res: Response) {
@@ -28,7 +30,14 @@ export class GameTableController {
   }
 
   async findByAllScenes(req: Request, res: Response) {
-    const gameTablesScenes = await this.findAllTableGameScenesUseCase.execute(req.params.id as string) 
+    const gameTablesScenes = await this.findAllGameTableScenesUseCase.execute(req.params.id as string) 
     return res.json(gameTablesScenes)
   } 
+
+  async editGameTable(req: Request, res: Response) {
+    const { id } = req.params
+    const gameTable = await this.editGameTableUseCase.execute({ ...req.body, id })
+    return res.json(gameTable)
+  }
+  
 }

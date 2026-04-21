@@ -775,6 +775,7 @@ const modifierItems: SeedModifierItem[] = [
 type SeedModifierScene= {
   id: string
   table_id: string
+  title: string
   chapter: number
   moment: number
 }
@@ -783,24 +784,28 @@ const modifierScenes: [SeedModifierScene ,  SeedModifierScene , SeedModifierScen
   {
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
+    title: 'The Forest',
     chapter: 1,
     moment: 0,
   },
   {
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
+    title: 'The Clearing',
     chapter: 1,
     moment: 1,
   },
   {
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
+    title: 'The River',
     chapter: 1,
     moment: 2
   },
   {
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
+    title: 'The Mountain Pass',
     chapter: 1,
     moment: 3
   }
@@ -810,6 +815,7 @@ type SeedModifierNarration= {
   id: string
   table_id: string
   scene_id: string
+  title: string
   narration: string
   moment: number
 }
@@ -822,7 +828,8 @@ const modifierNarrations: SeedModifierNarration[] = [
   {
     id: narration1,
     table_id: gameTables[0].id,
-    scene_id: modifierScenes[0].id, 
+    scene_id: modifierScenes[0].id,
+    title: 'The Forest', 
     narration: 'The party enters the forest.',
     moment: 0 
   },
@@ -830,6 +837,7 @@ const modifierNarrations: SeedModifierNarration[] = [
     id: narration2,
     table_id: gameTables[0].id,
     scene_id: modifierScenes[0].id, 
+    title: 'The Clearing',
     narration: 'The party enters the forest.',
     moment: 1 
   },
@@ -837,6 +845,7 @@ const modifierNarrations: SeedModifierNarration[] = [
     id: narration3,
     table_id: gameTables[0].id,
     scene_id: modifierScenes[0].id, 
+    title: 'The River',
     narration: 'The party enters the forest.',
     moment: 2 
   },
@@ -844,6 +853,7 @@ const modifierNarrations: SeedModifierNarration[] = [
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
     scene_id: modifierScenes[0].id, 
+    title: 'The Mountain Pass',
     narration: 'The party enters the forest.',
     moment: 2 
   },
@@ -851,6 +861,7 @@ const modifierNarrations: SeedModifierNarration[] = [
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
     scene_id: modifierScenes[0].id, 
+    title: 'The Mountain Pass',
     narration: 'The party enters the forest.',
     moment: 3 
   },
@@ -858,6 +869,7 @@ const modifierNarrations: SeedModifierNarration[] = [
     id: crypto.randomUUID(),
     table_id: gameTables[0].id,
     scene_id: modifierScenes[1].id, 
+    title: 'The River',
     narration: 'The party enters the forest.',
     moment: 3 
   }
@@ -1385,21 +1397,21 @@ for (const modifierItem of modifierItems) {
 }
 
 const modifierSceneStmt = db.prepare(`
-  INSERT INTO scenes(id, table_id , chapter , moment)
-  VALUES (?, ?, ?, ?)
-`)
-
-for (const modifierScene of modifierScenes) {
-  modifierSceneStmt.run(modifierScene.id, modifierScene.table_id , modifierScene.chapter, modifierScene.moment)
-}
-
-const modifierNarrationstmt = db.prepare(`
-  INSERT INTO narrations(id, table_id, scene_id, narration, moment)
+  INSERT INTO scenes(id, table_id , title , chapter , moment)
   VALUES (?, ?, ?, ?, ?)
 `)
 
+for (const modifierScene of modifierScenes) {
+  modifierSceneStmt.run(modifierScene.id, modifierScene.table_id , modifierScene.title, modifierScene.chapter, modifierScene.moment)
+}
+
+const modifierNarrationstmt = db.prepare(`
+  INSERT INTO narrations(id, table_id, title , scene_id , narration, moment)
+  VALUES (?, ?, ?, ?, ?, ?)
+`)
+
 for (const modifierNarration of modifierNarrations) {
-  modifierNarrationstmt.run(modifierNarration.id, modifierNarration.table_id, modifierNarration.scene_id, modifierNarration.narration, modifierNarration.moment)
+  modifierNarrationstmt.run(modifierNarration.id, modifierNarration.table_id, modifierNarration.title , modifierNarration.scene_id, modifierNarration.narration, modifierNarration.moment)
 }
 
 const modifierNarrationsActionstmt = db.prepare(`
