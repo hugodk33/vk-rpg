@@ -5,32 +5,32 @@ import crypto from 'crypto'
 // limpa dados (opcional, mas útil em dev)
 db.exec(`
   DELETE FROM log;
-  DELETE FROM modifier_scenes;
-  DELETE FROM modifier_items;
-  DELETE FROM modifier_advantages;
-  DELETE FROM modifier_skills;
-  DELETE FROM modifier_attributes;
+  DELETE FROM game_table_modifier_scenes;
+  DELETE FROM game_table_modifier_items;
+  DELETE FROM game_table_modifier_advantages;
+  DELETE FROM game_table_modifier_skills;
+  DELETE FROM game_table_modifier_attributes;
   DELETE FROM narrations;
   DELETE FROM narration_actions;
   DELETE FROM narration_characters;
   DELETE FROM narration_locations;
   DELETE FROM narration_npcs;
   DELETE FROM scenes;
-  DELETE FROM modifiers;
-  DELETE FROM npcs;
-  DELETE FROM damages;
-  DELETE FROM character_skills;
-  DELETE FROM character_advantages;
-  DELETE FROM peculiarities;
-  DELETE FROM character_images;
-  DELETE FROM character_sheets;
+  DELETE FROM game_table_modifiers;
+  DELETE FROM game_table_npcs;
+  DELETE FROM game_table_damages;
+  DELETE FROM game_table_character_skills;
+  DELETE FROM game_table_character_advantages;
+  DELETE FROM game_table_peculiarities;
+  DELETE FROM game_table_character_images;
+  DELETE FROM game_table_character_sheets;
   DELETE FROM characters;
   DELETE FROM item_images;
-  DELETE FROM items;
+  DELETE FROM game_table_items;
   DELETE FROM table_images;
   DELETE FROM table_locations;
-  DELETE FROM skill_dependencies;
-  DELETE FROM skills;
+  DELETE FROM game_table_skill_dependencies;
+  DELETE FROM game_table_skills;
   DELETE FROM game_table_players;
   DELETE FROM narrator_images;
   DELETE FROM game_tables;
@@ -1198,7 +1198,7 @@ for (const entry of gameTablePlayers) {
 
 // insert skills
 const skillStmt = db.prepare(`
-  INSERT INTO skills (id, name, predefinition_value, predefinition_type)
+  INSERT INTO game_table_skills (id, name, predefinition_value, predefinition_type)
   VALUES (?, ?, ?, ?)
 `)
 
@@ -1218,7 +1218,7 @@ for (const character of characters) {
 
 // insert character sheets
 const characterSheetStmt = db.prepare(`
-  INSERT INTO character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
+  INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
@@ -1241,7 +1241,7 @@ for (const sheet of characterSheets) {
 }
 
 const npcSheetStmt = db.prepare(`
-  INSERT INTO npcs (id, character_id , status)
+  INSERT INTO game_table_npcs (id, character_id , status)
   VALUES (?, ?, ? )
 `)
 
@@ -1255,7 +1255,7 @@ for (const npcSheet of newNpcs) {
 
 // insert items
 const itemStmt = db.prepare(`
-  INSERT INTO items (id, name, type, category, weight, dimensions, description, quality, condition, holder_id, owner_id, skill_user_id, skill_level)
+  INSERT INTO game_table_items (id, name, type, category, weight, dimensions, description, quality, condition, holder_id, owner_id, skill_user_id, skill_level)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
@@ -1279,7 +1279,7 @@ for (const item of items) {
 
 // insert advantages
 const advantageStmt = db.prepare(`
-  INSERT INTO character_advantages (id, name, character_id, cost_points, effect)
+  INSERT INTO game_table_character_advantages (id, name, character_id, cost_points, effect)
   VALUES (?, ?, ?, ?, ?)
 `)
 
@@ -1295,7 +1295,7 @@ for (const advantage of advantages) {
 
 // insert damages
 const damageStmt = db.prepare(`
-  INSERT INTO damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id)
+  INSERT INTO game_table_damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
@@ -1316,7 +1316,7 @@ for (const damage of damages) {
 
 // insert character skills
 const characterSkillStmt = db.prepare(`
-  INSERT INTO character_skills (id, character_id, skill_id, cost_points, effect)
+  INSERT INTO game_table_character_skills (id, character_id, skill_id, cost_points, effect)
   VALUES (?, ?, ?, ?, ?)
 `)
 
@@ -1332,7 +1332,7 @@ for (const characterSkill of characterSkills) {
 
 // insert peculiarities
 const peculiarityStmt = db.prepare(`
-  INSERT INTO peculiarities (id, name, character_id, cost_points, effect)
+  INSERT INTO game_table_peculiarities (id, name, character_id, cost_points, effect)
   VALUES (?, ?, ?, ?, ?)
 `)
 
@@ -1348,7 +1348,7 @@ for (const peculiarity of peculiarities) {
 
 // insert modifiers
 const modifierStmt = db.prepare(`
-  INSERT INTO modifiers (id, table_id, name, duration)
+  INSERT INTO game_table_modifiers (id, table_id, name, duration)
   VALUES (?, ?, ?, ?)
 `)
 
@@ -1358,7 +1358,7 @@ for (const modifier of modifiers) {
 
 // insert modifier attributes
 const modifierAttributeStmt = db.prepare(`
-  INSERT INTO modifier_attributes (id, modifier_id, attribute)
+  INSERT INTO game_table_modifier_attributes (id, modifier_id, attribute)
   VALUES (?, ?, ?)
 `)
 
@@ -1368,7 +1368,7 @@ for (const modifierAttribute of modifierAttributes) {
 
 // insert modifier skills
 const modifierSkillStmt = db.prepare(`
-  INSERT INTO modifier_skills (id, modifier_id, skill_id)
+  INSERT INTO game_table_modifier_skills (id, modifier_id, skill_id)
   VALUES (?, ?, ?)
 `)
 
@@ -1378,7 +1378,7 @@ for (const modifierSkill of modifierSkills) {
 
 // insert modifier advantages
 const modifierAdvantageStmt = db.prepare(`
-  INSERT INTO modifier_advantages (id, modifier_id, advantage_id)
+  INSERT INTO game_table_modifier_advantages (id, modifier_id, advantage_id)
   VALUES (?, ?, ?)
 `)
 
@@ -1388,7 +1388,7 @@ for (const modifierAdvantage of modifierAdvantages) {
 
 // insert modifier items
 const modifierItemStmt = db.prepare(`
-  INSERT INTO modifier_items (id, modifier_id, item_id)
+  INSERT INTO game_table_modifier_items (id, modifier_id, item_id)
   VALUES (?, ?, ?)
 `)
 
