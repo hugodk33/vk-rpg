@@ -1,16 +1,41 @@
 import { db } from '../../infra/database/database'
-
+import crypto from 'crypto'
 import { IGameTableRulesRepository } from '../irepositories/IGameTableRulesRepository'
+import  {Skill} from '../entities/GURPS/Skill_GURPS'
 
 export class GameTableRulesRepository implements IGameTableRulesRepository {
   
-  async createGameSkills(id: any): Promise<void> {
-
+  async createGameTableSkills(skill: Skill): Promise<void> {
+    db.prepare(`
+      INSERT INTO game_table_skills (id, name , predefinition_value , predefinition_type)
+      VALUES (?, ? , ?, ?)
+    `).run(
+      crypto.randomUUID(),
+      skill.name,
+      skill.predefinition_value,
+      skill.predefinition_type
+    ) 
   }
 
-  async editGameSkills(id: any): Promise<void> {}
-  async findGameSkills(id: any): Promise<void> {}
-  async findAllGameSkills(id: any): Promise<void> {}
+  async editGameTableSkills(id: any): Promise<void> {
+    db.prepare(`
+      UPDATE game_table_skills
+      SET name = ?, predefinition_value = ?, predefinition_type = ?
+      WHERE id = ?
+    `).run(     
+      id
+    )
+  }
+
+  async findGameTableSkill(id: any): Promise<void> {
+    const gameTableSkill = db.prepare(`SELECT * FROM game_table_skills WHERE id = ?`).get(id) as any
+    return gameTableSkill
+  }
+
+  async findAllGameTableSkills( ): Promise<any[]> {
+    const gameTableSkills = db.prepare(`SELECT * FROM game_table_skills`).all() as any[]
+    return gameTableSkills
+  }
   
   async createGameAdvantages(id: any): Promise<void> {}
   async editGameAdvantages(id: any): Promise<void> {}

@@ -244,15 +244,18 @@ CREATE TABLE IF NOT EXISTS narration_npcs (
 CREATE TABLE IF NOT EXISTS game_table_skills (
   id TEXT PRIMARY KEY,
   name TEXT,
-  predefinition_value TEXT,
-  predefinition_type TEXT
+  predefinition_type TEXT,
+  predefinition_difficulty TEXT,
+  description TEXT
 );
 
 CREATE TABLE IF NOT EXISTS game_table_skill_dependencies (
   id TEXT PRIMARY KEY,
-  skill_id TEXT,
+  origin_skill_id TEXT,
   depends_on_skill_id TEXT,
-  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
+  depends_on_skill_value TEXT,
+  depends_on_skill_for_others_attributes TEXT,
+  FOREIGN KEY (origin_skill_id) REFERENCES game_table_skills(id)
   FOREIGN KEY (depends_on_skill_id) REFERENCES game_table_skills(id)
 );
 

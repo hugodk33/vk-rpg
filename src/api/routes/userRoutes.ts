@@ -17,11 +17,17 @@ import { EditGameTableUseCase } from '../../application/use-cases/tables-use-cas
 import { FindByStringUserUseCase } from '../../application/use-cases/tables-use-cases/FindByStringGameTableUseCase'
 import { EditUsersUseCase } from '../../application/use-cases/users-use-cases/EditUsersUseCase'
 
+import { GameTableRulesRepository } from '../../domain/repositories/GameTableRulesRepository'
+import { FindGameTableSkillUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableSkillUseCase'
+import { GameTableRulesController } from '../controllers/GameTableRulesController'
+import { FindGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableSkillsUseCase'
+
 const router = Router()
 
 const repo = new UserRepository()
 const narratorRepo = new NarratorRepository()
 const gameTableRepo = new GameTableRepository()
+const gameTableRulesRepo = new GameTableRulesRepository()
 
 /* USERS */
 const findAllUsersUseCase = new FindAllUsersUseCase(repo)
@@ -45,14 +51,13 @@ const findAllGameTablesUseCase = new FindAllGameTablesUseCase(gameTableRepo)
 const findAllGameTableScenesUseCase = new FindAllGameTableScenesUseCase(gameTableRepo)
 const editGameTableUseCase = new EditGameTableUseCase(gameTableRepo)
 /* ========== */
-const gameTableController = 
-    new GameTableController(
-        createGameTableUseCase, 
-        findGameTableUseCase , 
-        findAllGameTablesUseCase , 
-        findAllGameTableScenesUseCase, 
-        editGameTableUseCase
-    )
+const gameTableController = new GameTableController(createGameTableUseCase, findGameTableUseCase , findAllGameTablesUseCase , findAllGameTableScenesUseCase, editGameTableUseCase)
+
+/* GAME TABLE RULES*/
+const findGameTableSkillsUseCase = new FindGameTableSkillUseCase(gameTableRulesRepo)   
+const findAllGameTableSkillsUseCase = new FindGameTableSkillsUseCase(gameTableRulesRepo) 
+/* ========== */
+const gameTableRulesController = new GameTableRulesController(findGameTableSkillsUseCase , findAllGameTableSkillsUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -67,5 +72,9 @@ router.get('/game-tables', (req, res) => gameTableController.findAll(req, res))
 router.get('/game-table/:id', (req, res) => gameTableController.findById(req, res))
 router.get('/game-table-scenes/:id', (req, res) => gameTableController.findByAllScenes(req, res))
 router.put('/game-table/edit/:id', (req, res) => gameTableController.editGameTable(req, res))
+
+/* ===== GAME TABLE RULES ===== */
+router.get('/game-table-rules-skill/:id', (req, res) => gameTableRulesController.findSkill(req, res))
+router.get('/game-table-rules-skills', (req, res) => gameTableRulesController.findAllSkills(req, res))
 
 export default router

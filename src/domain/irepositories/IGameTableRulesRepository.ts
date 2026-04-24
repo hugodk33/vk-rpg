@@ -1,8 +1,8 @@
 export interface IGameTableRulesRepository {
-  createGameSkills(id: any): Promise<void>
-  editGameSkills(id: any): Promise<void>
-  findGameSkills(id: any): Promise<void>
-  findAllGameSkills(id: any): Promise<void>
+  createGameTableSkills(id: any): Promise<void>
+  editGameTableSkills(id: any): Promise<void>
+  findGameTableSkill(id: any): Promise<void>
+  findAllGameTableSkills( ): Promise<any[]>
   createGameAdvantages(id: any): Promise<void>
   editGameAdvantages(id: any): Promise<void>
   findGameAdvantages(id: any): Promise<void>
