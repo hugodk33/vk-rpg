@@ -20,6 +20,7 @@ db.exec(`
   DELETE FROM game_table_npcs;
   DELETE FROM game_table_damages;
   DELETE FROM game_table_character_skills;
+  DELETE FROM game_table_advantages;
   DELETE FROM game_table_character_advantages;
   DELETE FROM game_table_peculiarities;
   DELETE FROM game_table_character_images;
@@ -140,9 +141,11 @@ type SeedGameTable = {
   intro: string
 }
 
+const mainGameTableId = crypto.randomUUID()
+
 export const  gameTables: [SeedGameTable, SeedGameTable, SeedGameTable] = [
   {
-    id: crypto.randomUUID(),
+    id: mainGameTableId,
     narratorId,
     title: 'City of Steel',
     system: 'GURPS',
@@ -171,15 +174,16 @@ type SeedGameTablePlayer = {
 }
 
 export const  gameTablePlayers: SeedGameTablePlayer[] = [
-  { id: crypto.randomUUID(), tableId: gameTables[0].id, userId: users[1].id },
-  { id: crypto.randomUUID(), tableId: gameTables[0].id, userId: users[2].id },
-  { id: crypto.randomUUID(), tableId: gameTables[0].id, userId: users[3].id },
+  { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[1].id },
+  { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[2].id },
+  { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[3].id },
   { id: crypto.randomUUID(), tableId: gameTables[1].id, userId: users[4].id },
   { id: crypto.randomUUID(), tableId: gameTables[1].id, userId: users[5].id }
 ]
 
 type SeedSkill = {
   id: string
+  table_id: string
   name: string
   predefinition_type: string
   predefinition_difficulty: string
@@ -198,6 +202,7 @@ const  skillSingId = crypto.randomUUID()
 export const  skills: SeedSkill[] = [
     {
         id: skillSwordsmanshipId,
+        table_id: mainGameTableId,
         name: 'Swordsmanship',
         predefinition_type: 'Physical',
         predefinition_difficulty: 'Easy',
@@ -205,6 +210,7 @@ export const  skills: SeedSkill[] = [
     },
     {
         id: skillBowsId,
+        table_id: mainGameTableId,
         name: 'Bows',
         predefinition_type: 'Physical',
         predefinition_difficulty: 'Medium',
@@ -212,6 +218,7 @@ export const  skills: SeedSkill[] = [
     },
     {
         id: skillStealthId,
+        table_id: mainGameTableId,
         name: 'Stealth',
         predefinition_type: 'Physical',
         predefinition_difficulty: 'Medium',
@@ -219,6 +226,7 @@ export const  skills: SeedSkill[] = [
     },
     {
         id: skillTacticsId,
+        table_id: mainGameTableId,
         name: 'Tactics',
         predefinition_type: 'Mental',
         predefinition_difficulty: 'Hard',
@@ -226,20 +234,23 @@ export const  skills: SeedSkill[] = [
     },
     {
         id: skillMagicId,
+        table_id: mainGameTableId,
         name: 'Magery',
         predefinition_type: 'Mental',
         predefinition_difficulty: 'Very Hard',
         description: 'A skill for casting spells and performing magical rituals.'
     },
     {
-        id: skillSingId,                                  
+        id: skillSingId,
+        table_id: mainGameTableId,                                  
         name: "Sing",         
         predefinition_type: "Physical",
         predefinition_difficulty: "Easy",
         description: "The study of this skill is based on HT, not DX. This is the ability to sing pleasantly. A success on a skill test means the audience liked your song. Modifiers: -2 if the audience doesn't understand the language you're singing in; +2 if you have the Melodious Voice advantage."
     },
     {
-        id: skillStrategyId,                                  
+        id: skillStrategyId,
+        table_id: mainGameTableId,                                  
         name: "Strategy",         
         predefinition_type: "Mental",
         predefinition_difficulty: "Hard",
@@ -264,31 +275,31 @@ export const  characters: SeedCharacter[] = [
   {
     id: characterMiraId,
     userId: users[1].id,
-    tableId: gameTables[0].id,
+    tableId: mainGameTableId,
     name: 'Mira Thorne'
   },
   {
     id: characterGarrickId,
     userId: users[2].id,
-    tableId: gameTables[0].id,
+    tableId: mainGameTableId,
     name: 'Garrick Stone'
   },
   {
     id: characterKasumiId,
     userId: users[3].id,
-    tableId: gameTables[0].id,
+    tableId: mainGameTableId,
     name: 'Kasumi Noh'
   },
-  { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Riven Kael' },
-  { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Thorne Black' },
-  { id: characterNPCsIds[2] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Selene Voss' },
-  { id: characterNPCsIds[3] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Kael Draven' },
-  { id: characterNPCsIds[4] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Lyra Moonfall' },
-  { id: characterNPCsIds[5] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Borin Stonehelm' },
-  { id: characterNPCsIds[6] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Nyx Shadowend' },
-  { id: characterNPCsIds[7] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Eldric Vale' },
-  { id: characterNPCsIds[8] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Vera Hollow' },
-  { id: characterNPCsIds[9] as string, userId: users[0]?.id, tableId: gameTables[0].id, name: 'Dante Crowe' }
+  { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Riven Kael' },
+  { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Thorne Black' },
+  { id: characterNPCsIds[2] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Selene Voss' },
+  { id: characterNPCsIds[3] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Kael Draven' },
+  { id: characterNPCsIds[4] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Lyra Moonfall' },
+  { id: characterNPCsIds[5] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Borin Stonehelm' },
+  { id: characterNPCsIds[6] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Nyx Shadowend' },
+  { id: characterNPCsIds[7] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Eldric Vale' },
+  { id: characterNPCsIds[8] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Vera Hollow' },
+  { id: characterNPCsIds[9] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Dante Crowe' }
 
 ]
 
@@ -468,6 +479,7 @@ export const  newNpcs: SeedNpc[] = [
 
 type SeedItem = {
   id: string
+  table_id: string
   name: string
   type: number
   category: string
@@ -489,6 +501,7 @@ const  bowId = crypto.randomUUID()
 export const  items: SeedItem[] = [
   {
     id: shortSwordId,
+    table_id: mainGameTableId,
     name: 'Short Sword',
     type: 1,
     category: 'Melee',
@@ -504,6 +517,7 @@ export const  items: SeedItem[] = [
   },
   {
     id: leatherArmorId,
+    table_id: mainGameTableId,
     name: 'Leather Armor',
     type: 2,
     category: 'Armor',
@@ -519,6 +533,7 @@ export const  items: SeedItem[] = [
   },
   {
     id: bowId,
+    table_id: mainGameTableId,
     name: 'Recurve Bow',
     type: 1,
     category: 'Ranged',
@@ -534,37 +549,37 @@ export const  items: SeedItem[] = [
   }
 ]
 
-type SeedAdvantage = {
-  id: string
-  name: string
-  characterId: string
-  costPoints: number
-  effect: string
-}
-
 const  advantageCombatReflexesId = crypto.randomUUID()
 const  advantageVeryFitId = crypto.randomUUID()
 const  advantageMageryId = crypto.randomUUID()
 
-export const  advantages: SeedAdvantage[] = [
+type SeedModifierGameTableAdvantages = {
+  id: string
+  table_id: string
+  name: string
+  costPoints: number
+  effect: string
+}
+
+export const advantages: SeedModifierGameTableAdvantages[] = [
   {
     id: advantageCombatReflexesId,
+    table_id: mainGameTableId,
     name: 'Combat Reflexes',
-    characterId: characterMiraId,
     costPoints: 15,
     effect: 'No surprise penalty and faster combat reaction.'
   },
   {
     id: advantageVeryFitId,
+    table_id: mainGameTableId,
     name: 'Very Fit',
-    characterId: characterGarrickId,
     costPoints: 10,
     effect: '+2 fatigue, better recovery.'
   },
   {
     id: advantageMageryId,
+    table_id: mainGameTableId,
     name: 'Magery 1',
-    characterId: characterKasumiId,
     costPoints: 25,
     effect: 'Basic access to spellcasting and rituals.'
   }
@@ -572,8 +587,8 @@ export const  advantages: SeedAdvantage[] = [
 
 type SeedPeculiarity = {
   id: string
+  table_id: string
   name: string
-  characterId: string
   costPoints: number
   effect: string
 }
@@ -581,22 +596,22 @@ type SeedPeculiarity = {
 export const  peculiarities: SeedPeculiarity[] = [
   {
     id: crypto.randomUUID(),
+    table_id: mainGameTableId,
     name: 'Bad Temper',
-    characterId: characterMiraId,
     costPoints: -5,
     effect: '-2 reaction rolls when provoked.'
   },
   {
     id: crypto.randomUUID(),
+    table_id: mainGameTableId,
     name: 'Night Owl',
-    characterId: characterGarrickId,
     costPoints: -5,
     effect: 'Harder to sleep at night, +1 alertness after midnight.'
   },
   {
     id: crypto.randomUUID(),
+    table_id: mainGameTableId,
     name: 'Fragile Bones',
-    characterId: characterKasumiId,
     costPoints: -10,
     effect: '+1 injury roll from falls and blunt trauma.'
   }
@@ -702,13 +717,13 @@ const  modifierCurseId = crypto.randomUUID()
 export const  modifiers: SeedModifier[] = [
   {
     id: modifierFocusId,
-    tableId: gameTables[0].id,
+    tableId: mainGameTableId,
     name: 'Battle Focus',
     duration: 'Scene'
   },
   {
     id: modifierCurseId,
-    tableId: gameTables[0].id,
+    tableId: mainGameTableId,
     name: 'Curse of Clumsiness',
     duration: 'Scene'
   }
@@ -806,28 +821,28 @@ type SeedModifierScene= {
 export const  modifierScenes: [SeedModifierScene ,  SeedModifierScene , SeedModifierScene , SeedModifierScene ] = [
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     title: 'The Forest',
     chapter: 1,
     moment: 0,
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     title: 'The Clearing',
     chapter: 1,
     moment: 1,
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     title: 'The River',
     chapter: 1,
     moment: 2
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     title: 'The Mountain Pass',
     chapter: 1,
     moment: 3
@@ -850,7 +865,7 @@ const  narration3 = crypto.randomUUID()
 export const  modifierNarrations: SeedModifierNarration[] = [
   {
     id: narration1,
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     scene_id: modifierScenes[0].id,
     title: 'The Forest', 
     narration: 'The party enters the forest.',
@@ -858,7 +873,7 @@ export const  modifierNarrations: SeedModifierNarration[] = [
   },
   {
     id: narration2,
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     scene_id: modifierScenes[0].id, 
     title: 'The Clearing',
     narration: 'The party enters the forest.',
@@ -866,7 +881,7 @@ export const  modifierNarrations: SeedModifierNarration[] = [
   },
   {
     id: narration3,
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     scene_id: modifierScenes[0].id, 
     title: 'The River',
     narration: 'The party enters the forest.',
@@ -874,7 +889,7 @@ export const  modifierNarrations: SeedModifierNarration[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     scene_id: modifierScenes[0].id, 
     title: 'The Mountain Pass',
     narration: 'The party enters the forest.',
@@ -882,7 +897,7 @@ export const  modifierNarrations: SeedModifierNarration[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     scene_id: modifierScenes[0].id, 
     title: 'The Mountain Pass',
     narration: 'The party enters the forest.',
@@ -890,7 +905,7 @@ export const  modifierNarrations: SeedModifierNarration[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     scene_id: modifierScenes[1].id, 
     title: 'The River',
     narration: 'The party enters the forest.',
@@ -1007,7 +1022,7 @@ const  locationId3 = crypto.randomUUID()
 export const  modifierTableLocations: SeedModifierLocation[] = [
   {
     id: locationId1,
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'Iron Alley',
     region: 'Industrial District',
     sub_region: 'Backstreets',
@@ -1021,7 +1036,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: locationId2,
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'Steel Market',
     region: 'Central District',
     sub_region: 'Commerce Hub',
@@ -1035,7 +1050,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: locationId3,
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'Underground Sewers',
     region: 'Lower City',
     sub_region: 'Maintenance Tunnels',
@@ -1049,7 +1064,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'The Broken Tower',
     region: 'Old District',
     sub_region: 'Ruins',
@@ -1063,7 +1078,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'Blacksmith Forge',
     region: 'Industrial District',
     sub_region: 'Workshop Area',
@@ -1077,7 +1092,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'City Watch Barracks',
     region: 'Central District',
     sub_region: 'Security Zone',
@@ -1091,7 +1106,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'Shadow Tavern',
     region: 'Lower City',
     sub_region: 'Underground Social',
@@ -1105,7 +1120,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'Abandoned Warehouse',
     region: 'Dock District',
     sub_region: 'Storage Zone',
@@ -1119,7 +1134,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'Rooftops of Steel',
     region: 'Central District',
     sub_region: 'Upper Levels',
@@ -1133,7 +1148,7 @@ export const  modifierTableLocations: SeedModifierLocation[] = [
   },
   {
     id: crypto.randomUUID(),
-    table_id: gameTables[0].id,
+    table_id: mainGameTableId,
     name: 'Arcane Library',
     region: 'Scholars Quarter',
     sub_region: 'Magic District',

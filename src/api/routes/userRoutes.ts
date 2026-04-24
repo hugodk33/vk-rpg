@@ -22,6 +22,10 @@ import { FindGameTableSkillUseCase } from '../../application/use-cases/table-gam
 import { GameTableRulesController } from '../controllers/GameTableRulesController'
 import { FindGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableSkillsUseCase'
 
+import { FindGameTableAdvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableAdvantagesUseCase '
+import { FindGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableNPCSUseCase'
+import { FindGameTableItemsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableItemsUseCase'
+
 const router = Router()
 
 const repo = new UserRepository()
@@ -56,8 +60,11 @@ const gameTableController = new GameTableController(createGameTableUseCase, find
 /* GAME TABLE RULES*/
 const findGameTableSkillsUseCase = new FindGameTableSkillUseCase(gameTableRulesRepo)   
 const findAllGameTableSkillsUseCase = new FindGameTableSkillsUseCase(gameTableRulesRepo) 
+const findAllGameTableAdvantagesUseCase = new FindGameTableAdvantagesUseCase(gameTableRulesRepo)
+const findAllGameTableNPCsUseCase = new FindGameTableNPCSUseCase(gameTableRulesRepo)
+const findAllGameTableItemsUseCase = new FindGameTableItemsUseCase(gameTableRulesRepo)
 /* ========== */
-const gameTableRulesController = new GameTableRulesController(findGameTableSkillsUseCase , findAllGameTableSkillsUseCase)
+const gameTableRulesController = new GameTableRulesController(findGameTableSkillsUseCase , findAllGameTableSkillsUseCase, findAllGameTableAdvantagesUseCase , findAllGameTableNPCsUseCase , findAllGameTableItemsUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -75,6 +82,9 @@ router.put('/game-table/edit/:id', (req, res) => gameTableController.editGameTab
 
 /* ===== GAME TABLE RULES ===== */
 router.get('/game-table-rules-skill/:id', (req, res) => gameTableRulesController.findSkill(req, res))
-router.get('/game-table-rules-skills', (req, res) => gameTableRulesController.findAllSkills(req, res))
+router.get('/game-table-rules-skills/:id', (req, res) => gameTableRulesController.findAllSkills(req, res))
+router.get('/game-table-rules-advantages/:id', (req, res) => gameTableRulesController.findAllAdvantages(req, res))
+router.get('/game-table-rules-items/:id', (req, res) => gameTableRulesController.findAllItems(req, res))
+router.get('/game-table-rules-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 
 export default router
