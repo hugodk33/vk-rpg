@@ -1,9 +1,9 @@
 import { IGameTableRulesRepository } from '../../../domain/irepositories/IGameTableRulesRepository'
 
-export class FindAllGameTableNPCSUseCase {
+export class FindGameTableAdvantageUseCase {
   constructor(private repo: IGameTableRulesRepository) {}
   async execute(id: any) {
-    const gameTableNPCS = await this.repo.findAllGameNPCS(id)
-    return gameTableNPCS
+    const advantage = await this.repo.findGameAdvantages(id)
+    return advantage
   }
 }
