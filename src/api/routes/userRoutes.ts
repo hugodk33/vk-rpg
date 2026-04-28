@@ -111,5 +111,6 @@ router.get('/game-table-advantages/:id', (req, res) => gameTableRulesController.
 router.get('/game-table-peculiarities/:id', (req, res) => gameTableRulesController.findAllPeculiarities(req, res))
 router.get('/game-table-items/:id', (req, res) => gameTableRulesController.findAllItems(req, res))
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
+router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 
 export default router

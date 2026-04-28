@@ -918,6 +918,8 @@ type SeedModifierNarrationActions= {
   narrations_id: string,
   value: string,
   test: string,
+  description: string,
+  dice_roll: string,
   character_id: string,
 }
 
@@ -926,28 +928,36 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     id: crypto.randomUUID(),
     narrations_id: narration1,
     value: '10',
-    test: 'Mira usou a habilidade de ataque e deu certo',
+    test: '9',
+    description: 'Mira usou a habilidade de ataque e deu certo',
+    dice_roll: '3d6 [ 7 , 1 , 4 ]',
     character_id: characterMiraId,
   },
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
     value: '17',
-    test: 'Garrick usou a habilidade de defesa e deu errado',
+    test: '12',
+    description: 'Garrick usou a habilidade de defesa e deu errado',
+    dice_roll: '3d6 [ 4 , 1 , 5 ]',
     character_id: characterGarrickId,
   },
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
     value: '',
-    test: 'Kasumi não fez nada',
+    test: '',
+    description: 'Kasumi não fez nada',
+    dice_roll: '3d6 [ 0 , 0 , 0 ]',
     character_id: characterKasumiId,
   },
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
     value: '11',
-    test: 'Mira usou a habilidade de ataque novamente e deu certo',
+    test: '10',
+    description: 'Mira usou a habilidade de ataque novamente e deu certo',
+    dice_roll: '3d6 [ 3 , 4 , 2 ]',
     character_id: characterMiraId,
   }
 ]
@@ -1224,4 +1234,348 @@ export const  modifierGameTableSkillsDependecies: SeedModifierGameTableSkillsDep
         depends_on_skill_value: null,
         depends_on_skill_for_others_attributes: '[IQ - 6]'
     }
+]
+
+type SeedModifierGameTableCharacterAdvantages = {
+  id: string,
+  name: string,
+  character_id: string,
+  cost_points: number,
+  effect: string
+}
+
+export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharacterAdvantages[] = [
+  // Mira Thorne - streetwise duelist
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterMiraId,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dodge',
+    character_id: characterMiraId,
+    cost_points: 10,
+    effect: '+1 to active defense (Dodge).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Fast Draw',
+    character_id: characterMiraId,
+    cost_points: 10,
+    effect: 'Draw weapon as free action.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'High Pain Threshold',
+    character_id: characterMiraId,
+    cost_points: 10,
+    effect: 'Ignore shock from injury.'
+  },
+
+  // Garrick Stone - hulking veteran
+  {
+    id: crypto.randomUUID(),
+    name: 'High Pain Threshold',
+    character_id: characterGarrickId,
+    cost_points: 10,
+    effect: 'Ignore shock from injury.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Toughness',
+    character_id: characterGarrickId,
+    cost_points: 15,
+    effect: '+2 HT for resistance rolls.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterGarrickId,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Fearlessness',
+    character_id: characterGarrickId,
+    cost_points: 10,
+    effect: 'Immune to fear up to -10 reaction.'
+  },
+
+  // Kasumi Noh - scholar/mage
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 1',
+    character_id: characterKasumiId,
+    cost_points: 25,
+    effect: 'Basic access to spellcasting and rituals.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Intuition',
+    character_id: characterKasumiId,
+    cost_points: 15,
+    effect: '+2 to unexpected IQ rolls.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Mathematical Ability',
+    character_id: characterKasumiId,
+    cost_points: 10,
+    effect: '+2 to mathematics and calculations.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'GURPS 101',
+    character_id: characterKasumiId,
+    cost_points: 5,
+    effect: 'Familiarity with GURPS rules gives +1 to relevant IQ checks.'
+  },
+
+  // Riven Kael - fast dual-blade fighter (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterNPCsIds[0] as string,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dodge',
+    character_id: characterNPCsIds[0] as string,
+    cost_points: 10,
+    effect: '+1 to active defense (Dodge).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Ambidexterity',
+    character_id: characterNPCsIds[0] as string,
+    cost_points: 10,
+    effect: 'No off-hand penalty when dual-wielding.'
+  },
+
+  // Thorne Black - grim bounty hunter (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'High Pain Threshold',
+    character_id: characterNPCsIds[1] as string,
+    cost_points: 10,
+    effect: 'Ignore shock from injury.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Fearlessness',
+    character_id: characterNPCsIds[1] as string,
+    cost_points: 10,
+    effect: 'Immune to fear up to -10 reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Absolute Direction',
+    character_id: characterNPCsIds[1] as string,
+    cost_points: 5,
+    effect: 'Never get lost, +2 to Navigation.'
+  },
+
+  // Selene Voss - shadow mage (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 2',
+    character_id: characterNPCsIds[2] as string,
+    cost_points: 35,
+    effect: 'Enhanced access to spellcasting (level 2).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Night Vision',
+    character_id: characterNPCsIds[2] as string,
+    cost_points: 10,
+    effect: 'See in darkness as if daylight.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Silence',
+    character_id: characterNPCsIds[2] as string,
+    cost_points: 15,
+    effect: 'Move silently, +4 to Stealth in shadows.'
+  },
+
+  // Kael Draven - ruthless duelist (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterNPCsIds[3] as string,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dodge',
+    character_id: characterNPCsIds[3] as string,
+    cost_points: 10,
+    effect: '+1 to active defense (Dodge).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Weapon Master',
+    character_id: characterNPCsIds[3] as string,
+    cost_points: 20,
+    effect: '+2 to skill with chosen weapon type.'
+  },
+
+  // Lyra Moonfall - celestial sorcerer (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 2',
+    character_id: characterNPCsIds[4] as string,
+    cost_points: 35,
+    effect: 'Enhanced access to spellcasting (level 2).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Oracle',
+    character_id: characterNPCsIds[4] as string,
+    cost_points: 15,
+    effect: 'Visions of future events (+2 to predictions).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Serendipity',
+    character_id: characterNPCsIds[4] as string,
+    cost_points: 15,
+    effect: 'Luck that helps in critical moments.'
+  },
+
+  // Borin Stonehelm - dwarven tank (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'High Pain Threshold',
+    character_id: characterNPCsIds[5] as string,
+    cost_points: 10,
+    effect: 'Ignore shock from injury.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Toughness',
+    character_id: characterNPCsIds[5] as string,
+    cost_points: 15,
+    effect: '+2 HT for resistance rolls.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Damage Resistance',
+    character_id: characterNPCsIds[5] as string,
+    cost_points: 20,
+    effect: 'DR 2 against all physical attacks.'
+  },
+
+  // Nyx Shadowend - elite assassin (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterNPCsIds[6] as string,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Silence',
+    character_id: characterNPCsIds[6] as string,
+    cost_points: 15,
+    effect: 'Move silently, +4 to Stealth in shadows.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Night Vision',
+    character_id: characterNPCsIds[6] as string,
+    cost_points: 10,
+    effect: 'See in darkness as if daylight.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Flexibility',
+    character_id: characterNPCsIds[6] as string,
+    cost_points: 5,
+    effect: '+2 to Escape, +1 to Climbing.'
+  },
+
+  // Eldric Vale - wise mage (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 3',
+    character_id: characterNPCsIds[7] as string,
+    cost_points: 45,
+    effect: 'Powerful access to spellcasting (level 3).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Intuition',
+    character_id: characterNPCsIds[7] as string,
+    cost_points: 15,
+    effect: '+2 to unexpected IQ rolls.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Mathematical Ability',
+    character_id: characterNPCsIds[7] as string,
+    cost_points: 10,
+    effect: '+2 to mathematics and calculations.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'GURPS 101',
+    character_id: characterNPCsIds[7] as string,
+    cost_points: 5,
+    effect: 'Familiarity with GURPS rules gives +1 to relevant IQ checks.'
+  },
+
+  // Vera Hollow - cursed archer (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Dodge',
+    character_id: characterNPCsIds[8] as string,
+    cost_points: 10,
+    effect: '+1 to active defense (Dodge).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Night Vision',
+    character_id: characterNPCsIds[8] as string,
+    cost_points: 10,
+    effect: 'See in darkness as if daylight.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Absolute Direction',
+    character_id: characterNPCsIds[8] as string,
+    cost_points: 5,
+    effect: 'Never get lost, +2 to Navigation.'
+  },
+
+  // Dante Crowe - charismatic warlock (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 2',
+    character_id: characterNPCsIds[9] as string,
+    cost_points: 35,
+    effect: 'Enhanced access to spellcasting (level 2).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Charisma',
+    character_id: characterNPCsIds[9] as string,
+    cost_points: 10,
+    effect: '+2 to reaction rolls from NPCs.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Serendipity',
+    character_id: characterNPCsIds[9] as string,
+    cost_points: 15,
+    effect: 'Luck that helps in critical moments.'
+  }
 ]

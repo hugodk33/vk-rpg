@@ -269,12 +269,12 @@ for (const modifierNarration of modifierNarrations) {
 }
 
 const modifierNarrationsActionstmt = db.prepare(`
-  INSERT INTO narration_actions(id, narrations_id, value, test, character_id)
-  VALUES (?, ?, ?, ?, ?)
+  INSERT INTO narration_actions(id, narrations_id, value, test, character_id , dice_roll, description)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const modifierNarrationAction of modifierNarrationsActions) {
-  modifierNarrationsActionstmt.run(modifierNarrationAction.id, modifierNarrationAction.narrations_id, modifierNarrationAction.value, modifierNarrationAction.test, modifierNarrationAction.character_id)
+  modifierNarrationsActionstmt.run(modifierNarrationAction.id, modifierNarrationAction.narrations_id, modifierNarrationAction.value, modifierNarrationAction.test, modifierNarrationAction.character_id, modifierNarrationAction.dice_roll, modifierNarrationAction.description)
 }
 
 const modifierNarrationsCharacterstmt = db.prepare(`

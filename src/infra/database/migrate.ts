@@ -143,6 +143,8 @@ CREATE TABLE IF NOT EXISTS narration_actions (
   narrations_id TEXT,
   value TEXT,
   test TEXT,
+  description TEXT,
+  dice_roll TEXT,
   character_id TEXT,
   FOREIGN KEY (narrations_id) REFERENCES narrations(id),
   FOREIGN KEY (character_id) REFERENCES characters(id)
@@ -283,11 +285,13 @@ CREATE TABLE IF NOT EXISTS game_table_character_skills (
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_character_advantages (
   id TEXT PRIMARY KEY,
+  advantage_id TEXT,
   name TEXT,
   character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
   FOREIGN KEY (character_id) REFERENCES characters(id)
+  FOREIGN KEY (advantage_id) REFERENCES game_table_advantages(id)
 );
 
 -- =========================
