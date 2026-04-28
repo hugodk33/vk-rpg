@@ -292,14 +292,121 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     )
   }
   async findGameNPC(id: any): Promise<any> {
-    const gameTableNPC = db.prepare(`
-      SELECT npc.*, c.* , cs.* , c.name as character_name
+    const npcData = db.prepare(`
+      SELECT
+        npc.id as npc_id,
+        npc.status,
+        npc.character_id,
+        c.table_id,
+        c.name as character_name,
+        c.user_id,
+        cs.id as sheet_id,
+        cs.name as sheet_name,
+        cs.bio,
+        cs.backstory,
+        cs.points,
+        cs.hp,
+        cs.st,
+        cs.dx,
+        cs.iq,
+        cs.ht,
+        cs.fatigue,
+        cs.encumbrance,
+        u.username,
+        u.email,
+        u.phone,
+        g.title as table_title,
+        g.intro as table_intro,
+        g.system as table_system
       FROM game_table_npcs npc
       LEFT JOIN characters c ON c.id = npc.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
+      LEFT JOIN users u ON u.id = c.user_id
+      LEFT JOIN game_tables g ON g.id = c.table_id
       WHERE npc.id = ?
     `).get(id) as any
-    return gameTableNPC
+
+    if (!npcData) return null
+
+    const characterId = npcData.character_id
+    const tableId = npcData.table_id
+    const userId = npcData.user_id
+
+    const advantages = db.prepare(`
+      SELECT * FROM game_table_character_advantages
+      WHERE character_id = ?
+    `).all(characterId) as any[]
+
+    const skills = db.prepare(`
+      SELECT
+        csk.id,
+        csk.skill_id,
+        csk.cost_points,
+        csk.effect,
+        s.name as skill_name,
+        s.predefinition_type,
+        s.predefinition_difficulty
+      FROM game_table_character_skills csk
+      LEFT JOIN game_table_skills s ON s.id = csk.skill_id
+      WHERE csk.character_id = ?
+    `).all(characterId) as any[]
+
+    const items = db.prepare(`
+      SELECT * FROM game_table_items
+      WHERE holder_id = ? OR owner_id = ?
+    `).all(userId, userId) as any[]
+
+    const peculiarities = db.prepare(`
+      SELECT * FROM game_table_peculiarities
+      WHERE table_id = ?
+    `).all(tableId) as any[]
+
+    const damages = db.prepare(`
+      SELECT * FROM game_table_damages
+      WHERE character_id = ?
+    `).all(characterId) as any[]
+
+    return {
+      npc: {
+        id: npcData.npc_id,
+        status: npcData.status
+      },
+      character: {
+        id: npcData.character_id,
+        name: npcData.character_name,
+        user: {
+          id: npcData.user_id,
+          username: npcData.username,
+          email: npcData.email,
+          phone: npcData.phone
+        },
+        sheet: npcData.sheet_id ? {
+          id: npcData.sheet_id,
+          name: npcData.sheet_name,
+          bio: npcData.bio,
+          backstory: npcData.backstory,
+          points: npcData.points,
+          hp: npcData.hp,
+          st: npcData.st,
+          dx: npcData.dx,
+          iq: npcData.iq,
+          ht: npcData.ht,
+          fatigue: npcData.fatigue,
+          encumbrance: npcData.encumbrance
+        } : null,
+        advantages,
+        skills,
+        items,
+        damages
+      },
+      table: {
+        id: npcData.table_id,
+        title: npcData.table_title,
+        intro: npcData.table_intro,
+        system: npcData.table_system
+      },
+      peculiarities
+    }
   }
   async findAllGameNPCS(tableId: any): Promise<any> {
     const table = db.prepare(`
