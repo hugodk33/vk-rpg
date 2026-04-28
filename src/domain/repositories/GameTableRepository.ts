@@ -426,10 +426,10 @@ export class GameTableRepository implements IGameTableRepository {
           name: row.action_name,
           description: row.action_description,
           userId: row.action_user_id,
-          character: row.character_id
+          character: row.action_character_id
             ? {
-              id: row.character_id,
-              name: row.character_name
+              id: row.action_character_id,
+              name: row.action_character_name
             }
             : null
         })
