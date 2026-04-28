@@ -20,6 +20,10 @@ import { EditGameTableNPCUseCase } from '../../application/use-cases/table-game-
 import { CreateGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableNPCVisibilityUseCase'
 import { EditGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableNPCVisibilityUseCase'
 import { FindGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableNPCVisibilityUseCase'
+import { CreateGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableCharacterUseCase'
+import { EditGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableCharacterUseCase'
+import { FindGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterUseCase'
+import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
 
 export class GameTableRulesController {
   constructor(
@@ -30,8 +34,8 @@ export class GameTableRulesController {
     private findGameTablePeculiarityUseCase: FindGameTablePeculiarityUseCase,
     private findAllGameTablePeculiaritiesUseCase: FindAllGameTablePeculiaritiesUseCase,
     private findGameTableItemUseCase: FindGameTableItemUseCase,
-    private findAllGameTableItemsUseCase: FindGameTableItemsUseCase,
-    private findGameTableNPCSUseCase: FindGameTableNPCUseCase,
+    private findAllGameTableItemsUseCase: FindGameTableItemsUseCase ,
+    private findGameTableNPCUseCase: FindGameTableNPCUseCase,
     private findAllGameTableNPCSUseCase: FindAllGameTableNPCSUseCase,
     private createGameTableAdvantagesUseCase?: CreateGameTableAdvantagesUseCase,
     private editGameTableAdvantagesUseCase?: EditGameTableAdvantagesUseCase,
@@ -43,7 +47,11 @@ export class GameTableRulesController {
     private editGameTableNPCSUseCase?: EditGameTableNPCUseCase,
     private createGameTableNPCVisibilityUseCase?: CreateGameTableNPCVisibilityUseCase,
     private editGameTableNPCVisibilityUseCase?: EditGameTableNPCVisibilityUseCase,
-    private findGameTableNPCVisibilityUseCase?: FindGameTableNPCVisibilityUseCase
+    private findGameTableNPCVisibilityUseCase?: FindGameTableNPCVisibilityUseCase,
+    private createGameTableCharacterUseCase?: CreateGameTableCharacterUseCase,
+    private editGameTableCharacterUseCase?: EditGameTableCharacterUseCase,
+    private findGameTableCharacterUseCase?: FindGameTableCharacterUseCase,
+    private findAllGameTableCharactersUseCase?: FindAllGameTableCharactersUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -132,7 +140,7 @@ export class GameTableRulesController {
   }
 
   async findNPC(req: Request, res: Response) {
-    const npc = await this.findGameTableNPCSUseCase.execute(req.params.id as string)
+    const npc = await this.findGameTableNPCUseCase.execute(req.params.id as string)
     return res.json(npc)
   }
 
@@ -153,5 +161,25 @@ export class GameTableRulesController {
 
   async findAllNPCVisibility(req: Request, res: Response) {
     return res.json([])
+  }
+
+  async createCharacter(req: Request, res: Response) {
+    await this.createGameTableCharacterUseCase!.execute(req.body)
+    return res.json({ success: true })
+  }
+
+  async editCharacter(req: Request, res: Response) {
+    await this.editGameTableCharacterUseCase!.execute(req.body)
+    return res.json({ success: true })
+  }
+
+  async findCharacter(req: Request, res: Response) {
+    const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string)
+    return res.json(character)
+  }
+
+  async findAllCharacters(req: Request, res: Response) {
+    const characters = await this.findAllGameTableCharactersUseCase!.execute(req.params.id as string)
+    return res.json(characters)
   }
 }

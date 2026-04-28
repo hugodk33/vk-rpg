@@ -487,4 +487,200 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).all(id) as any[]
     return npcVisibility
   }
+
+  /* =============== */
+  /*    CHARACTERS   */
+  /* =============== */
+
+  async createGameCharacter(data: any): Promise<void> {
+    db.prepare(`
+      INSERT INTO characters (id, user_id, table_id, name)
+      VALUES (?, ?, ?, ?)
+    `).run(
+      crypto.randomUUID(),
+      data.user_id,
+      data.table_id,
+      data.name
+    )
+  }
+
+  async editGameCharacter(data: any): Promise<void> {
+    db.prepare(`
+      UPDATE characters
+      SET user_id = ?, table_id = ?, name = ?
+      WHERE id = ?
+    `).run(
+      data.user_id,
+      data.table_id,
+      data.name,
+      data.id
+    )
+  }
+
+  async findGameCharacter(id: any): Promise<any> {
+    const characterData = db.prepare(`
+      SELECT
+        c.id as character_id,
+        c.user_id,
+        c.table_id,
+        c.name as character_name,
+        cs.id as sheet_id,
+        cs.name as sheet_name,
+        cs.bio,
+        cs.backstory,
+        cs.points,
+        cs.hp,
+        cs.st,
+        cs.dx,
+        cs.iq,
+        cs.ht,
+        cs.fatigue,
+        cs.encumbrance,
+        u.username,
+        u.email,
+        u.phone,
+        u.type as user_type,
+        g.title as table_title,
+        g.intro as table_intro,
+        g.system as table_system
+      FROM characters c
+      LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
+      LEFT JOIN users u ON u.id = c.user_id
+      LEFT JOIN game_tables g ON g.id = c.table_id
+      WHERE c.id = ?
+    `).get(id) as any
+
+    if (!characterData) return null
+
+    const characterId = characterData.character_id
+    const tableId = characterData.table_id
+    const userId = characterData.user_id
+
+    const advantages = db.prepare(`
+      SELECT * FROM game_table_character_advantages
+      WHERE character_id = ?
+    `).all(characterId) as any[]
+
+    const skills = db.prepare(`
+      SELECT
+        csk.id,
+        csk.skill_id,
+        csk.cost_points,
+        csk.effect,
+        s.name as skill_name,
+        s.predefinition_type,
+        s.predefinition_difficulty
+      FROM game_table_character_skills csk
+      LEFT JOIN game_table_skills s ON s.id = csk.skill_id
+      WHERE csk.character_id = ?
+    `).all(characterId) as any[]
+
+    const items = db.prepare(`
+      SELECT * FROM game_table_items
+      WHERE holder_id = ? OR owner_id = ?
+    `).all(userId, userId) as any[]
+
+    const peculiarities = db.prepare(`
+      SELECT * FROM game_table_peculiarities
+      WHERE table_id = ?
+    `).all(tableId) as any[]
+
+    const damages = db.prepare(`
+      SELECT * FROM game_table_damages
+      WHERE character_id = ?
+    `).all(characterId) as any[]
+
+    return {
+      character: {
+        id: characterData.character_id,
+        name: characterData.character_name,
+        user: {
+          id: characterData.user_id,
+          username: characterData.username,
+          email: characterData.email,
+          phone: characterData.phone,
+          type: characterData.user_type
+        },
+        sheet: characterData.sheet_id ? {
+          id: characterData.sheet_id,
+          name: characterData.sheet_name,
+          bio: characterData.bio,
+          backstory: characterData.backstory,
+          points: characterData.points,
+          hp: characterData.hp,
+          st: characterData.st,
+          dx: characterData.dx,
+          iq: characterData.iq,
+          ht: characterData.ht,
+          fatigue: characterData.fatigue,
+          encumbrance: characterData.encumbrance
+        } : null,
+        advantages,
+        skills,
+        items,
+        damages
+      },
+      table: {
+        id: characterData.table_id,
+        title: characterData.table_title,
+        intro: characterData.table_intro,
+        system: characterData.table_system
+      },
+      peculiarities
+    }
+  }
+
+  async findAllGameCharacters(tableId: any): Promise<any> {
+    const table = db.prepare(`
+      SELECT
+        id,
+        narrator_id,
+        intro,
+        title
+      FROM game_tables
+      WHERE id = ?
+    `).get(tableId as string)
+
+    const characters = db.prepare(`
+      SELECT
+        c.id as character_id,
+        c.user_id,
+        c.name as character_name,
+        cs.id as sheet_id,
+        cs.name as sheet_name,
+        cs.points,
+        cs.hp,
+        cs.st,
+        cs.dx,
+        cs.iq,
+        cs.ht,
+        u.username
+      FROM characters c
+      LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
+      LEFT JOIN users u ON u.id = c.user_id
+      WHERE c.table_id = ?
+    `).all(tableId) as any[]
+
+    return {
+      table,
+      characters: characters.map(char => ({
+        id: char.character_id,
+        name: char.character_name,
+        user: {
+          id: char.user_id,
+          username: char.username
+        },
+        sheet: char.sheet_id ? {
+          id: char.sheet_id,
+          name: char.sheet_name,
+          points: char.points,
+          hp: char.hp,
+          st: char.st,
+          dx: char.dx,
+          iq: char.iq,
+          ht: char.ht
+        } : null
+      }))
+    }
+  }
 }
