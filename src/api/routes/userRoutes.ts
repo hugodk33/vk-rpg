@@ -35,9 +35,9 @@ import { EditGameTablePeculiaritiesUseCase } from '../../application/use-cases/t
 import { FindGameTableItemUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableItemUseCase'
 import { CreateGameTableItemsUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableItemsUseCase'
 import { EditGameTableItemsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableItemsUseCase'
-import { CreateGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableNPCSUseCase'
-import { EditGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableNPCSUseCase'
-import { FindGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableNPCSUseCase'
+import { CreateGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableNPCUseCase'
+import { EditGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableNPCUseCase'
+import { FindGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableNPCUseCase'
 
 const router = Router()
 
@@ -85,10 +85,10 @@ const findGameTableItemUseCase = new FindGameTableItemUseCase(gameTableRulesRepo
 const createGameTableItemsUseCase = new CreateGameTableItemsUseCase(gameTableRulesRepo)
 const editGameTableItemsUseCase = new EditGameTableItemsUseCase(gameTableRulesRepo)
 const findAllGameTableItemsUseCase = new FindGameTableItemsUseCase(gameTableRulesRepo)
-const findGameTableNPCSSingleUseCase = new FindGameTableNPCSUseCase(gameTableRulesRepo)
+const findGameTableNPCSSingleUseCase = new FindGameTableNPCUseCase(gameTableRulesRepo)
 const findAllGameNPCsUseCase = new FindAllGameTableNPCSUseCase(gameTableRulesRepo)
-const createGameTableNPCSUseCase = new CreateGameTableNPCSUseCase(gameTableRulesRepo)
-const editGameTableNPCSUseCase = new EditGameTableNPCSUseCase(gameTableRulesRepo)
+const createGameTableNPCSUseCase = new CreateGameTableNPCUseCase(gameTableRulesRepo)
+const editGameTableNPCSUseCase = new EditGameTableNPCUseCase(gameTableRulesRepo)
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(findGameTableSkillsUseCase,findAllGameTableSkillsUseCase,findGameTableAdvantageUseCase,findAllGameTableAdvantagesUseCase,findGameTablePeculiarityUseCase,findAllGameTablePeculiaritiesUseCase,findGameTableItemUseCase,findAllGameTableItemsUseCase,findGameTableNPCSSingleUseCase,findAllGameNPCsUseCase,createGameTableAdvantagesUseCase,editGameTableAdvantagesUseCase,createGameTablePeculiaritiesUseCase,editGameTablePeculiaritiesUseCase,createGameTableItemsUseCase,editGameTableItemsUseCase,createGameTableNPCSUseCase,editGameTableNPCSUseCase)
 

@@ -270,7 +270,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /*       NPCS      */
   /* =============== */
 
-  async createGameNPCS(data: any): Promise<void> {
+  async createGameNPC(data: any): Promise<void> {
     db.prepare(`
       INSERT INTO game_table_npcs (id, character_id, status)
       VALUES (?, ?, ?)
@@ -280,7 +280,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.status
     )
   }
-  async editGameNPCS(data: any): Promise<void> {
+  async editGameNPC(data: any): Promise<void> {
     db.prepare(`
       UPDATE game_table_npcs
       SET character_id = ?, status = ?
@@ -291,11 +291,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.id
     )
   }
-  async findGameNPCS(id: any): Promise<any> {
+  async findGameNPC(id: any): Promise<any> {
     const gameTableNPC = db.prepare(`
-      SELECT npc.*, c.name as character_name
+      SELECT npc.*, c.* , cs.* , c.name as character_name
       FROM game_table_npcs npc
       LEFT JOIN characters c ON c.id = npc.character_id
+      LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       WHERE npc.id = ?
     `).get(id) as any
     return gameTableNPC

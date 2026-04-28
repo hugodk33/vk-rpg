@@ -1,8 +1,8 @@
 import { IGameTableRulesRepository } from '../../../domain/irepositories/IGameTableRulesRepository'
 
-export class EditGameTableNPCSUseCase {
+export class EditGameTableNPCUseCase {
   constructor(private repo: IGameTableRulesRepository) {}
   async execute(npc: any) {
-    await this.repo.editGameNPCS(npc)
+    await this.repo.editGameNPC(npc)
   }
 }

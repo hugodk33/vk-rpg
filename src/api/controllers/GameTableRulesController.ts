@@ -13,10 +13,10 @@ import { FindGameTableItemUseCase } from '../../application/use-cases/table-game
 import { FindGameTableItemsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableItemsUseCase'
 import { CreateGameTableItemsUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableItemsUseCase'
 import { EditGameTableItemsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableItemsUseCase'
-import { FindGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableNPCSUseCase'
+import { FindGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableNPCUseCase'
 import { FindAllGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableNPCSUseCase'
-import { CreateGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableNPCSUseCase'
-import { EditGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableNPCSUseCase'
+import { CreateGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableNPCUseCase'
+import { EditGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableNPCUseCase'
 import { CreateGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableNPCVisibilityUseCase'
 import { EditGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableNPCVisibilityUseCase'
 import { FindGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableNPCVisibilityUseCase'
@@ -31,7 +31,7 @@ export class GameTableRulesController {
     private findAllGameTablePeculiaritiesUseCase: FindAllGameTablePeculiaritiesUseCase,
     private findGameTableItemUseCase: FindGameTableItemUseCase,
     private findAllGameTableItemsUseCase: FindGameTableItemsUseCase,
-    private findGameTableNPCSUseCase: FindGameTableNPCSUseCase,
+    private findGameTableNPCSUseCase: FindGameTableNPCUseCase,
     private findAllGameTableNPCSUseCase: FindAllGameTableNPCSUseCase,
     private createGameTableAdvantagesUseCase?: CreateGameTableAdvantagesUseCase,
     private editGameTableAdvantagesUseCase?: EditGameTableAdvantagesUseCase,
@@ -39,8 +39,8 @@ export class GameTableRulesController {
     private editGameTablePeculiaritiesUseCase?: EditGameTablePeculiaritiesUseCase,
     private createGameTableItemsUseCase?: CreateGameTableItemsUseCase,
     private editGameTableItemsUseCase?: EditGameTableItemsUseCase,
-    private createGameTableNPCSUseCase?: CreateGameTableNPCSUseCase,
-    private editGameTableNPCSUseCase?: EditGameTableNPCSUseCase,
+    private createGameTableNPCSUseCase?: CreateGameTableNPCUseCase,
+    private editGameTableNPCSUseCase?: EditGameTableNPCUseCase,
     private createGameTableNPCVisibilityUseCase?: CreateGameTableNPCVisibilityUseCase,
     private editGameTableNPCVisibilityUseCase?: EditGameTableNPCVisibilityUseCase,
     private findGameTableNPCVisibilityUseCase?: FindGameTableNPCVisibilityUseCase

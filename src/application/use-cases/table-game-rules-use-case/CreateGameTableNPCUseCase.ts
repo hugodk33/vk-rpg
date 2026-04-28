@@ -1,9 +1,8 @@
 import { IGameTableRulesRepository } from '../../../domain/irepositories/IGameTableRulesRepository'
 
-export class FindGameTableNPCSUseCase {
+export class CreateGameTableNPCUseCase {
   constructor(private repo: IGameTableRulesRepository) {}
-  async execute(id: any) {
-    const npc = await this.repo.findGameNPCS(id)
-    return npc
+  async execute(npc: any) {
+    await this.repo.createGameNPC(npc)
   }
 }
