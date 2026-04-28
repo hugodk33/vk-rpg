@@ -169,6 +169,7 @@ CREATE TABLE IF NOT EXISTS narration_locations (
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_items (
   id TEXT PRIMARY KEY,
+  table_id TEXT ,
   name TEXT,
   type INTEGER,
   category TEXT,
@@ -181,6 +182,7 @@ CREATE TABLE IF NOT EXISTS game_table_items (
   owner_id TEXT,
   skill_user_id TEXT,
   skill_level TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id),
   FOREIGN KEY (holder_id) REFERENCES users(id),
   FOREIGN KEY (owner_id) REFERENCES users(id),
   FOREIGN KEY (skill_user_id) REFERENCES users(id)
@@ -205,6 +207,7 @@ CREATE TABLE IF NOT EXISTS table_images (
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_damages (
   id TEXT PRIMARY KEY,
+  table_id TEXT,
   name TEXT,
   description TEXT,
   type TEXT,
@@ -214,6 +217,7 @@ CREATE TABLE IF NOT EXISTS game_table_damages (
   item_id TEXT,
   skill_id TEXT,
   advantage_id TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id),
   FOREIGN KEY (character_id) REFERENCES characters(id),
   FOREIGN KEY (item_id) REFERENCES game_table_items(id),
   FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
@@ -243,16 +247,21 @@ CREATE TABLE IF NOT EXISTS narration_npcs (
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_skills (
   id TEXT PRIMARY KEY,
+  table_id TEXT,
   name TEXT,
-  predefinition_value TEXT,
-  predefinition_type TEXT
+  predefinition_type TEXT,
+  predefinition_difficulty TEXT,
+  description TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_skill_dependencies (
   id TEXT PRIMARY KEY,
-  skill_id TEXT,
+  origin_skill_id TEXT,
   depends_on_skill_id TEXT,
-  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
+  depends_on_skill_value TEXT,
+  depends_on_skill_for_others_attributes TEXT,
+  FOREIGN KEY (origin_skill_id) REFERENCES game_table_skills(id)
   FOREIGN KEY (depends_on_skill_id) REFERENCES game_table_skills(id)
 );
 
@@ -286,11 +295,22 @@ CREATE TABLE IF NOT EXISTS game_table_character_advantages (
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_peculiarities (
   id TEXT PRIMARY KEY,
+  table_id TEXT,
   name TEXT,
-  character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id)
+  description TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+);
+
+CREATE TABLE IF NOT EXISTS game_table_advantages (
+  id TEXT PRIMARY KEY,
+  table_id TEXT,
+  name TEXT,
+  cost_points INTEGER,
+  effect TEXT,
+  description TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
 -- =========================
