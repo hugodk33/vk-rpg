@@ -929,7 +929,7 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     narrations_id: narration1,
     value: '10',
     test: '9',
-    description: 'Mira usou a habilidade de ataque e deu certo',
+    description: 'Mira used the attack skill and succeeded',
     dice_roll: '3d6 [ 7 , 1 , 4 ]',
     character_id: characterMiraId,
   },
@@ -938,7 +938,7 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     narrations_id: narration1,
     value: '17',
     test: '12',
-    description: 'Garrick usou a habilidade de defesa e deu errado',
+    description: 'Garrick used the defense skill and failed',
     dice_roll: '3d6 [ 4 , 1 , 5 ]',
     character_id: characterGarrickId,
   },
@@ -947,7 +947,7 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     narrations_id: narration1,
     value: '',
     test: '',
-    description: 'Kasumi não fez nada',
+    description: 'Kasumi did nothing',
     dice_roll: '3d6 [ 0 , 0 , 0 ]',
     character_id: characterKasumiId,
   },
@@ -956,7 +956,7 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     narrations_id: narration1,
     value: '11',
     test: '10',
-    description: 'Mira usou a habilidade de ataque novamente e deu certo',
+    description: 'Mira used the attack skill again and succeeded',
     dice_roll: '3d6 [ 3 , 4 , 2 ]',
     character_id: characterMiraId,
   }
@@ -1440,7 +1440,7 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Oracle',
     character_id: characterNPCsIds[4] as string,
     cost_points: 15,
-    effect: 'Visions of future events (+2 to predictions).'
+    effect: 'Visions of future events (+2 to predictions).',
   },
   {
     id: crypto.randomUUID(),
@@ -1500,7 +1500,7 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Flexibility',
     character_id: characterNPCsIds[6] as string,
     cost_points: 5,
-    effect: '+2 to Escape, +1 to Climbing.'
+    effect: '+2 to Escape, +1 to Climbing.',
   },
 
   // Eldric Vale - wise mage (NPC)
@@ -1509,7 +1509,7 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Magery 3',
     character_id: characterNPCsIds[7] as string,
     cost_points: 45,
-    effect: 'Powerful access to spellcasting (level 3).'
+    effect: 'Powerful access to spellcasting (level 3).',
   },
   {
     id: crypto.randomUUID(),
