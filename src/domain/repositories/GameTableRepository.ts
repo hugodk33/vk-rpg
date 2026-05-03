@@ -344,8 +344,11 @@ export class GameTableRepository implements IGameTableRepository {
             actions: Array<{
               id: string
               name: string
-              description: string
               userId: string
+              test: string
+              description: string
+              dice_roll: string
+              value: string
               character: { id: string; name: string } | null
             }>
             characters: Map<
@@ -426,6 +429,9 @@ export class GameTableRepository implements IGameTableRepository {
           name: row.action_name,
           description: row.action_description,
           userId: row.action_user_id,
+          test: row.action_test,
+          dice_roll: row.action_dice_roll,
+          value: row.action_value,
           character: row.action_character_id
             ? {
               id: row.action_character_id,

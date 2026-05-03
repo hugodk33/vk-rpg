@@ -21,7 +21,9 @@ db.exec(`
   DELETE FROM game_table_damages;
   DELETE FROM game_table_character_skills;
   DELETE FROM game_table_advantages;
+  DELETE FROM game_table_disadvantages;
   DELETE FROM game_table_character_advantages;
+  DELETE FROM game_table_character_disadvantages;
   DELETE FROM game_table_peculiarities;
   DELETE FROM game_table_character_images;
   DELETE FROM game_table_character_sheets;
@@ -582,6 +584,683 @@ export const advantages: SeedModifierGameTableAdvantages[] = [
     name: 'Magery 1',
     costPoints: 25,
     effect: 'Basic access to spellcasting and rituals.'
+  },
+  // Additional GURPS advantages from var-advantages.ts
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Absolute Direction',
+    costPoints: 5,
+    effect: 'The character always knows which way is North and is always able to retrace a route taken during the last 30 days. +3 bonus to Navigation skill. Works underground, underwater and on other planets.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Accurate Time Sense',
+    costPoints: 5,
+    effect: 'You always know the exact time, can measure any time lapse with precision, wake up at a pre-determined hour and are not affected by time zone changes (but are by time travel).'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Acute Hearing',
+    costPoints: 2,
+    effect: 'Bonus to Hearing tests. Costs 2 points per bonus point.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Acute Taste and Smell',
+    costPoints: 2,
+    effect: 'Bonus to all Taste or Smell tests. Costs 2 points per bonus point.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Acute Vision',
+    costPoints: 2,
+    effect: 'Bonus to all Vision tests when searching for something. Costs 2 points per bonus point.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Alertness',
+    costPoints: 5,
+    effect: 'General bonus to any Sense or Perception (IQ) tests. Can be combined with acute senses advantages. Cost: 5 points per bonus point.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Ambidexterity',
+    costPoints: 10,
+    effect: 'The character is capable of using both hands with the same skill. He is not subject to the -4 penalty on his Dexterity attribute for using the off-hand and can fight with either hand interchangeably, or with both at once. If an accident occurs with one of his arms, assume it was with the left one.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Animal Empathy',
+    costPoints: 5,
+    effect: 'The character understands and likes animals, and they like the character. He receives a +2 bonus on any reaction test with a wild animal, and +4 on tests involving animal-related skills. However, you can never kill an animal without a very good reason, and must try to prevent others from doing so.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Charisma',
+    costPoints: 5,
+    effect: 'This is the natural ability to impress and lead other people. Anyone can achieve illusory charisma through good appearance, good manners and intelligence, but real charisma works independently of these factors. It affects any reaction test made by an intelligent creature. Cost: 5 points per bonus point.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Clerisy',
+    costPoints: 5,
+    effect: 'The character was ordained as a minister of some religion. A cleric has some powers and privileges that a layperson does not. Cost: 5 points for social only, 10+ points if able to invoke divine help.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Common Sense',
+    costPoints: 10,
+    effect: 'Every time the character starts to do something that the GM thinks is stupid, he makes a test against his IQ attribute. Success means he should warn the character. This Advantage allows an impulsive player to play the role of a thoughtful character.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Danger Sense',
+    costPoints: 15,
+    effect: 'You can\'t count on it always, but now and then you have that weird feeling on the back of your neck that says something is wrong. The GM will secretly make a test against your IQ attribute whenever the situation involves an ambush, an imminent disaster or some other danger. Success means you should receive a warning.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Double-Jointed',
+    costPoints: 5,
+    effect: 'The character\'s body is extraordinarily flexible. He receives a bonus equal to +3 on any Escape attempt or attempts to get free of ropes, shackles or other similar movement restriction means, and also on Mechanic tests.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Eidetic Memory',
+    costPoints: 30,
+    effect: 'The character is capable of remembering everything he has seen or heard. First level (30 points): All points in mental skills count double. Second level (60 points): All points in mental skills count quadruple.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Empathy',
+    costPoints: 15,
+    effect: 'The character has a \'sensitivity\' for other people. When he meets someone for the first time, the GM will say what the character \'feels\' about that person. Excellent for identifying impostors and determining loyalty.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'High Pain Threshold',
+    costPoints: 10,
+    effect: 'The character doesn\'t feel pain with the same intensity. He won\'t be stunned, and his DX won\'t be subject to the normal penalty applied in the following turn if wounded in combat.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Immunity',
+    costPoints: 10,
+    effect: 'Your body naturally resists microorganisms that cause disease. You never catch a \'natural\' disease or infection. You cannot acquire this advantage unless your initial HT is 12 or greater.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Intuition',
+    costPoints: 15,
+    effect: 'The character is usually right in his conjectures. The GM adds his IQ to the number of \'correct\' choices and subtracts the number of \'incorrect\' choices and makes a roll. Success means he will direct the character to a favorable option.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Language Talent',
+    costPoints: 2,
+    effect: 'You learn languages quickly. Add the Language Talent level to your IQ attribute every time you are learning a language. Cost: 2 points per bonus point.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Legal Enforcement Powers',
+    costPoints: 5,
+    effect: 'You are a law enforcement officer, with all the rights, powers and restrictions that accompany the position. Cost: 5 points for local jurisdiction, 10 points for national/international, 15 points for special privileges.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Lightning Calculator',
+    costPoints: 5,
+    effect: 'The character is capable of performing mathematical operations instantly in his head. The player may use a calculator at any moment, to calculate whatever he desires.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Literacy',
+    costPoints: 10,
+    effect: 'Being literate in a world where most people are not is an advantage worth 10 points. Being illiterate in a world where most people can read is a disadvantage worth -10 points.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Longevity',
+    costPoints: 5,
+    effect: 'Your lifespan is naturally long. You will fail aging tests only if you get a result equal to 17 or 18. A character with this advantage will not receive any points when assuming the Disadvantage of Age.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Luck',
+    costPoints: 15,
+    effect: 'Once every game hour, you may make up to three rolls of something and choose the best result. Cost: 15 points. Extraordinary Luck (30 points): Can be used every 30 minutes instead of an hour.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Magical Aptitude',
+    costPoints: 15,
+    effect: 'You have a bonus in learning all magical operations. When learning any magical operation, you will do so as if your Intelligence were equal to (IQ + Aptitude). Cost: 15 points for first level; 10 points for each subsequent level up to maximum of 3 levels.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Magic Resistance',
+    costPoints: 2,
+    effect: 'You have a better chance of not being affected by most types of magic. Your level of Magic Resistance is subtracted from the skill level of whoever performs the operation against you. Cost: 2 points per level.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Mathematical Talent',
+    costPoints: 10,
+    effect: 'This advantage guarantees a +3 bonus on any skill test with mathematical or computing-related skills (except Computer Operation) and a +2 bonus on those relating to Engineering at TL6+.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Military Rank',
+    costPoints: 5,
+    effect: 'You have a military rank which confers certain privileges and authority. Cost: 5 points per level.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Musical Talent',
+    costPoints: 1,
+    effect: 'You have a natural talent for music and musical instruments. Your musical skill level should be added to your IQ attribute when studying Singing or any musical instrument. Cost: 1 point per bonus point.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Night Vision',
+    costPoints: 10,
+    effect: 'Your eyes adapt quickly to darkness. You are capable of seeing very well if there is any light. Whenever the GM requires a penalty due to darkness, except in the case of total darkness, this penalty will not apply to you.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Peripheral Vision',
+    costPoints: 15,
+    effect: 'The character has an extraordinarily wide field of vision. He can attack both to the right and left, as well as those in front of him. He will have a larger viewing angle for ranged attacks.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Psychic Resistance',
+    costPoints: 2,
+    effect: 'Psychic Resistance interferes with all uses of psychic powers made against you. Your resistance level is subtracted from the effective skill of any psychic attempt in which you are the target. Cost: 2 points per level.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Rapid Healing',
+    costPoints: 5,
+    effect: 'This advantage is only available for characters whose HT attribute is greater than or equal to 10. Whoever has it will recover quickly from all types of wounds. Add 5 to your effective HT when making recovery tests.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Strong Will',
+    costPoints: 4,
+    effect: 'The character has much more determination than the average person. His Will level is added to his IQ attribute every time he makes a Will test. Cost: 4 points per bonus point.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Toughness',
+    costPoints: 5,
+    effect: 'Your skin and flesh are tougher than the average human being. Your own body has Damage Resistance. This DR is subtracted from damage caused by any blow before multiplication.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Unusual Background',
+    costPoints: 10,
+    effect: 'This is a \'deposit\' type advantage for unusual backgrounds that provide special benefits. The GM determines the cost based on how unusual the background is.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Voice',
+    costPoints: 10,
+    effect: 'The character has a clear, attractive and resonant voice. He receives a permanent bonus equal to +2 in skills like Bard, Diplomacy, Acting, Politics, Social Manipulation, Sex Appeal and Singing.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Wealth',
+    costPoints: 5,
+    effect: 'Wealth can be a truly wonderful advantage. The cost in points depends on the wealth level and the campaign setting. See p. 16 for details.'
+  }
+]
+
+type SeedModifierGameTableDisadvantage = {
+  id: string
+  table_id: string
+  name: string
+  costPoints: number
+  effect: string
+}
+
+export const disadvantages: SeedModifierGameTableDisadvantage[] = [
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Disgusting Habits',
+    costPoints: 5,
+    effect: 'The character behaves part of (or all the) time in a way repulsive to others. The worse your behavior, the greater the number of points. You can specify the behavior at character creation and estimate the bonus with the Master. Some examples: Sweaty odor, chronic itching and humming all the time could be worth -5 points each. Making bad taste jokes or spitting on the ground could be worth -10 points each. Habits worthy of a -15 point bonus are possible, but will be left to the imagination of those depraved enough to desire them. Subtract 1 point from all reaction tests made by people capable of observing your habit for each -5 points of bonus obtained with it.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Poverty',
+    costPoints: 5,
+    effect: 'The character was born poor, relative to the average of his culture, or lost his money somehow. He will start with only a fraction of the money a character normally receives when created, and his income is limited.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Primitive',
+    costPoints: 5,
+    effect: 'You belong to a culture with TL lower than that of the campaign and, therefore, have no knowledge (or pre-defined skill level) related to equipment with higher technology level than yours. You are only allowed to start with skills or equipment from your culture.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Social Stigma',
+    costPoints: 5,
+    effect: 'You belong to a race, class or gender that your culture considers inferior. The "stigma" must be obvious to all who meet you. The bonus value depends on the penalty that will be used in reaction tests: Second-class Citizen: -5 points. Minority: -10 points. Foreigner/Barbarian: -15 points.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Age',
+    costPoints: 3,
+    effect: 'Your character is over 50 years old at character creation. This means you must make a series of rolls to verify a possible reduction of your attribute values due to advanced age. Bonus: -3 points for each year above 50.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Bad Sight',
+    costPoints: 10,
+    effect: 'The character can be either nearsighted or farsighted. If nearsighted, he won"t be capable of reading small letters at a distance greater than 30 cm. If farsighted, he will have great difficulties reading a book and his Dexterity will be subject to a -3 penalty.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Albinism',
+    costPoints: 10,
+    effect: 'The Character has no natural pigmentation in his body; his hair and skin are white and his eyes are pink. An albino will always be remembered and is not capable of blending into a crowd. He receives 1 point of damage for each 30 minutes of exposure to direct sun.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Blindness',
+    costPoints: 50,
+    effect: 'The character cannot see. As partial compensation, he could start with Acute Hearing and/or Acute Taste and Smell, paying only half the necessary points. Furthermore, he won"t be subject to any penalty for acting in the dark.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Color Blindness',
+    costPoints: 10,
+    effect: 'The character is not capable of distinguishing any color. In day-to-day, this anomaly is no more than a nuisance. However, in situations that require color identification, the GM should impose appropriate difficulties.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Deafness',
+    costPoints: 20,
+    effect: 'You cannot hear anything. Any information must be transmitted through writing or sign language. You will also be subject to a -3 penalty on your IQ attribute when learning any language other than your own.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Dwarfism',
+    costPoints: 15,
+    effect: 'The character is a dwarf due to genetic reasons, abnormally short for his species. Determine your height normally and then reduce it to 60%. He also cannot have a Physical Appearance equal to average.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Epilepsy',
+    costPoints: 30,
+    effect: 'The character is subject to seizures, during which his limbs become immobilized and he is incapable of speaking or thinking clearly. Whenever he is in a tension situation, he must make a HT test. Failure causes the seizure which will last 1D minutes.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Eunuch',
+    costPoints: 5,
+    effect: 'The character (men only) lost his masculinity through an accident or hostile action. He will be immune to seduction and will be incapable of seducing others.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Obesity',
+    costPoints: 10,
+    effect: 'The character will be extraordinarily fat for his race. Determine your weight normally and then increase it by 50%. This results in a -1 penalty on all reaction tests and his HT can never be greater than 15.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Gigantism',
+    costPoints: 10,
+    effect: 'The character is a giant due to genetic issues, abnormally large for his species. Determine your height normally and then increase it by 20%. He will be subject to a -2 penalty on all reaction tests.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Hard of Hearing',
+    costPoints: 10,
+    effect: 'The character is not deaf, but lost part of his hearing. He will be subject to a -4 penalty on all Hearing tests and language skills.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Hemophilia',
+    costPoints: 30,
+    effect: 'The character is a hemophiliac. Any wound, no matter how small, won"t heal, unless bandaged, and the character will bleed until death. Any untreated wound will bleed at a rate equal to the number of damage points per minute.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Physical Disability',
+    costPoints: 15,
+    effect: 'The character has a certain degree of reduction in his mobility. Maimed Leg: -15 points. Peg Leg: -25 points. No legs or paraplegic: -35 points.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Low Pain Threshold',
+    costPoints: 10,
+    effect: 'The character is very sensitive to all types of pain. Double the "shock effect" due to any wound. He will always be subject to a -4 penalty when trying to resist torture.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Mutism',
+    costPoints: 25,
+    effect: 'The character is not capable of speaking. All communication must be done through writing or sign language. A Mute character receives a +3 bonus on all Miming/Pantomime or Sign Language tests.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'No Sense of Smell/Taste',
+    costPoints: 5,
+    effect: 'This is a rare disease... the character is not capable of smelling or tasting anything. He will, therefore, be incapable of detecting certain dangers that normal people quickly perceive.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'One Arm',
+    costPoints: 20,
+    effect: 'The character lost one arm (or was born without it). Assume the lost arm is the left one if he is right-handed and vice-versa. He won"t be able to use a sword and shield simultaneously.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'One Eye',
+    costPoints: 15,
+    effect: 'The character has only one good eye. His DX attribute will be subject to a -1 penalty in combat situations and/or those involving coordination between hands and eyes.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'One Hand',
+    costPoints: 15,
+    effect: 'The character lost one of his hands. It can be replaced by an appropriate prosthesis. A mechanical prosthesis subjects the character to a -1 penalty on all reaction tests and his DX attribute will be reduced by 2 points.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Overweight',
+    costPoints: 5,
+    effect: 'You don"t quite reach obesity — your weight is a little above the average for your race. Determine weight normally from the ST attribute and then increase it by 30%. This increases Encumbrance as in the case of Obesity.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Skinny',
+    costPoints: 5,
+    effect: 'The character is excessively thin. After discovering your height, verify the "average" weight for that height and reduce it by 1/3. His HT attribute can never be greater than 14.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Stuttering',
+    costPoints: 10,
+    effect: 'The character suffers from stuttering or another speech problem. He will be subject to a -2 penalty on all reaction tests where conversation is necessary.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Youth',
+    costPoints: 2,
+    effect: 'The character is younger in age according to the standards of his culture. The difference can vary between 1 and 3 years and the bonus will be equal to -2 points per year.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Distractible',
+    costPoints: 15,
+    effect: 'The classic disadvantage of eccentric geniuses. The character has difficulty paying attention to anything that isn"t of immediate interest. He will be subject to a -5 penalty on any IQ test, with exception of those linked to the work on which he is focused.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Addiction',
+    costPoints: 5,
+    effect: 'The character is addicted to some drug that he needs to ingest daily or suffer the penalties of Recovery. The bonus depends on the type of drug: Cheap drugs: -5 points. Expensive drugs: -10 points. Highly addictive: -20 points.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Alcoholism',
+    costPoints: 15,
+    effect: 'The character is addicted to alcohol. Alcohol is treated as an addiction. It is cheap, incapacitating and (normally) legal. Therefore it"s worth -10 points. But alcohol is treacherous, sometimes -15 or -20 if illegal.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Bad Temper',
+    costPoints: 10,
+    effect: 'The character doesn"t have total control of his emotions. He must make a Will test in any tension situation. Failure means he lost his patience and must insult, attack or act in some way against the cause of his explosion.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Berserk',
+    costPoints: 15,
+    effect: 'Like Bad Temper, but worse. The character tends to lose control of himself when subjected to some tension, proceeding to frantically attack whoever he thinks is the cause of his problem.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Bloodlust',
+    costPoints: 10,
+    effect: 'The character desires to see his opponents dead. In a battle he will prefer killing blows, will fire one more time to be sure of having killed an opponent, will attack guards when this could be avoided.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Boastfulness',
+    costPoints: 10,
+    effect: 'You like to intimidate people whenever possible with impunity. Represent this on your own account. As no one likes a braggart, your reaction tests will be subject to a -2 penalty.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Code of Honor',
+    costPoints: 5,
+    effect: 'The character has pride in a set of principles that he follows all the time. A code of honor requires behavior that is "virile", "courageous" and "honorable".'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Combat Paralysis',
+    costPoints: 15,
+    effect: 'This is the opposite situation of Combat Reflexes; the character tends to become paralyzed when he sees himself in combat. He must make a HT test (not IQ) whenever a physical injury seems imminent.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Compulsion',
+    costPoints: 5,
+    effect: 'You have some habit (generally, but not always, an addiction) that you feel compelled to practice daily. You spend a good part of your time satisfying this tendency.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Compulsive Lying',
+    costPoints: 15,
+    effect: 'The character lies constantly, for no other reason than the joy of lying. To be capable of telling the pure and simple truth, a compulsive liar needs to succeed on a test against Will-4.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Cowardice',
+    costPoints: 10,
+    effect: 'The character is extremely careful regarding his physical well-being. Every time there is need to risk himself physically, he must make a Will test. If there is risk of life, the roll will be made with a -5 penalty.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Delusions',
+    costPoints: 1,
+    effect: 'The character believes in something (or several) that simply isn"t (aren"t) true. This may lead others to think he is crazy. The value, in points, of the Delusion depends on its nature.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Dyslexia',
+    costPoints: 5,
+    effect: 'You have a serious deficiency. You are incapable of learning to read or write; even simple maps and highway signs are beyond your comprehension.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Fanaticism',
+    costPoints: 15,
+    effect: 'You intensely believe in a country, religion, etc., and this is more important than anything else. You must represent your fanaticism. Note that fanatics don"t need to be necessarily insane or perverse.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Gluttony',
+    costPoints: 5,
+    effect: 'You like too much good food and drink. If given a chance, you will always overload yourself with extra provisions and will never lose a meal of your own free will.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Greed',
+    costPoints: 15,
+    effect: 'You have passion for money. Every time some patrimony is offered as payment for a lawful job, adventure loot, plunder or just bait, you will have to succeed on a Will test to resist temptation.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Credulity',
+    costPoints: 10,
+    effect: 'You were born a sucker and your character is one of them. A credulous person believes everything he hears. To not believe a lie or an improbable truth, he must succeed on an IQ test modified according to the plausibility of the story.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Honesty',
+    costPoints: 10,
+    effect: 'The character MUST obey the law always and give the best of himself so others do the same. He will be compulsive regarding the law. This is a disadvantage, because frequently it will limit your options.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Illiteracy',
+    costPoints: 0,
+    effect: 'This is the normal condition in a low TL culture and in this case offers no bonus. In cultures with TL 5+, where the press is common, it is a disadvantage.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Impulsiveness',
+    costPoints: 10,
+    effect: 'The character hates talking and thinking. He prefers action. When alone, he will act first and think later. Represent this characteristic! The character must try to avoid work, mainly hard work, at any cost.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Intolerance',
+    costPoints: 5,
+    effect: 'You don"t like and don"t trust people who are different from you. A completely intolerant character (-10 points) will have a -3 penalty on his reaction tests in front of any person who doesn"t belong to your race and/or class.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Jealousy',
+    costPoints: 10,
+    effect: 'The character has, automatically, a bad reaction in front of anyone who seems more intelligent, more attractive or in a better situation than him. He may also oppose any plan proposed by a "rival", and will hate if someone else is in evidence.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Kleptomania',
+    costPoints: 15,
+    effect: 'The character feels compelled to steal, not necessarily valuable things, but anything he can take. Whenever there is a chance to steal, the character must make a Will test. Failure means he must try to steal the object.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Laziness',
+    costPoints: 10,
+    effect: 'The character has a great aversion to physical work. Your chances of getting a raise or promotion in any job are reduced by half. If he works on his own account, his monthly income will fall to half.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Lechery',
+    costPoints: 15,
+    effect: 'The character suffers from an uncontrollable desire for romance. In any contact with an attractive member of the opposite sex, the character must make a Will test. Failure means he must try a "pickup", using all the artifices and skills he is capable of.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Megalomania',
+    costPoints: 10,
+    effect: 'You believe you are the super-man, or that you were chosen for a great task, or that your destiny is to conquer. Start by adopting the Fanaticism disadvantage, being that you are fanatic about yourself!'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Miserliness',
+    costPoints: 10,
+    effect: 'Similar to Greed except that the character is much more interested in what he already has. He must succeed on a Will test, every time he has to spend some money, and must always look for the best price.'
+  },
+  {
+    id: crypto.randomUUID(),
+    table_id: mainGameTableId,
+    name: 'Overconfidence',
+    costPoints: 10,
+    effect: 'You are too confident in your abilities. You will be subject to a -5 penalty on any test that involves self-doubt or caution. You tend to underestimate dangers and opponents.'
   }
 ]
 
@@ -918,6 +1597,8 @@ type SeedModifierNarrationActions= {
   narrations_id: string,
   value: string,
   test: string,
+  description: string,
+  dice_roll: string,
   character_id: string,
 }
 
@@ -926,28 +1607,36 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     id: crypto.randomUUID(),
     narrations_id: narration1,
     value: '10',
-    test: 'Mira usou a habilidade de ataque e deu certo',
+    test: '9',
+    description: 'Mira used the attack skill and succeeded',
+    dice_roll: '3d6 [ 7 , 1 , 4 ]',
     character_id: characterMiraId,
   },
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
     value: '17',
-    test: 'Garrick usou a habilidade de defesa e deu errado',
+    test: '12',
+    description: 'Garrick used the defense skill and failed',
+    dice_roll: '3d6 [ 4 , 1 , 5 ]',
     character_id: characterGarrickId,
   },
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
     value: '',
-    test: 'Kasumi não fez nada',
+    test: '',
+    description: 'Kasumi did nothing',
+    dice_roll: '3d6 [ 0 , 0 , 0 ]',
     character_id: characterKasumiId,
   },
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
     value: '11',
-    test: 'Mira usou a habilidade de ataque novamente e deu certo',
+    test: '10',
+    description: 'Mira used the attack skill again and succeeded',
+    dice_roll: '3d6 [ 3 , 4 , 2 ]',
     character_id: characterMiraId,
   }
 ]
@@ -1224,4 +1913,348 @@ export const  modifierGameTableSkillsDependecies: SeedModifierGameTableSkillsDep
         depends_on_skill_value: null,
         depends_on_skill_for_others_attributes: '[IQ - 6]'
     }
+]
+
+type SeedModifierGameTableCharacterAdvantages = {
+  id: string,
+  name: string,
+  character_id: string,
+  cost_points: number,
+  effect: string
+}
+
+export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharacterAdvantages[] = [
+  // Mira Thorne - streetwise duelist
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterMiraId,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dodge',
+    character_id: characterMiraId,
+    cost_points: 10,
+    effect: '+1 to active defense (Dodge).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Fast Draw',
+    character_id: characterMiraId,
+    cost_points: 10,
+    effect: 'Draw weapon as free action.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'High Pain Threshold',
+    character_id: characterMiraId,
+    cost_points: 10,
+    effect: 'Ignore shock from injury.'
+  },
+
+  // Garrick Stone - hulking veteran
+  {
+    id: crypto.randomUUID(),
+    name: 'High Pain Threshold',
+    character_id: characterGarrickId,
+    cost_points: 10,
+    effect: 'Ignore shock from injury.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Toughness',
+    character_id: characterGarrickId,
+    cost_points: 15,
+    effect: '+2 HT for resistance rolls.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterGarrickId,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Fearlessness',
+    character_id: characterGarrickId,
+    cost_points: 10,
+    effect: 'Immune to fear up to -10 reaction.'
+  },
+
+  // Kasumi Noh - scholar/mage
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 1',
+    character_id: characterKasumiId,
+    cost_points: 25,
+    effect: 'Basic access to spellcasting and rituals.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Intuition',
+    character_id: characterKasumiId,
+    cost_points: 15,
+    effect: '+2 to unexpected IQ rolls.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Mathematical Ability',
+    character_id: characterKasumiId,
+    cost_points: 10,
+    effect: '+2 to mathematics and calculations.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'GURPS 101',
+    character_id: characterKasumiId,
+    cost_points: 5,
+    effect: 'Familiarity with GURPS rules gives +1 to relevant IQ checks.'
+  },
+
+  // Riven Kael - fast dual-blade fighter (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterNPCsIds[0] as string,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dodge',
+    character_id: characterNPCsIds[0] as string,
+    cost_points: 10,
+    effect: '+1 to active defense (Dodge).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Ambidexterity',
+    character_id: characterNPCsIds[0] as string,
+    cost_points: 10,
+    effect: 'No off-hand penalty when dual-wielding.'
+  },
+
+  // Thorne Black - grim bounty hunter (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'High Pain Threshold',
+    character_id: characterNPCsIds[1] as string,
+    cost_points: 10,
+    effect: 'Ignore shock from injury.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Fearlessness',
+    character_id: characterNPCsIds[1] as string,
+    cost_points: 10,
+    effect: 'Immune to fear up to -10 reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Absolute Direction',
+    character_id: characterNPCsIds[1] as string,
+    cost_points: 5,
+    effect: 'Never get lost, +2 to Navigation.'
+  },
+
+  // Selene Voss - shadow mage (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 2',
+    character_id: characterNPCsIds[2] as string,
+    cost_points: 35,
+    effect: 'Enhanced access to spellcasting (level 2).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Night Vision',
+    character_id: characterNPCsIds[2] as string,
+    cost_points: 10,
+    effect: 'See in darkness as if daylight.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Silence',
+    character_id: characterNPCsIds[2] as string,
+    cost_points: 15,
+    effect: 'Move silently, +4 to Stealth in shadows.'
+  },
+
+  // Kael Draven - ruthless duelist (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterNPCsIds[3] as string,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dodge',
+    character_id: characterNPCsIds[3] as string,
+    cost_points: 10,
+    effect: '+1 to active defense (Dodge).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Weapon Master',
+    character_id: characterNPCsIds[3] as string,
+    cost_points: 20,
+    effect: '+2 to skill with chosen weapon type.'
+  },
+
+  // Lyra Moonfall - celestial sorcerer (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 2',
+    character_id: characterNPCsIds[4] as string,
+    cost_points: 35,
+    effect: 'Enhanced access to spellcasting (level 2).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Oracle',
+    character_id: characterNPCsIds[4] as string,
+    cost_points: 15,
+    effect: 'Visions of future events (+2 to predictions).',
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Serendipity',
+    character_id: characterNPCsIds[4] as string,
+    cost_points: 15,
+    effect: 'Luck that helps in critical moments.'
+  },
+
+  // Borin Stonehelm - dwarven tank (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'High Pain Threshold',
+    character_id: characterNPCsIds[5] as string,
+    cost_points: 10,
+    effect: 'Ignore shock from injury.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Toughness',
+    character_id: characterNPCsIds[5] as string,
+    cost_points: 15,
+    effect: '+2 HT for resistance rolls.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Damage Resistance',
+    character_id: characterNPCsIds[5] as string,
+    cost_points: 20,
+    effect: 'DR 2 against all physical attacks.'
+  },
+
+  // Nyx Shadowend - elite assassin (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Combat Reflexes',
+    character_id: characterNPCsIds[6] as string,
+    cost_points: 15,
+    effect: 'No surprise penalty and faster combat reaction.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Silence',
+    character_id: characterNPCsIds[6] as string,
+    cost_points: 15,
+    effect: 'Move silently, +4 to Stealth in shadows.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Night Vision',
+    character_id: characterNPCsIds[6] as string,
+    cost_points: 10,
+    effect: 'See in darkness as if daylight.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Flexibility',
+    character_id: characterNPCsIds[6] as string,
+    cost_points: 5,
+    effect: '+2 to Escape, +1 to Climbing.',
+  },
+
+  // Eldric Vale - wise mage (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 3',
+    character_id: characterNPCsIds[7] as string,
+    cost_points: 45,
+    effect: 'Powerful access to spellcasting (level 3).',
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Intuition',
+    character_id: characterNPCsIds[7] as string,
+    cost_points: 15,
+    effect: '+2 to unexpected IQ rolls.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Mathematical Ability',
+    character_id: characterNPCsIds[7] as string,
+    cost_points: 10,
+    effect: '+2 to mathematics and calculations.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'GURPS 101',
+    character_id: characterNPCsIds[7] as string,
+    cost_points: 5,
+    effect: 'Familiarity with GURPS rules gives +1 to relevant IQ checks.'
+  },
+
+  // Vera Hollow - cursed archer (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Dodge',
+    character_id: characterNPCsIds[8] as string,
+    cost_points: 10,
+    effect: '+1 to active defense (Dodge).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Night Vision',
+    character_id: characterNPCsIds[8] as string,
+    cost_points: 10,
+    effect: 'See in darkness as if daylight.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Absolute Direction',
+    character_id: characterNPCsIds[8] as string,
+    cost_points: 5,
+    effect: 'Never get lost, +2 to Navigation.'
+  },
+
+  // Dante Crowe - charismatic warlock (NPC)
+  {
+    id: crypto.randomUUID(),
+    name: 'Magery 2',
+    character_id: characterNPCsIds[9] as string,
+    cost_points: 35,
+    effect: 'Enhanced access to spellcasting (level 2).'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Charisma',
+    character_id: characterNPCsIds[9] as string,
+    cost_points: 10,
+    effect: '+2 to reaction rolls from NPCs.'
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Serendipity',
+    character_id: characterNPCsIds[9] as string,
+    cost_points: 15,
+    effect: 'Luck that helps in critical moments.'
+  }
 ]
