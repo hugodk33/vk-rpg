@@ -51,14 +51,14 @@ for (const advantage of advantages) {
     advantage.table_id,
     advantage.name,
     advantage.costPoints,
-    advantage.effect
+    advantage.description
   )
 
 
 }
 
 const disadvantageStmt = db.prepare(`
-  INSERT INTO game_table_disadvantages (id, table_id , name, cost_points, effect)
+  INSERT INTO game_table_disadvantages (id, table_id , name, cost_points, description)
   VALUES (?, ?, ?, ?, ?)
 `)
 
@@ -68,7 +68,7 @@ for (const disadvantage of disadvantages) {
     disadvantage.table_id,
     disadvantage.name,
     disadvantage.costPoints,
-    disadvantage.effect
+    disadvantage.description
   )
 }
 
