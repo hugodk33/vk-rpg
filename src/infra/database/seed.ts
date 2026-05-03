@@ -1,7 +1,7 @@
 // src/infra/database/seed.ts
 import { db } from './database'
 
-import { users , narrators  , gameTables , gameTablePlayers , skills , characters ,characterSheets  , newNpcs , items , advantages , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations , modifierGameTableSkillsDependecies} from '../variables/varsForSeeds'
+import { users , narrators  , gameTables , gameTablePlayers , skills , characters ,characterSheets  , newNpcs , items , advantages , disadvantages , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations , modifierGameTableSkillsDependecies} from '../variables/varsForSeeds'
 
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -52,6 +52,23 @@ for (const advantage of advantages) {
     advantage.name,
     advantage.costPoints,
     advantage.effect
+  )
+
+
+}
+
+const disadvantageStmt = db.prepare(`
+  INSERT INTO game_table_disadvantages (id, table_id , name, cost_points, effect)
+  VALUES (?, ?, ?, ?, ?)
+`)
+
+for (const disadvantage of disadvantages) {
+  disadvantageStmt.run(
+    disadvantage.id,
+    disadvantage.table_id,
+    disadvantage.name,
+    disadvantage.costPoints,
+    disadvantage.effect
   )
 }
 

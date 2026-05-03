@@ -341,4 +341,4 @@ export const disadvantages = [
         type: 'fixed',
         description: "The character has an excessive belief in his own abilities, leading him to take unnecessary risks and ignore potential dangers. He may also have difficulty admitting when he is wrong or when he needs help."
     }
-]
+];
