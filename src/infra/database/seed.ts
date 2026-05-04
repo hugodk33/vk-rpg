@@ -41,7 +41,7 @@ for (const table of gameTables) {
 
 // insert advantages
 const advantageStmt = db.prepare(`
-  INSERT INTO game_table_advantages (id, table_id , name, cost_points, effect)
+  INSERT INTO game_table_advantages (id, table_id , name, cost_points, description)
   VALUES (?, ?, ?, ?, ?)
 `)
 

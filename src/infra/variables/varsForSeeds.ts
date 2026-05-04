@@ -1920,7 +1920,7 @@ type SeedModifierGameTableCharacterAdvantages = {
   name: string,
   character_id: string,
   cost_points: number,
-  description: string
+  effect: string
 }
 
 export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharacterAdvantages[] = [
@@ -1930,28 +1930,28 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Combat Reflexes',
     character_id: characterMiraId,
     cost_points: 15,
-    description: 'No surprise penalty and faster combat reaction.'
+    effect: 'No surprise penalty and faster combat reaction.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Dodge',
     character_id: characterMiraId,
     cost_points: 10,
-    description: '+1 to active defense (Dodge).'
+    effect: '+1 to active defense (Dodge).'
   },
   {
     id: crypto.randomUUID(),
     name: 'Fast Draw',
     character_id: characterMiraId,
     cost_points: 10,
-    description: 'Draw weapon as free action.'
+    effect: 'Draw weapon as free action.'
   },
   {
     id: crypto.randomUUID(),
     name: 'High Pain Threshold',
     character_id: characterMiraId,
     cost_points: 10,
-    description: 'Ignore shock from injury.'
+    effect: 'Ignore shock from injury.'
   },
 
   // Garrick Stone - hulking veteran
@@ -1960,28 +1960,28 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'High Pain Threshold',
     character_id: characterGarrickId,
     cost_points: 10,
-    description: 'Ignore shock from injury.'
+    effect: 'Ignore shock from injury.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Toughness',
     character_id: characterGarrickId,
     cost_points: 15,
-    description: '+2 HT for resistance rolls.'
+    effect: '+2 HT for resistance rolls.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Combat Reflexes',
     character_id: characterGarrickId,
     cost_points: 15,
-    description: 'No surprise penalty and faster combat reaction.'
+    effect: 'No surprise penalty and faster combat reaction.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Fearlessness',
     character_id: characterGarrickId,
     cost_points: 10,
-    description: 'Immune to fear up to -10 reaction.'
+    effect: 'Immune to fear up to -10 reaction.'
   },
 
   // Kasumi Noh - scholar/mage
@@ -1990,28 +1990,28 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Magery 1',
     character_id: characterKasumiId,
     cost_points: 25,
-    description: 'Basic access to spellcasting and rituals.'
+    effect: 'Basic access to spellcasting and rituals.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Intuition',
     character_id: characterKasumiId,
     cost_points: 15,
-    description: '+2 to unexpected IQ rolls.'
+    effect: '+2 to unexpected IQ rolls.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Mathematical Ability',
     character_id: characterKasumiId,
     cost_points: 10,
-    description: '+2 to mathematics and calculations.'
+    effect: '+2 to mathematics and calculations.'
   },
   {
     id: crypto.randomUUID(),
     name: 'GURPS 101',
     character_id: characterKasumiId,
     cost_points: 5,
-    description: 'Familiarity with GURPS rules gives +1 to relevant IQ checks.'
+    effect: 'Familiarity with GURPS rules gives +1 to relevant IQ checks.'
   },
 
   // Riven Kael - fast dual-blade fighter (NPC)
@@ -2020,21 +2020,21 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Combat Reflexes',
     character_id: characterNPCsIds[0] as string,
     cost_points: 15,
-    description: 'No surprise penalty and faster combat reaction.'
+    effect: 'No surprise penalty and faster combat reaction.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Dodge',
     character_id: characterNPCsIds[0] as string,
     cost_points: 10,
-    description: '+1 to active defense (Dodge).'
+    effect: '+1 to active defense (Dodge).'
   },
   {
     id: crypto.randomUUID(),
     name: 'Ambidexterity',
     character_id: characterNPCsIds[0] as string,
     cost_points: 10,
-    description: 'No off-hand penalty when dual-wielding.'
+    effect: 'No off-hand penalty when dual-wielding.'
   },
 
   // Thorne Black - grim bounty hunter (NPC)
@@ -2043,21 +2043,21 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'High Pain Threshold',
     character_id: characterNPCsIds[1] as string,
     cost_points: 10,
-    description: 'Ignore shock from injury.'
+    effect: 'Ignore shock from injury.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Fearlessness',
     character_id: characterNPCsIds[1] as string,
     cost_points: 10,
-    description: 'Immune to fear up to -10 reaction.'
+    effect: 'Immune to fear up to -10 reaction.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Absolute Direction',
     character_id: characterNPCsIds[1] as string,
     cost_points: 5,
-    description: 'Never get lost, +2 to Navigation.'
+    effect: 'Never get lost, +2 to Navigation.'
   },
 
   // Selene Voss - shadow mage (NPC)
@@ -2066,21 +2066,21 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Magery 2',
     character_id: characterNPCsIds[2] as string,
     cost_points: 35,
-    description: 'Enhanced access to spellcasting (level 2).'
+    effect: 'Enhanced access to spellcasting (level 2).'
   },
   {
     id: crypto.randomUUID(),
     name: 'Night Vision',
     character_id: characterNPCsIds[2] as string,
     cost_points: 10,
-    description: 'See in darkness as if daylight.'
+    effect: 'See in darkness as if daylight.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Silence',
     character_id: characterNPCsIds[2] as string,
     cost_points: 15,
-    description: 'Move silently, +4 to Stealth in shadows.'
+    effect: 'Move silently, +4 to Stealth in shadows.'
   },
 
   // Kael Draven - ruthless duelist (NPC)
@@ -2089,21 +2089,21 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Combat Reflexes',
     character_id: characterNPCsIds[3] as string,
     cost_points: 15,
-    description: 'No surprise penalty and faster combat reaction.'
+    effect: 'No surprise penalty and faster combat reaction.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Dodge',
     character_id: characterNPCsIds[3] as string,
     cost_points: 10,
-    description: '+1 to active defense (Dodge).'
+    effect: '+1 to active defense (Dodge).'
   },
   {
     id: crypto.randomUUID(),
     name: 'Weapon Master',
     character_id: characterNPCsIds[3] as string,
     cost_points: 20,
-    description: '+2 to skill with chosen weapon type.'
+    effect: '+2 to skill with chosen weapon type.'
   },
 
   // Lyra Moonfall - celestial sorcerer (NPC)
@@ -2112,21 +2112,21 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Magery 2',
     character_id: characterNPCsIds[4] as string,
     cost_points: 35,
-    description: 'Enhanced access to spellcasting (level 2).'
+    effect: 'Enhanced access to spellcasting (level 2).'
   },
   {
     id: crypto.randomUUID(),
     name: 'Oracle',
     character_id: characterNPCsIds[4] as string,
     cost_points: 15,
-    description: 'Visions of future events (+2 to predictions).',
+    effect: 'Visions of future events (+2 to predictions).',
   },
   {
     id: crypto.randomUUID(),
     name: 'Serendipity',
     character_id: characterNPCsIds[4] as string,
     cost_points: 15,
-    description: 'Luck that helps in critical moments.'
+    effect: 'Luck that helps in critical moments.'
   },
 
   // Borin Stonehelm - dwarven tank (NPC)
@@ -2135,21 +2135,21 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'High Pain Threshold',
     character_id: characterNPCsIds[5] as string,
     cost_points: 10,
-    description: 'Ignore shock from injury.'
+    effect: 'Ignore shock from injury.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Toughness',
     character_id: characterNPCsIds[5] as string,
     cost_points: 15,
-    description: '+2 HT for resistance rolls.'
+    effect: '+2 HT for resistance rolls.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Damage Resistance',
     character_id: characterNPCsIds[5] as string,
     cost_points: 20,
-    description: 'DR 2 against all physical attacks.'
+    effect: 'DR 2 against all physical attacks.'
   },
 
   // Nyx Shadowend - elite assassin (NPC)
@@ -2158,28 +2158,28 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Combat Reflexes',
     character_id: characterNPCsIds[6] as string,
     cost_points: 15,
-    description: 'No surprise penalty and faster combat reaction.'
+    effect: 'No surprise penalty and faster combat reaction.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Silence',
     character_id: characterNPCsIds[6] as string,
     cost_points: 15,
-    description: 'Move silently, +4 to Stealth in shadows.'
+    effect: 'Move silently, +4 to Stealth in shadows.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Night Vision',
     character_id: characterNPCsIds[6] as string,
     cost_points: 10,
-    description: 'See in darkness as if daylight.'
+    effect: 'See in darkness as if daylight.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Flexibility',
     character_id: characterNPCsIds[6] as string,
     cost_points: 5,
-    description: '+2 to Escape, +1 to Climbing.',
+    effect: '+2 to Escape, +1 to Climbing.',
   },
 
   // Eldric Vale - wise mage (NPC)
@@ -2188,28 +2188,28 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Magery 3',
     character_id: characterNPCsIds[7] as string,
     cost_points: 45,
-    description: 'Powerful access to spellcasting (level 3).',
+    effect: 'Powerful access to spellcasting (level 3).',
   },
   {
     id: crypto.randomUUID(),
     name: 'Intuition',
     character_id: characterNPCsIds[7] as string,
     cost_points: 15,
-    description: '+2 to unexpected IQ rolls.'
+    effect: '+2 to unexpected IQ rolls.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Mathematical Ability',
     character_id: characterNPCsIds[7] as string,
     cost_points: 10,
-    description: '+2 to mathematics and calculations.'
+    effect: '+2 to mathematics and calculations.'
   },
   {
     id: crypto.randomUUID(),
     name: 'GURPS 101',
     character_id: characterNPCsIds[7] as string,
     cost_points: 5,
-    description: 'Familiarity with GURPS rules gives +1 to relevant IQ checks.'
+    effect: 'Familiarity with GURPS rules gives +1 to relevant IQ checks.'
   },
 
   // Vera Hollow - cursed archer (NPC)
@@ -2218,21 +2218,21 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Dodge',
     character_id: characterNPCsIds[8] as string,
     cost_points: 10,
-    description: '+1 to active defense (Dodge).'
+    effect: '+1 to active defense (Dodge).'
   },
   {
     id: crypto.randomUUID(),
     name: 'Night Vision',
     character_id: characterNPCsIds[8] as string,
     cost_points: 10,
-    description: 'See in darkness as if daylight.'
+    effect: 'See in darkness as if daylight.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Absolute Direction',
     character_id: characterNPCsIds[8] as string,
     cost_points: 5,
-    description: 'Never get lost, +2 to Navigation.'
+    effect: 'Never get lost, +2 to Navigation.'
   },
 
   // Dante Crowe - charismatic warlock (NPC)
@@ -2241,20 +2241,20 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     name: 'Magery 2',
     character_id: characterNPCsIds[9] as string,
     cost_points: 35,
-    description: 'Enhanced access to spellcasting (level 2).'
+    effect: 'Enhanced access to spellcasting (level 2).'
   },
   {
     id: crypto.randomUUID(),
     name: 'Charisma',
     character_id: characterNPCsIds[9] as string,
     cost_points: 10,
-    description: '+2 to reaction rolls from NPCs.'
+    effect: '+2 to reaction rolls from NPCs.'
   },
   {
     id: crypto.randomUUID(),
     name: 'Serendipity',
     character_id: characterNPCsIds[9] as string,
     cost_points: 15,
-    description: 'Luck that helps in critical moments.'
+    effect: 'Luck that helps in critical moments.'
   }
 ]
