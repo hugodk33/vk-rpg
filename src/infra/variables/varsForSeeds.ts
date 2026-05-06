@@ -200,6 +200,30 @@ const  skillStrategyId = crypto.randomUUID()
 const  skillMagicId = crypto.randomUUID()
 const  skillSingId = crypto.randomUUID()
 
+// Skills from var-skills.ts (translated to English)
+const  skillAnimalTrainingId = crypto.randomUUID()
+const  skillFalconryId = crypto.randomUUID()
+const  skillAnimalPackingId = crypto.randomUUID()
+const  skillRidingId = crypto.randomUUID()
+const  skillTeamsterId = crypto.randomUUID()
+const  skillVeterinaryId = crypto.randomUUID()
+const  skillArtistId = crypto.randomUUID()
+const  skillBardId = crypto.randomUUID()
+const  skillDancingId = crypto.randomUUID()
+const  skillPoetryId = crypto.randomUUID()
+const  skillSculptingId = crypto.randomUUID()
+const  skillWritingId = crypto.randomUUID()
+const  skillAcrobaticsId = crypto.randomUUID()
+const  skillBreathControlId = crypto.randomUUID()
+const  skillZeroGId = crypto.randomUUID()
+const  skillJumpingId = crypto.randomUUID()
+const  skillRunningId = crypto.randomUUID()
+const  skillDivingId = crypto.randomUUID()
+const  skillSkiingId = crypto.randomUUID()
+const  skillSwimmingId = crypto.randomUUID()
+const  skillAxeMaceId = crypto.randomUUID()
+const  skillAxeThrowingId = crypto.randomUUID()
+const  skillCombatSuitId = crypto.randomUUID()
 
 export const  skills: SeedSkill[] = [
     {
@@ -257,6 +281,191 @@ export const  skills: SeedSkill[] = [
         predefinition_type: "Mental",
         predefinition_difficulty: "Hard",
         description: "The ability to plan and execute complex strategies."
+    },
+    // Skills from var-skills.ts (translated to English)
+    {
+        id: skillAnimalTrainingId,
+        table_id: mainGameTableId,
+        name: 'Animal Training',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Hard',
+        description: 'The ability to train and work with all kinds of animals. To train an animal, the trainer must succeed on a skill test each day of training. A failure means the animal learned nothing. A critical failure means the animal attacked the trainer.'
+    },
+    {
+        id: skillFalconryId,
+        table_id: mainGameTableId,
+        name: 'Falconry',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to hunt small animals using a trained falcon. A good falconer knows hunting and training techniques, as well as how to care for a falcon.'
+    },
+    {
+        id: skillAnimalPackingId,
+        table_id: mainGameTableId,
+        name: 'Animal Packing',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Hard',
+        description: 'The ability to load and unload animals quickly and efficiently. Includes the ability to correctly assess animals before purchase, get the best performance from them, and select the best routes for caravans.'
+    },
+    {
+        id: skillRidingId,
+        table_id: mainGameTableId,
+        name: 'Riding',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Medium',
+        description: 'This skill is different for each type of animal. If you encounter a mount you are not familiar with, use your skill level with the closest animal type. Modifiers: +5 if the animal knows and likes you; -10 if the animal is not a "common" mount or has not been trained as such.'
+    },
+    {
+        id: skillTeamsterId,
+        table_id: mainGameTableId,
+        name: 'Teamster',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The skill of driving teams of animals, such as a wagon. Includes the ability to hitch and care for animals, and assess them before purchase. Driving a group with more than 4 animals, or with unfamiliar animals, subjects the character to a -2 penalty.'
+    },
+    {
+        id: skillVeterinaryId,
+        table_id: mainGameTableId,
+        name: 'Veterinary',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Hard',
+        description: 'The ability to care for injured or sick animals. This is a Medical skill. Modifiers: +5 if the animal already knows and trusts you; -2 or worse if the animal is of a type you are not familiar with.'
+    },
+    {
+        id: skillArtistId,
+        table_id: mainGameTableId,
+        name: 'Artist',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Hard',
+        description: 'The ability to draw and paint with beauty and precision. A success on a skill test could mean you made a drawing good enough to help identify a person, draw an easy-to-follow map, or even paint a picture good enough to trade for a meal.'
+    },
+    {
+        id: skillBardId,
+        table_id: mainGameTableId,
+        name: 'Bard',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to tell stories and speak impromptu. Good use of this talent will allow you to give a good political speech, entertain a group of people around a campfire, incite (or calm) a riot, or succeed in the role of "court jester".'
+    },
+    {
+        id: skillDancingId,
+        table_id: mainGameTableId,
+        name: 'Dancing',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to perform dances peculiar to your own culture and learn new styles quickly. Modifiers: -5 if the dance is unknown. A dance will be familiar to you after you successfully perform it 3 times.'
+    },
+    {
+        id: skillPoetryId,
+        table_id: mainGameTableId,
+        name: 'Poetry',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to compose any kind of poetry known in your civilization with "good" quality, in any language you are fluent in. A successful Poetry test means you composed a good poem in an adequate time.'
+    },
+    {
+        id: skillSculptingId,
+        table_id: mainGameTableId,
+        name: 'Sculpting',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to shape an image reasonably similar to a human being or object, using clay, wood, ivory, or whatever comes to hand. To produce a metal sculpture, you need to have forging skill.'
+    },
+    {
+        id: skillWritingId,
+        table_id: mainGameTableId,
+        name: 'Writing',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to write clearly and/or entertainingly. A success on a skill test means the work is legible and accurate. Modifiers: -3 if you were in a hurry; +3 if you had plenty of time; -5 if you were writing about a subject you are not familiar with.'
+    },
+    {
+        id: skillAcrobaticsId,
+        table_id: mainGameTableId,
+        name: 'Acrobatics',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Hard',
+        description: 'The ability to perform acrobatic and gymnastic feats, roll, take tumbles, etc. A test should be made for each trick you attempt. This skill can be convenient in an adventure; tightrope walking, human pyramids, and trapeze all have practical applications.'
+    },
+    {
+        id: skillBreathControlId,
+        table_id: mainGameTableId,
+        name: 'Breath Control',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Very Hard',
+        description: 'The ability to breathe as efficiently as possible. On a successful skill test, the character can triple the time they can hold their breath for any reason. A success also enables recovery of 1 fatigue point in just two minutes.'
+    },
+    {
+        id: skillZeroGId,
+        table_id: mainGameTableId,
+        name: 'Zero-G',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The skill of dealing with a zero-gravity (free fall) environment. A test is required when you first enter free fall. A failure means you feel nauseous, and a successful HT test will be required to avoid suffocation.'
+    },
+    {
+        id: skillJumpingId,
+        table_id: mainGameTableId,
+        name: 'Jumping',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Easy',
+        description: 'The skill of making the best possible use of your strength when jumping. When the character attempts a difficult jump, they may substitute their Jumping skill level for their ST or DX.'
+    },
+    {
+        id: skillRunningId,
+        table_id: mainGameTableId,
+        name: 'Running',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Hard',
+        description: 'This skill is based on HT, not DX. It represents training in short and long distance running. If you studied this subject, divide your skill level by 8 (do not round) and add the result to your Speed parameter when calculating your Movement.'
+    },
+    {
+        id: skillDivingId,
+        table_id: mainGameTableId,
+        name: 'Diving',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to use equipment to breathe underwater. To avoid ingesting water (which would result in loss of 1 ST point and risk of drowning), you must succeed on a test made as soon as you enter the water and subsequent tests made every 30 minutes.'
+    },
+    {
+        id: skillSkiingId,
+        table_id: mainGameTableId,
+        name: 'Skiing',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Hard',
+        description: 'The ability to ski. A skill test is required when you start a descent, except on a very easy slope, and another every 30 minutes. A failure means you fall. In case of a critical failure, you suffer 1D-1 points of damage to a randomly chosen limb.'
+    },
+    {
+        id: skillSwimmingId,
+        table_id: mainGameTableId,
+        name: 'Swimming',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Easy',
+        description: 'This skill is used both for swimming (or floating in emergency cases) and for saving a drowning victim. See Swimming for complete rules on swimming, drowning, and lifesaving.'
+    },
+    {
+        id: skillAxeMaceId,
+        table_id: mainGameTableId,
+        name: 'Axe or Mace',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Medium',
+        description: 'Skill in using any small, unbalanced weapon like an axe, hatchet, mace, pickaxe, etc.'
+    },
+    {
+        id: skillAxeThrowingId,
+        table_id: mainGameTableId,
+        name: 'Axe Throwing',
+        predefinition_type: 'Physical',
+        predefinition_difficulty: 'Easy',
+        description: 'Skill in throwing any balanced throwing axe, but not an unbalanced war axe.'
+    },
+    {
+        id: skillCombatSuitId,
+        table_id: mainGameTableId,
+        name: 'Combat Suit',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to use a self-propelled armored suit, including the corresponding armament.'
     }
 ]
 
