@@ -196,42 +196,266 @@ export const pericias = [
 export const pericias2 = [
     {
         nome: "Armas de Feixe",
-        tipo: 'physical',
-        dificuldade: 'easy',
+        tipo: 'Physical',
+        dificuldade: 'Easy',
         preDefinido: [['DX' , 4]],
         preRequisito: null,
         descricao: "Esta é a habilidade no uso de qualquer tipo de Arma de Feixes Iônicos, laser, atordoadores, etc. Ela inclui tanto armas do tipo pistola, com o fuzil, visto que nenhum deles sofre recuo. Se sua IQ for igual a 10 ou 11, some 1 ponto ao seu NH. Se for maior do que 11, some 2 pontos. Os modificadores são iguais aos descritos para a perícia Armas de Fogo"
     },
     {
         nome: "Armas de Feixe",
-        tipo: 'physical',
-        dificuldade: 'easy',
+        tipo: 'Physical',
+        dificuldade: 'Easy',
         preDefinido: [['DX' , 4]],
         preRequisito: null,
         descricao: "Esta arma só é útil em combates de perto e, na maioria dos casos, é usada em ataques de supresa. Como ela provoca um dano básico muito pequeno, costuma ser usada para golpear a cabeça. Se não desejar provocar uma lesão muito séria, o atacante poderá “bater de leve” (v. pág. 122), não fazendo uso de sua ST total"
     },
     {
         nome: "Armas de Pólvora",
-        tipo: 'physical',
-        dificuldade: 'easy',
+        tipo: 'Physical',
+        dificuldade: 'Easy',
         preDefinido: [['DX' , 4]],
         preRequisito: null,
         descricao: "Esta é a perícia no uso de armas de pólvora, incluindo mosquetões, pistolas e fuzis. Adicione 1 a seu NH, se sua IQ for igual a 10 ou 11, e 2 para o caso de IQ maior ou igual a 12. Os modificadores são iguais aos encontrados em Armas de Fogo, pág 51."
     },
     {
         nome: "Zarabatana",
-        tipo: 'physical',
-        dificuldade: 'hard',
+        tipo: 'Physical',
+        dificuldade: 'Hard',
         preDefinido: [['DX' , 6]],
         preRequisito: null,
         descricao: "Esta é a perícia no uso da zarabatana, para lançar pequenos dardos (normalmente envenenados). Estes dardos não são capazes de furar as roupas normais, a não ser no caso de um sucesso decisivo, e nunca penetram na roupa ou numa armadura. Se um dardo atinge a pele ou roupa leve, o veneno poderá ter efeito. Modificadores: -2 ou mais no caso de vento"
     },
     {
         nome: "Boleadeiras",
-        tipo: 'physical',
-        dificuldade: 'medium',
+        tipo: 'Physical',
+        dificuldade: 'Medium',
         preDefinido: [['DX' , 6]],
         preRequisito: null,
         descricao: "Esta é a perícia no lançamento de boleadeiras (uma tira de couro com dois ou mais pesos atados a suas pontas) para enredar a vítima. São usadas principalmente para parar animais numa tropa, ou na caça de pequenos animais selvagens ou pássaros. Podem também ser usadas em combate. É possível se esquivar ou bloqueá-las, mas uma tentativa de apará-las fará com que elas se enrolem automaticamente na arma usada para tal. Exceção: Uma manobra bem sucedida de aparar com uma arma cortante, cortará as tiras, arruinando as boleadeiras."
+    },
+    {
+        nome: "Arco",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: [['DX' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso de arcos em geral. Ela cobre também os arcos compostos, apesar de que uma pessoa que nunca tenha visto um antes precisará de um sucesso em um teste de IQ para descobrir como usá-lo corretamente"
+    },
+    {
+        nome: "Briga",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a “perícia”, nada científica, de “sair-no-tapa” num combate de perto. Faça um teste de Briga sempre que atacar o adversário com as mãos ou pés para ver se consegue atingi-lo. Some 1/10 de seu NH em Briga (arredondado para baixo) ao dano provocado. É possível aparar duas vezes por turno (um para cada mão) quando você se defende com as mãos limpas, e seu parâmetro Aparar será igual a 2/3 de seu NH em Briga. Com esta perícia só é possível aparar ataques de mãos, pés e armas usadas em combate de perto."
+    },
+    {
+        nome: "Espada de Lâmina Larga",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5] , ['Espada Curta' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a “perícia”, nada científica, de “sair-no-tapa” num combate de perto. Faça um teste de Briga sempre que atacar o adversário com as mãos ou pés para ver se consegue atingi-lo. Some 1/10 de seu NH em Briga (arredondado para baixo) ao dano provocado. É possível aparar duas vezes por turno (um para cada mão) quando você se defende com as mãos limpas, e seu parâmetro Aparar será igual a 2/3 de seu NH em Briga. Com esta perícia só é possível aparar ataques de mãos, pés e armas usadas em combate de perto."
+    },
+    {
+        nome: "Broquel",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 4] , ['Escudo' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a “perícia”, nada científica, de “sair-no-tapa” num combate de perto. Faça um teste de Briga sempre que atacar o adversário com as mãos ou pés para ver se consegue atingi-lo. Some 1/10 de seu NH em Briga (arredondado para baixo) ao dano provocado. É possível aparar duas vezes por turno (um para cada mão) quando você se defende com as mãos limpas, e seu parâmetro Aparar será igual a 2/3 de seu NH em Briga. Com esta perícia só é possível aparar ataques de mãos, pés e armas usadas em combate de perto."
+    },
+    {
+        nome: "Besta",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 4] , ['Escudo' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso de bestas, incluindo as bestas de balas ou de pedras. Se você tiver esta perícia, saberá como funcionam as máquinas do tipo da besta usadas para sitiar castelos, mas não terá nenhuma habilidade especial no seu uso."
+    },
+    {
+        nome: "Sacar Rápido",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Existe uma perícia independente para cada tipo de arma. Ela está disponível para as seguintes armas: Faca, Cassetete, Espada (uma só mão), Espada de Duas Mãos, Flecha (inclusive os virotes de besta), Pistola, Fuzil (incluindo metralhadoras de mão, etc...), pentes, municiador rápido. O GM pode acrescentar uma nova perícia deste tipo para qualquer arma que possa ser sacada rapidamente, mas seja significativamente diferente de todas as armas acima. Esta perícia é usada quando você deseja preparar uma arma que está em seu coldre, bainha, etc... Um sucesso significa que você preparou a arma instantaneamente (isto não conta como manobra) e pode atacar com ela (ou carregar o arco) no mesmo turno. Uma falha significa que você preparou a arma normalmente, mas não pode fazer mais nada neste turno (se era uma flecha você a deixou cair). Uma falha crítica significa que você deixou a arma cair (ou, no caso de flechas, toda a aljava). A vantagem Reflexos em Combate dá um bônus de +1 em testes de Sacar Rápido."
+    },
+    {
+        nome: "Esgrima",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a capacidade de usar as armas dos esgrimistas (rapieira, espadim e sabre). A rapieira é uma arma perfurante longa (alcance 2 hexágonos) e leve. O espadim é uma arma leve, perfurante, mais curta (alcance 1 hexágono) relativamente parecida com um florete moderno com uma ponta. O sabre é uma arma leve, cortante e perfurante. Se você tiver uma arma destas, um escudo pequeno e uma Carga não maior do que leve, seu Aparar será 2/3 de seu NH em Esgrima (arredondado para baixo). Além disso, você pode aparar duas vezes por turno. Se você estiver em Defesa Total, poderá aparar qualquer número de ataques em uma rodada. Muitos esgrimistas carregam uma adaga como segunda arma. Ela também pode aparar (apara 3 ataques por rodada), mas apenas com a habilidade normal do esgrimista em aparar com uma Faca. A única desvantagem do aparar do esgrimista é que suas armas são muito leves e podem quebrar quando usadas para aparar"
+    },
+    {
+        nome: "Mangual",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: [['DX' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso de armas desbalanceadas, com a cabeça ligada ao cabo por uma corrente ou corda, tal como o mangual, morningstar ou o nunchaku. O mangual é difícil de se usar, mas difícil de se oferecer defesa também. Qualquer tentativa de bloquear uma destas armas está submetida a um redutor de -2. Qualquer tentativa de aparar tem um redutor de -4. Facas e armas de Esgrima não podem aparar um Mangual. Defesas de artes marciais podem aparar um mangual, mas com um redutor de -4."
+    },
+    {
+        nome: "Armas de Fogo",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso de qualquer tipo de arma de cartucho do séc. XX. Some 1 a seu nível de habilidade, se tiver IQ igual a 10 ou 11, e 2 para IQ 12+. Modificadores: Veja Familiaridade, (pág. 43). -2 para uma arma de um tipo conhecido com a qual não se está familiarizado (ex.: calibre . 22 quando se está acostumado com calibre 38); - 4 ou mais para uma arma em más condições; - 4 ou mais para uma arma de tipo desconhecido (ex.: um fuzil quando se está acostumado a atirar com pistolas). Todos os modificadores descritos para armas de projétil, devem ser aplicados."
+    },
+    {
+        nome: "Judô",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta perícia representa uma habilidade geral em tombos e chaves e não uma escola específica de combate desarmado. Não é possível usar Judô se tiver alguma coisa nas mãos ou se sua Carga for maior do que Leve. Usando Judô, será possível aparar com qualquer uma das mãos como se ela fosse uma arma, usando 2/3 de seu NH em Judô como seu Aparar. A chance de se machucar ao aparar uma arma com as mãos também é menor (v. pág. 101)."
+    },
+    {
+        nome: "Caratê",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta perícia não representa nenhuma escola específica de combate desarmado e sim uma habilidade geral com socos e chutes. Não existe penalidade para o uso da mão esquerda. Qualquer mão que venha a ser usada deverá estar vazia, e sua Carga deve ser Leve ou menos. É possível aparar com qualquer uma das mãos como se ela fosse uma arma, usando 2/3 de seu NH em Caratê como seu Aparar."
+    },
+    {
+        nome: "Faca",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 4]],
+        preRequisito: null,
+        descricao: "A perícia no uso, mas não no arremesso, de qualquer tipo de faca, adaga ou estilete."
+    },
+    {
+        nome: "Arremesso de Faca",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 4]],
+        preRequisito: null,
+        descricao: "A habilidade de arremessar qualquer espécie de faca."
+    },
+    {
+        nome: "Lança de Justa",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 6] , ['Lança' , 3]],
+        preRequisito: "Cavalgar",
+        descricao: "Esta é a perícia no uso da lança de justa, uma arma parecida com uma lança normal, com um comprimento maior ou igual a 3,5 m, usada a cavalo. Não é comum aparar em um combate com lanças de justa; é preciso Bloquear ou se Esquivar dos ataques do inimigo."
+    },
+    {
+        nome: "Laço (Reata)",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a perícia no arremesso do laço ou reata. Ela é usada principalmente para laçar animais. Pode-se tentar laçar uma parte específica do corpo, ou escolher uma aleatoriamente na Tabela de Partes do Corpo. Faça uma Disputa Rápida de ST, se o laço tiver prendido um braço ou o tronco do adversário. Se o laçador vencer, a vítima estará imobilizada, mas se ele perder, terá perdido a corda. Se a cabeça tiver sido laçada, a vítima estará submetida a um redutor de -5 na Disputa de ST. Se um pé tiver sido laçado, a vítima terá que ser bem sucedida em um teste de DX para permanecer em pé (DX - 4 se a vítima estava correndo quando foi laçada) e não haverá necessidade de disputa de ST. Se o teste de DX resultar em falha, a vítima sofrerá 1D - 4 pontos de dano devido à queda (1D-2 se a vítima estava correndo)."
+    },
+    {
+        nome: "Rede",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso da rede como uma arma em uma luta. É possível se esquivar de uma rede, mas não bloquear nem aparar. No caso de um arremesso bem sucedido, a vítima estará envolvida e incapaz de se mover ou atacar até a rede ser removida. Para remover uma rede você precisa de três sucessos, não necessariamente consecutivos, em testes de DX. Modificadores: - 4 quando se tem as duas mãos livres; -6 quando se tem uma só mão livre, ou no caso de animais. Se ocorrerem três falhas consecutivas, a vítima estará tão embaraçada, que será necessário cortar a rede para libertá-la. Uma rede para animais pesa 9 kg e pode ser arremessada a uma distância de (ST/2) metros mais 1/5 do NH com a rede (arredondado para baixo)."
+    },
+    {
+        nome: "Armas de Haste",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5]],
+        preRequisito: null,
+        descricao: "Perícia no uso de armas de haste muito longas e desbalanceadas, incluindo a acha d’armas, a alabarda, a bisarma e as centenas de variações do tipo."
+    },
+    {
+        nome: "Escudo",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 4] , ['Broquel' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso de um escudo do tipo medieval ou daqueles usados pelas tropas de choque. Esta perícia é necessária para atacar com o Escudo. No entanto a defesa passiva oferecida pelo escudo (1 a 4 pontos) protege quem o carrega, mesmo que ele não saiba como usá-lo. A defesa ativa de um escudo (no Bloqueio) é 1/2 de seu NH com o Escudo. Logo, você será capaz de bloquear muito melhor se tiver estudado a perícia do que se usar seu nível pré-definido. O atributo DX de uma pessoa média é 10, ou seja o nível prédefinido de sua habilidade com o Escudo é 6 e seu Bloqueio será 3. Veja também"
+    },
+    {
+        nome: "Espadas Curtas",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5] , ['Espada de Lâmina Larga' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso de qualquer tipo de arma balanceada com 30 a 60cm de comprimento, incluindo o terçado, o gládio e o bastão."
+    },
+    {
+        nome: "Funda",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: [['DX' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso da funda ou fustíbalo."
+    },
+    {
+        nome: "Lança",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5] , ['Bastão' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso (mas não arremesso) de qualquer tipo de lança, dardo, tridente, baioneta, pique ou arma longa, leve e pontuda."
+    },
+    {
+        nome: "Arremessador de Lança",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 4] , ['Arremesso de Lança' , 4]],
+        preRequisito: null,
+        descricao: "Este aparelho, e a perícia em sua utilização, são diferentes da perícia Arremesso de Lanças, mas o nível pré-definido de uma é igual ao da outra - 4. Um Arremessador de Lança é uma vara longa e chata com um entalhe e uma alça em uma das pontas. Ela aumenta a força com que um dardo, ou outra arma similar, é arremessado, aumentando a ST efetiva de quem usa (para determinação de alcance e dano provocado) em 5 pontos. É necessário um turno para colocar a lança no arremessador depois que ambos estão à mão e prontos. Modificadores: -5 em lugares apertados (precisa de um espaço aéreo vazio pelo menos até 2 m além da altura do atirador para uso eficaz)."
+    },
+    {
+        nome: "Arremesso de Lança",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 4] , ['Arremessador de Lança' , 4]],
+        preRequisito: null,
+        descricao: "Habilidade no arremesso de qualquer tipo de lança, dardo, etc."
+    },
+    {
+        nome: "Rapidez de Recarga",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a habilidade em carregar rapidamente uma arma de fogo. Não é a mesma coisa que Sacar Rápido, mas você poderia, usando as perícias certas, recarregar muito rapidamente sacando um municiador rápido ou um pente de seu cinto ou bolso e colocando na arma."
+    },
+    {
+        nome: "Bastão",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: [['DX' , 5] , ['Lança' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso do Bastão ou de qualquer haste ou vara improvisada como Bastão. Este é um tipo de arma empunhada com as duas mãos. Seu Aparar será 2/3 de seu nível de habilidade."
+    },
+    {
+        nome: "Machado de Duas Mãos/Maça",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5]],
+        preRequisito: null,
+        descricao: "Habilidade na utilização de qualquer arma longa, pesada e não balanceada como, por exemplo, o machado de batalha ou a marreta."
+    },
+    {
+        nome: "Espadas de Duas Mãos",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no manuseio de uma arma de lâmina longa (1m a 1,5m) com as duas mãos. Note que a cimitarra é usada com esta perícia quando empunhada com as duas mãos, mas com o NH em Espadas de Lâmina Larga quando empunhada com apenas uma."
+    },
+    {
+        nome: "Chicote",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a habilidade em usar um chicote como uma arma. Existem chicotes de vários comprimentos. Em termos de jogo, um chicote com 1 m de comprimento tem um alcance de 1 m. Na verdade, ele deveria ter 1,20 m de comprimento. O tempo necessário para re-preparar um chicote depende de seu comprimento: 0 turnos para um chicote de 1 m; 1 turno para um chicote de 2 m; 2 turnos para um chicote de 3 m ou mais. Os chicotes podem ter até 6,5 m de comprimento. É impossível atingir um alvo a 1 m de distância, ou menos, com um chicote de 2 m de comprimento."
     }
 ]
