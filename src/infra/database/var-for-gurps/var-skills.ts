@@ -192,3 +192,46 @@ export const pericias = [
         descricao: "Esta é a habilidade em usar um traje blindado auto-propelido, incluindo o armamento correspondente."
     },
 ]
+
+export const pericias2 = [
+    {
+        nome: "Armas de Feixe",
+        tipo: 'physical',
+        dificuldade: 'easy',
+        preDefinido: [['DX' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade no uso de qualquer tipo de Arma de Feixes Iônicos, laser, atordoadores, etc. Ela inclui tanto armas do tipo pistola, com o fuzil, visto que nenhum deles sofre recuo. Se sua IQ for igual a 10 ou 11, some 1 ponto ao seu NH. Se for maior do que 11, some 2 pontos. Os modificadores são iguais aos descritos para a perícia Armas de Fogo"
+    },
+    {
+        nome: "Armas de Feixe",
+        tipo: 'physical',
+        dificuldade: 'easy',
+        preDefinido: [['DX' , 4]],
+        preRequisito: null,
+        descricao: "Esta arma só é útil em combates de perto e, na maioria dos casos, é usada em ataques de supresa. Como ela provoca um dano básico muito pequeno, costuma ser usada para golpear a cabeça. Se não desejar provocar uma lesão muito séria, o atacante poderá “bater de leve” (v. pág. 122), não fazendo uso de sua ST total"
+    },
+    {
+        nome: "Armas de Pólvora",
+        tipo: 'physical',
+        dificuldade: 'easy',
+        preDefinido: [['DX' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso de armas de pólvora, incluindo mosquetões, pistolas e fuzis. Adicione 1 a seu NH, se sua IQ for igual a 10 ou 11, e 2 para o caso de IQ maior ou igual a 12. Os modificadores são iguais aos encontrados em Armas de Fogo, pág 51."
+    },
+    {
+        nome: "Zarabatana",
+        tipo: 'physical',
+        dificuldade: 'hard',
+        preDefinido: [['DX' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso da zarabatana, para lançar pequenos dardos (normalmente envenenados). Estes dardos não são capazes de furar as roupas normais, a não ser no caso de um sucesso decisivo, e nunca penetram na roupa ou numa armadura. Se um dardo atinge a pele ou roupa leve, o veneno poderá ter efeito. Modificadores: -2 ou mais no caso de vento"
+    },
+    {
+        nome: "Boleadeiras",
+        tipo: 'physical',
+        dificuldade: 'medium',
+        preDefinido: [['DX' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no lançamento de boleadeiras (uma tira de couro com dois ou mais pesos atados a suas pontas) para enredar a vítima. São usadas principalmente para parar animais numa tropa, ou na caça de pequenos animais selvagens ou pássaros. Podem também ser usadas em combate. É possível se esquivar ou bloqueá-las, mas uma tentativa de apará-las fará com que elas se enrolem automaticamente na arma usada para tal. Exceção: Uma manobra bem sucedida de aparar com uma arma cortante, cortará as tiras, arruinando as boleadeiras."
+    }
+]

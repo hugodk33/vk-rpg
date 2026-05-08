@@ -464,6 +464,7 @@ export const  skills: SeedSkill[] = [
         predefinition_difficulty: 'Easy',
         description: 'Skill in throwing any balanced throwing axe, but not an unbalanced war axe.'
     },
+    // new skill
     {
         id: skillCombatSuitId,
         table_id: mainGameTableId,
