@@ -224,6 +224,11 @@ const  skillSwimmingId = crypto.randomUUID()
 const  skillAxeMaceId = crypto.randomUUID()
 const  skillAxeThrowingId = crypto.randomUUID()
 const  skillCombatSuitId = crypto.randomUUID()
+// Additional skills referenced by pre-definidos in var-skills.ts
+const  skillMedicineId = crypto.randomUUID()
+const  skillPerformanceId = crypto.randomUUID()
+const  skillLanguageId = crypto.randomUUID()
+const  skillPressureSuitId = crypto.randomUUID()
 
 export const  skills: SeedSkill[] = [
     {
@@ -459,6 +464,7 @@ export const  skills: SeedSkill[] = [
         predefinition_difficulty: 'Easy',
         description: 'Skill in throwing any balanced throwing axe, but not an unbalanced war axe.'
     },
+    // new skill
     {
         id: skillCombatSuitId,
         table_id: mainGameTableId,
@@ -466,6 +472,38 @@ export const  skills: SeedSkill[] = [
         predefinition_type: 'Mental',
         predefinition_difficulty: 'Medium',
         description: 'The ability to use a self-propelled armored suit, including the corresponding armament.'
+    },
+    {
+        id: skillMedicineId,
+        table_id: mainGameTableId,
+        name: 'Medicine',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Hard',
+        description: 'The diagnosis and treatment of human disease and injuries.'
+    },
+    {
+        id: skillPerformanceId,
+        table_id: mainGameTableId,
+        name: 'Performance',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to act, perform, and tell stories for an audience.'
+    },
+    {
+        id: skillLanguageId,
+        table_id: mainGameTableId,
+        name: 'Language',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to speak, read, and write a foreign language.'
+    },
+    {
+        id: skillPressureSuitId,
+        table_id: mainGameTableId,
+        name: 'Pressure Suit',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Medium',
+        description: 'The ability to use a pressure suit or space suit for survival in hostile environments.'
     }
 ]
 
@@ -2093,34 +2131,279 @@ type SeedModifierGameTableSkillsDependecies = {
 }
 
 export const  modifierGameTableSkillsDependecies: SeedModifierGameTableSkillsDependecies[] = [
+    // Animal Training (Adestramento de Animais): [['IQ', 6]]
     {
-        id: crypto.randomUUID(),                                  
+        id: crypto.randomUUID(),
+        origin_skill_id: skillAnimalTrainingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: 'iq - 6'
+    },
+    // Falconry (Falcoaria): [['IQ', 6], ['Animal Training', 6]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillFalconryId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: 'iq - 6'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillFalconryId,
+        depends_on_skill_id: skillAnimalTrainingId,
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: null
+    },
+    // Animal Packing (Carregamento): [['IQ', 6], ['Animal Training', 6]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillAnimalPackingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: 'iq - 6'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillAnimalPackingId,
+        depends_on_skill_id: skillAnimalTrainingId,
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: null
+    },
+    // Riding (Cavalgar): [['DX', 5], ['Animal Training', 3]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillRidingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'dx - 5'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillRidingId,
+        depends_on_skill_id: skillAnimalTrainingId,
+        depends_on_skill_value: '3',
+        depends_on_skill_for_others_attributes: null
+    },
+    // Teamster (Carreiro): [['DX', 5], ['Animal Training', 3]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillTeamsterId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'dx - 5'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillTeamsterId,
+        depends_on_skill_id: skillAnimalTrainingId,
+        depends_on_skill_value: '3',
+        depends_on_skill_for_others_attributes: null
+    },
+    // Veterinary (Veterinária): [['Medicine', 5], ['Animal Training', 3]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillVeterinaryId,
+        depends_on_skill_id: skillMedicineId,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: null
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillVeterinaryId,
+        depends_on_skill_id: skillAnimalTrainingId,
+        depends_on_skill_value: '3',
+        depends_on_skill_for_others_attributes: null
+    },
+    // Artist (Artista): [['IQ', 6]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillArtistId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: 'iq - 6'
+    },
+    // Bard (Trovador): [['IQ', 5], ['Performance', 2]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillBardId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'iq - 5'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillBardId,
+        depends_on_skill_id: skillPerformanceId,
+        depends_on_skill_value: '2',
+        depends_on_skill_for_others_attributes: null
+    },
+    // Dancing (Dança): [['DX', 5]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillDancingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'dx - 5'
+    },
+    // Poetry (Poesia): [['IQ', 5], ['Language', 5]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillPoetryId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'iq - 5'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillPoetryId,
+        depends_on_skill_id: skillLanguageId,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: null
+    },
+    // Sculpting (Escultura): [['DX', 5], ['IQ', 5]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillSculptingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'dx - 5'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillSculptingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'iq - 5'
+    },
+    // Sing (Canto): [['HT', 4]]
+    {
+        id: crypto.randomUUID(),
         origin_skill_id: skillSingId,
         depends_on_skill_id: null,
-        depends_on_skill_value: null,
-        depends_on_skill_for_others_attributes: '[HT - 4]'
+        depends_on_skill_value: '4',
+        depends_on_skill_for_others_attributes: 'ht - 4'
+    },
+    // Writing (Escrita): [['IQ', 5]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillWritingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'iq - 5'
+    },
+    // Acrobatics (Acrobacia): [['DX', 6]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillAcrobaticsId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: 'dx - 6'
+    },
+    // Zero-G (Gravidade Zero): [['DX', 5], ['HT', 5]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillZeroGId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'dx - 5'
     },
     {
-        id: crypto.randomUUID(),                                  
-        origin_skill_id: skillSingId,
+        id: crypto.randomUUID(),
+        origin_skill_id: skillZeroGId,
         depends_on_skill_id: null,
-        depends_on_skill_value: null,
-
-        depends_on_skill_for_others_attributes: '[DX - 5]'
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'ht - 5'
+    },
+    // Jumping (Salto): [['DX', 4], ['IQ', 6]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillJumpingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '4',
+        depends_on_skill_for_others_attributes: 'dx - 4'
     },
     {
-        id: crypto.randomUUID(),                                  
-        origin_skill_id: skillBowsId,
+        id: crypto.randomUUID(),
+        origin_skill_id: skillJumpingId,
         depends_on_skill_id: null,
-        depends_on_skill_value: null,
-        depends_on_skill_for_others_attributes: '[DX - 6]'
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: 'iq - 6'
+    },
+    // Diving (Mergulho): [['IQ', 5], ['Swimming', 5]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillDivingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'iq - 5'
     },
     {
-        id: crypto.randomUUID(),                                  
-        origin_skill_id: skillBowsId,
+        id: crypto.randomUUID(),
+        origin_skill_id: skillDivingId,
+        depends_on_skill_id: skillSwimmingId,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: null
+    },
+    // Skiing (Esqui): [['DX', 6]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillSkiingId,
         depends_on_skill_id: null,
-        depends_on_skill_value: null,
-        depends_on_skill_for_others_attributes: '[IQ - 6]'
+        depends_on_skill_value: '6',
+        depends_on_skill_for_others_attributes: 'dx - 6'
+    },
+    // Swimming (Natação): [['ST', 5], ['DX', 4]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillSwimmingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'st - 5'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillSwimmingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '4',
+        depends_on_skill_for_others_attributes: 'dx - 4'
+    },
+    // Axe or Mace (Machado ou Maça): [['DX', 5]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillAxeMaceId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'dx - 5'
+    },
+    // Axe Throwing (Arremesso de Machado): [['DX', 4]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillAxeThrowingId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '4',
+        depends_on_skill_for_others_attributes: 'dx - 4'
+    },
+    // Combat Suit (Traje de Combate): [['IQ', 5], ['DX', 5], ['Pressure Suit', 3]]
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillCombatSuitId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'iq - 5'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillCombatSuitId,
+        depends_on_skill_id: null,
+        depends_on_skill_value: '5',
+        depends_on_skill_for_others_attributes: 'dx - 5'
+    },
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillCombatSuitId,
+        depends_on_skill_id: skillPressureSuitId,
+        depends_on_skill_value: '3',
+        depends_on_skill_for_others_attributes: null
     }
 ]
 
