@@ -457,5 +457,133 @@ export const pericias2 = [
         preDefinido: null,
         preRequisito: null,
         descricao: "Esta é a habilidade em usar um chicote como uma arma. Existem chicotes de vários comprimentos. Em termos de jogo, um chicote com 1 m de comprimento tem um alcance de 1 m. Na verdade, ele deveria ter 1,20 m de comprimento. O tempo necessário para re-preparar um chicote depende de seu comprimento: 0 turnos para um chicote de 1 m; 1 turno para um chicote de 2 m; 2 turnos para um chicote de 3 m ou mais. Os chicotes podem ter até 6,5 m de comprimento. É impossível atingir um alvo a 1 m de distância, ou menos, com um chicote de 2 m de comprimento."
+    },
+    {
+        nome: "Chicote",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a habilidade em usar um chicote como uma arma. Existem chicotes de vários comprimentos. Em termos de jogo, um chicote com 1 m de comprimento tem um alcance de 1 m. Na verdade, ele deveria ter 1,20 m de comprimento. O tempo necessário para re-preparar um chicote depende de seu comprimento: 0 turnos para um chicote de 1 m; 1 turno para um chicote de 2 m; 2 turnos para um chicote de 3 m ou mais. Os chicotes podem ter até 6,5 m de comprimento. É impossível atingir um alvo a 1 m de distância, ou menos, com um chicote de 2 m de comprimento."
+    },
+    {
+        nome: "Armeiro",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Ferreiro' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade na construção e conserto de armas e armaduras no nível tecnológico apropriado. É necessário um sucesso em um teste para descobrir qual o problema com a arma (a menos que ele seja óbvio). Um segundo sucesso permitirá que o personagem a conserte. O GM deve determinar um período de tempo razoável para cada tentativa de conserto. Modificadores: -4 se a arma não for familiar; -4 se não tiver as ferramentas apropriadas (-5 em NT 9+)."
+    },
+    {
+        nome: "Ferreiro",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Joalheiro' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de trabalhar manualmente com ferro e outros metais não-preciosos. Para este trabalho é necessário uma forja, mas dispondo do material adequado, um ferreiro é capaz de construir uma em mais ou menos 30 dias. Modificador: -1 para cada ponto de ST abaixo de 13"
+    },
+    {
+        nome: "Carpintaria",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4] , ['DX' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a perícia na fabricação de objetos de madeira. Um sucesso em uma jogada de teste permite a realização de uma hora de trabalho competente de carpintaria. Uma falha significa que o resultado do trabalho foi ruim. Modificadores: +5 se você estiver sendo supervisionado ou assistido por alguém com NH 15+; -5 se não tiver boas ferramentas."
+    },
+    {
+        nome: "Culinária",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade no preparo de uma refeição agradável, a partir da matéria prima (não apenas água, calor e lataria). Em qualquer sociedade “ao ar livre”, esta perícia incluirá a habilidade de limpar a caça, ou seja, preparar um animal recém abatido para o cozimento."
+    },
+    {
+        nome: "Joalheiro",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Ferreiro' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade no trabalho com metais preciosos de todos os tipos, fabricação de jóias, decoração de armas e assim por diante. É necessário uma forja (veja Ferreiro, acima) para trabalhar o metal. Um joalheiro é capaz de identificar qualquer metal precioso, ou determinar o valor de qualquer bugiganga preciosa, se conseguir um sucesso em um teste de habilidade."
+    },
+    {
+        nome: "Trabalhos em Couro",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4] , ['DX' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a perícia em se trabalhar com couro para fazer cintos, selas, armaduras, etc... Alguém que tenha esta perícia será capaz de fabricar objetos novos ou consertar usados. Com um sucesso em um teste de habilidade, ele é capaz de determinar o valor de um objeto de couro."
+    },
+    {
+        nome: "Mecânica",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Engenheria' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em diagnosticar e resolver problemas mecânicos comuns, geralmente, mas nem sempre, no motor de um veículo. "
+    },
+    {
+        nome: "Cerâmica",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no trabalho com vários tipos de cerâmica. Um oleiro é capaz de fazer potes e outros utensílios de argila. Com um sucesso em um teste de habilidade, ele será capaz de identificar a argila apropriada (para tijolos ou utensílios domésticos); determinar a origem ou o valor de um objeto de cerâmica; etc..."
+    },
+    {
+        nome: "Marcenaria",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5] , ['Carpintaria' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a perícia na execução de trabalhos “finos” em madeira; construção de móveis, entalhes decorativos, etc. Com um sucesso em um teste de habilidade, um marceneiro é capaz de determinar a origem e o valor justo de um entalhe em madeira, ou identificar o tipo de madeira usado"
+    },
+    {
+        nome: "Mímica",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 5] , ['Linguagem de Sinais' , 0]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de se comunicar através de simples sinais improvisados com as mãos. Indivíduos surdos e/ou mudos têm um bônus de +3 no uso desta perícia. Um sucesso em um teste de Mímica/ Pantomima permitir-lhe-á comunicar uma idéia simples para uma outra pessoa, ou entender uma comunicada por outrem. "
+    },
+    {
+        nome: "Linguagem de Sinais",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é qualquer uma das verdadeiras linguagens de gestos. Uma das mais conhecidas é a American Sign Language (Ameslan). Outros exemplos poderiam ser a língua de uma raça alienígena sem fala, um código de sinais usado por espiões ou revolucionários, etc. Uma linguagem de sinais é complexa, estilizada e pode comunicar praticamente qualquer conceito. O conhecimento de uma linguagem de sinais não implica no entendimento das outras, mas você será capaz de perceber que algum tipo de linguagem está sendo usado, se for bem sucedido em um teste de IQ. Indivíduos mudos e/ou surdos receberão um bônus de +3 em testes de Linguagem de Sinais"
+    },
+    {
+        nome: "Telegrafia",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a habilidade de enviar e receber em código Morse, realizar pequenos reparos em sistemas de telegrafia e reconhecer outros operadores de telégrafo pela sua “caligrafia”, i.e., a sua maneira característica de enviar uma mensagem. Esta perícia é encontrada normalmente entre os níveis tecnológicos 5 e 7. A partir do nível 8, os seres humanos raramente enviam (eles mesmos) mensagens em código. Eles usam um computador para isto."
+    },
+    {
+        nome: "Medicina",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['Veterinária' , 5] , ['Primeiros Socorros' , 11] , ['IQ' , 7]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade profissional genérica de socorrer doentes, prescrever medicamentos e tratamentos, etc. Quando um GM exigir um teste de Competência ou do conhecimento médico geral, ele será feito contra esta perícia. Um médico tem a opção de adotar uma especialização."
+    },
+    {
+        nome: "Cirurgia",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: [['Veterinária' , 5] , ['Medicina' , 5] , ['Fisiologia' , 8] , ['Primeiro Socorros' , 12]],
+        preRequisito: "Medicina",
+        descricao: "Esta perícia é usada quando alguém tenta operar um personagem para curar doenças, ferimentos ou disfunções do organismo. Um cirurgião pode, opcionalmente, se especializar em uma determinada parte do organismo."
+    },
+    {
+        nome: "Escalada",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['DX' , 5] , ['ST' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em escalar montanhas, muros de pedra, árvores, paredes de edifícios e qualquer outra coisa que apareça em seu caminho. Modificadores: +3 se você tiver a vantagem de ter Ultra-flexibilidade das Juntas; menos seu nível de Carga"
     }
 ]
