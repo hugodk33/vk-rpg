@@ -801,6 +801,46 @@ export const pericias2 = [
         preDefinido: null,
         preRequisito: "Matemática",
         descricao: "Esta é a perícia no projeto e construção de mecanismos complexos. Um sucesso em um teste permitirá (por exemplo) determinar o propósito de um mecanismo desconhecido, diagnosticar um problema elétrico ou mecânico, fazer um reparo, projetar um novo mecanismo, improvisar um aparelho para resolver um problema. "
+    },
+    {
+        nome: "Técnicas Judiciais",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['Criminologia' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a ciência geral da criminologia “laboratorial”: cálculo da trajetória de balas, análise química ou microscópica de pistas, etc. Dependendo da situação o GM poderá permitir o uso de Química ou outro campo de estudo apropriado como nível pré-definido para Técnicas Judiciais em uma investigação particular."
+    },
+    {
+        nome: "Genética",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: [['Bioquímica' , 5] , ['Fisiologia' , 5]],
+        preRequisito: null,
+        descricao: "Este é o estudo da hereditariedade. Um geneticista seria capaz de identificar doenças genéticas, saberia como cruzar os animais a fim de desenvolver determinadas características além de impedir que as moscasdas-frutas devastem seu laboratório. A especialidade Engenharia Genética passa a existir em NT9+."
+    },
+    {
+        nome: "Geologia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Prospecção' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a ciência que estuda a Terra. Um geólogo estuda os minérios, rochas, petróleo, conhece terremotos, vulcões e fósseis. Em Campanha, ele seria capaz de achar água usando sua “sensibilidade para o campo” como na Perícia Sobrevivência"
+    },
+    {
+        nome: "História",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Arqueologia' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo do passado registrado (em oposição à arqueologia que estuda o passado pré-histórico). Um historiador seria capaz de dirimir dúvidas sobre história e poderia ter permissão para (a critério do GM) fazer um teste para ver se lembra de um paralelo histórico útil: - “Bom, Aníbal enfrentou uma situação parecida com esta uma vez e fez o seguinte...”."
+    },
+    {
+        nome: "Lingüística",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Este é o estudo dos princípios nos quais as línguas estão baseadas. Um lingüista seria capaz de identificar um idioma pouco conhecido a partir de um fragmento de um texto escrito ou falado, se for bem sucedido em seu teste de habilidade. Adicione 1/10 de seu NH nesta perícia (arredondado para baixo), se você a tiver estudado, ao seu nível de habilidade em qualquer língua que porventura venha a aprender."
     }
 
 ]
