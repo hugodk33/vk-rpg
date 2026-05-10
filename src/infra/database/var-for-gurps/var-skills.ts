@@ -585,5 +585,262 @@ export const pericias2 = [
         preDefinido: [['DX' , 5] , ['ST' , 5]],
         preRequisito: null,
         descricao: "Esta é a habilidade em escalar montanhas, muros de pedra, árvores, paredes de edifícios e qualquer outra coisa que apareça em seu caminho. Modificadores: +3 se você tiver a vantagem de ter Ultra-flexibilidade das Juntas; menos seu nível de Carga"
+    },
+    {
+        nome: "Pescaria",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em pegar um peixe (com uma rede, anzol e linha ou qualquer outro método usado pela sua cultura). Se você tiver o equipamento apropriado e peixes para serem apanhados, um sucesso em um teste de habilidade os trará a você. Quando não há material de pesca à disposição, pode-se improvisar. Modificadores: -2 ou pior, dependendo das circunstâncias, devido a um equipamento inadequado (fisgar um tubarão com um alfinete entortado é muito difícil)."
+    },
+    {
+        nome: "Naturalista",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Esta perícia compreende o conhecimento dos animais, das plantas e da natureza em suas várias formas. É o tipo de conhecimento que se esperaria de um bom professor de biologia do século XX. Um sucesso em um teste de habilidade permitirá a identificação de uma planta e sua aplicação, ou lhe dirá algo sobre um animal e seus hábitos. Modificadores: +3 se estiver em território conhecido; até -5 se estiver num ambiente muito estranho."
+    },
+    {
+        nome: "Navegação",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['Astronomia' , 5] , ['Marinhagem' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em saber qual a sua posição (na Terra e não no espaço) pelas estrelas, correntes oceânicas, etc. Um sucesso em um teste de habilidade dirá onde você está, no mar ou em terra. Note que, se você não tiver a perícia e estiver tentando um teste com o nível pré-definido, você não poderá usar seu NH em Marinhagem se não estiver de fato no mar! Obs.: Se você tem esta perícia, seu nível de habilidade não será afetado por um NT mais baixo."
+    },
+    {
+        nome: "Marinhagem",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a capacidade de tripular uma nave de longo-curso. Você precisará tripular um navio (ou capitaneá-lo!). Modificadores: os redutores padrão relacionados com o NT "
+    },
+    {
+        nome: "Sobrevivência",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Naturalista' , 3] , ['Sobrevivência' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a perícia em “viver da terra”, encontrar água e comida de boa qualidade, evitar os perigos, construir abrigos, etc... Cada tipo de terreno exige uma perícia diferente"
+    },
+    {
+        nome: "Rastreamento",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Naturalista' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em seguir o rastro deixado por um homem ou animal. Faça um teste de Rastreamento para achar uma pista e mais um a cada 5 minutos de viagem. Modificadores: -5 se a pista tiver mais de uma dia; -10 se tiver mais de uma semana; +5 se estiver seguindo um homem; +10 se estiver seguindo um grupo de homens. O terreno também influi (exemplos: -3 no deserto; -5 sobre terreno rochoso; -10 nas ruas de uma cidade. Todos os bônus de Visão devem ser levados em conta.)."
+    },
+    {
+        nome: "Contabilidade",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 10] , ['Comércio' , 5] , ['Matemática' , 5]],
+        preRequisito: "Alfabetização",
+        descricao: "Esta é a capacidade de manter atualizados os livros de uma empresa, examinar as condições de um negócio, etc., sendo útil principalmente como um meio de conseguir um emprego. No entanto, um sucesso num teste de Contabilidade (que exigirá mais ou menos 2 horas de estudo) poderá lhe dizer se os registros de uma empresa estão corretos (o que pode ser importante de vez em quando). Modificadores: -5 se você só puder dar uma olhada apressada nos números; +5 se você tiver o dia todo; + 5 se você tiver a vantagem Talento para Matemática."
+    },
+    {
+        nome: "Operação de Computadores",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a capacidade de operar um computador, extrair dados, executar programas já existentes, jogar video-games, etc... Isto não é a mesma coisa que programação (que é uma perícia à parte e mais difícil). Modificadores: -3 ou mais no caso de um computador ou um programa estranhos. Esta perícia está disponível apenas em NT 7+. Personagens oriundos de NTs mais baixos não podem usar esta perícia como condicionada, a menos que tenham tido tempo para se familiarizar com os computadores."
+    },
+    {
+        nome: "Operação de Aparelhos Eletrônicos",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Eletrônica Adequada' , 3]],
+        preRequisito: null,
+        descricao: "Esta perícia permite a utilização de equipamento eletrônico dentro de uma especialidade conhecida. Não há necessidade de testes de habilidade para a utilização normal diária do equipamento. Eles são necessários apenas nas situações de emergência, nos casos de uso “anormal” do equipamento ou na utilização de equipamentos complexos por pessoas inexperientes."
+    },
+    {
+        nome: "Heraldica",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Trato Social' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a perícia em projetar e reconhecer escudos de armas, cores e divisas de um clã e outros emblemas. Se tiver sucesso em um teste de habilidade, um heráldico será capaz de reconhecer um cavaleiro ou um nobre pelo estandarte ou escudo que está sendo conduzido e descrevê-los apropriadamente em termos de heráldica. Poderá também criar brasões dignos e atraentes para novos nobres (sem conflitar com os padrões existentes). A heráldica é também importante em cenários de ficção científica."
+    },
+    {
+        nome: "Jurisprudência",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Modificadores: +4 se o personagem estiver lidando com a Jurisprudência de uma área específica. Um sucesso em um teste de habilidade permitirlhe-á lembrar, deduzir ou conceber uma resposta para uma pergunta sobre a lei. Lembre-se, no entanto, que poucas perguntas legais têm uma resposta precisa (até mesmo um especialista será vago ou ambíguo em seus conselhos). Muitos advogados se especializam numa área particular (exs.: marcas e patentes, contratos, defesa criminal)."
+    },
+    {
+        nome: "Agronomia",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a ciência do cultivo de vegetais. Um agrônomo poderia responder a perguntas ou resolver problemas relacionados com a agricultura e a pecuária. Um fazendeiro experiente é um agrônomo, quer ele conheça a palavra, quer não."
+    },
+    {
+        nome: "Alquimia",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a ciência das transmutações mágicas."
+    },
+    {
+        nome: "Antropologia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo da cultura e evolução da humanidade. Um antropólogo conhece os costumes dos grupos primitivos (e não-tão-primitivos) de seres humanos (ou de outras criaturas inteligentes que eles estudem). Os testes de Antropologia poderiam ser usados para explicar, ou até predizer, os rituais e costumes estranhos que um viajante poderia encontrar."
+    },
+    {
+        nome: "Arqueologia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo das civilizações antigas. Um arqueólogo se sente em casa com escavações, cacos de louça de barro, inscrições, etc. No caso de um sucesso em um teste de habilidade, um arqueólogo é capaz de responder perguntas sobre história antiga, identificar artefatos e línguas mortas, etc. Às vezes um arqueólogo terá informações relacionadas com o ocultismo (ex.: Segredos Antigos e Coisas que Não Estão Destinadas ao Conhecimento Humano)."
+    },
+    {
+        nome: "Arquitetura",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no projeto de edifícios e a inferência da forma dos edifícios a partir de sua função e vice-versa. Um sucesso em um teste de Arquitetura lhe permitiria tirar conclusões sobre um edifício desconhecido, encontrar um aposento ou passagem secreta, etc. Modificadores: -2 se o edifício for de um tipo desconhecido; -5 se for alienígena."
+    },
+    {
+        nome: "Astronavegação",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['Navegação' , 5] , ['Astronomia' , 4] , ['Matemática' , 4]],
+        preRequisito: null,
+        descricao: "Esta perícia está relacionada com a navegação espacial e interestelar. Existe uma perícia diferente para cada tipo de propulsão mais rápida do que a luz. Cada uma destas perícias pode ter seu nível pré-definido por uma outra com um redutor que pode ir até -4, dependendo de quão diferentes são os sistemas de propulsão. Os modificadores e conseqüências das falhas ficam por conta do GM, visto que esta perícia pode ser definida de maneira muito diferente em universos diferentes. (Além disso, em alguns cenários de Ficção Científica a perícia poderia não ser Média.)"
+    },
+    {
+        nome: "Astronomia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo das estrelas e outros corpos siderais. Um astrônomo seria capaz de resolver problemas relacionados com o Sol, os planetas do sistema solar, meteoritos e assim por diante. Em NT 4 e abaixo, esta perícia se confunde com a Astrologia, combinando o conhecimento das estrelas e constelações com uma grande quantidade de mitologia e previsão do futuro."
+    },
+    {
+        nome: "Bioquímica",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: [['Química' , 6]],
+        preRequisito: "Química",
+        descricao: "Este é o estudo da química dos seres vivos. Um bioquímico é um especialista nas reações químicas que sustentam a vida."
+    },
+    {
+        nome: "Botânica",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Agronomia' , 5]],
+        preRequisito: null,
+        descricao: "Este é o estudo das plantas. Um botânico seria capaz de identificar plantas, fazer suposições quanto ao habitat e propriedades de uma planta desconhecida, etc..."
+    },
+    {
+        nome: "Química",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo da matéria. Um químico seria capaz de identificar os elementos, compostos simples (não necessariamente medicamentos ou substâncias mágicas, etc.). De posse do equipamento adequado ele seria capaz de realizar análises e sínteses complexas."
+    },
+    {
+        nome: "Programação de Computadores",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: null,
+        preRequisito: "Operação de Computadores",
+        descricao: "Este é o estudo da matéria. Um químico seria capaz de identificar os elementos, compostos simples (não necessariamente medicamentos ou substâncias mágicas, etc.). De posse do equipamento adequado ele seria capaz de realizar análises e sínteses complexas."
+    },
+    {
+        nome: "Criminologia",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 4]],
+        preRequisito: null,
+        descricao: "Este é o estudo da matéria. Um químico seria capaz de identificar os elementos, compostos simples (não necessariamente medicamentos ou substâncias mágicas, etc.). De posse do equipamento adequado ele seria capaz de realizar análises e sínteses complexas."
+    },
+    {
+        nome: "Ecônomia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 4] , ['Comércio' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo do dinheiro, câmbio e transações bancárias. Um economista poderia responder a questões sobre investimentos, programas econômicos, etc. Ele seria capaz também de predizer os efeitos locais de mudanças econômicas (introdução de novos materiais ou técnicas, destruição de uma usina elétrica ou mercado e situações similares)."
+    },
+    {
+        nome: "Ecologia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Naturalista' , 3]],
+        preRequisito: null,
+        descricao: "Este é o estudo das relações entre os seres vivos, ou de todo o ambiente. Esta ciência não existe em NT abaixo de 6. Use Naturalista em seu lugar. Um ecologista seria capaz de dizer (por exemplo) quais criaturas são vitais para um ambiente e quais não; se o homem seria capaz de se adaptar a um ambiente novo; que efeito uma determinada mudança poderia ter sobre o meio-ambiente ou que papel uma certa criatura desempenha em seu habitat."
+    },
+    {
+        nome: "Eletrônica",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: null,
+        preRequisito: "Matemática",
+        descricao: "Esta é a engenharia eletrônica, a habilidade de projetar e construir aparelhos eletrônicos. Um teste bem sucedido permitiria, p.ex., determinar o propósito de um dispositivo desconhecido, diagnosticar uma falha, realizar um conserto, projetar novos sistemas, desenvolver um artifício para resolver um problema"
+    },
+    {
+        nome: "Engenharia Mecânica",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: null,
+        preRequisito: "Matemática",
+        descricao: "Esta é a perícia no projeto e construção de mecanismos complexos. Um sucesso em um teste permitirá (por exemplo) determinar o propósito de um mecanismo desconhecido, diagnosticar um problema elétrico ou mecânico, fazer um reparo, projetar um novo mecanismo, improvisar um aparelho para resolver um problema. "
+    },
+    {
+        nome: "Técnicas Judiciais",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['Criminologia' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a ciência geral da criminologia “laboratorial”: cálculo da trajetória de balas, análise química ou microscópica de pistas, etc. Dependendo da situação o GM poderá permitir o uso de Química ou outro campo de estudo apropriado como nível pré-definido para Técnicas Judiciais em uma investigação particular."
+    },
+    {
+        nome: "Genética",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: [['Bioquímica' , 5] , ['Fisiologia' , 5]],
+        preRequisito: null,
+        descricao: "Este é o estudo da hereditariedade. Um geneticista seria capaz de identificar doenças genéticas, saberia como cruzar os animais a fim de desenvolver determinadas características além de impedir que as moscasdas-frutas devastem seu laboratório. A especialidade Engenharia Genética passa a existir em NT9+."
+    },
+    {
+        nome: "Geologia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Prospecção' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a ciência que estuda a Terra. Um geólogo estuda os minérios, rochas, petróleo, conhece terremotos, vulcões e fósseis. Em Campanha, ele seria capaz de achar água usando sua “sensibilidade para o campo” como na Perícia Sobrevivência"
+    },
+    {
+        nome: "História",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Arqueologia' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo do passado registrado (em oposição à arqueologia que estuda o passado pré-histórico). Um historiador seria capaz de dirimir dúvidas sobre história e poderia ter permissão para (a critério do GM) fazer um teste para ver se lembra de um paralelo histórico útil: - “Bom, Aníbal enfrentou uma situação parecida com esta uma vez e fez o seguinte...”."
+    },
+    {
+        nome: "Lingüística",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Este é o estudo dos princípios nos quais as línguas estão baseadas. Um lingüista seria capaz de identificar um idioma pouco conhecido a partir de um fragmento de um texto escrito ou falado, se for bem sucedido em seu teste de habilidade. Adicione 1/10 de seu NH nesta perícia (arredondado para baixo), se você a tiver estudado, ao seu nível de habilidade em qualquer língua que porventura venha a aprender."
     }
+
 ]
