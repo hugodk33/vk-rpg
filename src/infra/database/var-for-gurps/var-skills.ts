@@ -841,6 +841,213 @@ export const pericias2 = [
         preDefinido: null,
         preRequisito: null,
         descricao: "Este é o estudo dos princípios nos quais as línguas estão baseadas. Um lingüista seria capaz de identificar um idioma pouco conhecido a partir de um fragmento de um texto escrito ou falado, se for bem sucedido em seu teste de habilidade. Adicione 1/10 de seu NH nesta perícia (arredondado para baixo), se você a tiver estudado, ao seu nível de habilidade em qualquer língua que porventura venha a aprender."
+    },
+    {
+        nome: "Literatura",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo das grandes obras literárias. Um estudante de literatura teria conhecimento dos domínios da poesia antiga, volumes empoeirados, filosofia, crítica, etc. Isto pode ser útil para achar pistas de tesouros escondidos, continentes submersos, segredos para os quais os homens não estão preparados e coisas similares. O trabalho em questão deve estar escrito em uma língua conhecida pelo personagem. Modificadores: -5 se ele for analfabeto (tradição oral)"
+    },
+    {
+        nome: "Matemática",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Isto representa o conhecimento geral de matemática. Apesar de existirem dezenas de especialidades, é pouco provável que a diferença entre elas afete o jogo. Um matemático pode fazer testes de habilidade para responder qualquer tipo de problema relacionado com matemática. Se o problema for simplesmente um cálculo ou avaliação, o GM poderá estipular um modificador devido aos recursos de computação disponíveis."
+    },
+    {
+        nome: "Metalografia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['Ferreiro' , 8],['Joalheiro' , 8] , ['Armeiro' , 8] , ['Química' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo dos metais e suas propriedades. Um metalógrafo seria capaz de identificar metais ou ligas e resolver problemas relacionados aos metais, sua mineração e refino."
+    },
+    {
+        nome: "Metereologia",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "Este é o estudo do clima e a possibilidade de predizê-lo. O GM sempre faz testes de habilidade em Metereologia para o jogador. Um bom resultado significa que ele dirá a verdade, enquanto uma falha implicará em uma resposta aleatória ou uma mentira."
+    },
+    {
+        nome: "Física Nuclear",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: [["Matemática" , 15] , ["Matemática" , 15]],
+        descricao: "Este é o estudo dos processos nucleares. Um físico nuclear seria capaz de responder perguntas sobre o interior do sol, armas e/ou usinas nucleares."
+    },
+    {
+        nome: "Ocultismo",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo do inexplicável e/ou sobrenatural. Um ocultista tem um conhecimento muito intenso de misticismo, doutrinas mágicas primitivas, rituais antigos, obsessões, etc... Lembre-se que um ocultista não tem que necessariamente acreditar no material que ele estuda. Em mundos onde a magia é comum, o “ocultismo” deverá ser substituído pelo conhecimento profissional dos magos."
+    },
+    {
+        nome: "Física",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo do inexplicável e/ou sobrenatural. Um ocultista tem um conhecimento muito intenso de misticismo, doutrinas mágicas primitivas, rituais antigos, obsessões, etc... Lembre-se que um ocultista não tem que necessariamente acreditar no material que ele estuda. Em mundos onde a magia é comum, o “ocultismo” deverá ser substituído pelo conhecimento profissional dos magos."
+    },
+    {
+        nome: "Fisiologia",
+        tipo: 'Mental',
+        dificuldade: 'Very Hard',
+        preDefinido: [['IQ' , 7]],
+        preRequisito: null,
+        descricao: "Este é o estudo do corpo humano e suas funções. Um fisiologista sabe onde estão localizados e como funcionam os músculos, ossos e órgãos."
+    },
+    {
+        nome: "Prospecção",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Geologia' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a geologia aplicada: a habilidade de descobrir minerais valiosos através da inspeção local. A prospecção à distância, com o uso de mapas e instrumentos, exige o conhecimento de Geologia. Um prospector estará submetido a um redutor de -1 em uma área nova de tipo familiar, e -2 ou mais em uma área de um tipo com o qual ele não está familiarizado, até que ele fique ali por tempo suficiente (um mês de trabalho)."
+    },
+    {
+        nome: "Psicologia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo do comportamento. Um psicólogo lida com a mente humana (e possivelmente com outros tipos também). Um sucesso em um teste de Psicologia pode predizer, em termos gerais, o comportamento de um indivíduo ou grupo pequeno em uma situação definida, principalmente em uma situação de tensão. Modificadores: +3 se o psicólogo conhecer bem o paciente; +3 se o psicólogo tiver a vantagem da Empatia e se encontrar com o paciente; +3 se o paciente sofrer de um desvio bem conhecido, i.e., sofrer de uma fobia ou outro problema mental."
+    },
+    {
+        nome: "Pesquisa",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Escrita' , 3]],
+        preRequisito: null,
+        descricao: "Esta perícia pode também ter seu nível pré-definido por qualquer perícia científica (submetida a um redutor de -2), se você estiver pesquisando material relacionado com ela. Pesquisa é a capacidade geral de fazer uma investigação em uma biblioteca ou arquivo. Um sucesso em um teste de Pesquisa num lugar apropriado permitirá que você descubra algum fragmento de informação útil, se for algo para ser descoberto."
+    },
+    {
+        nome: "Teologia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Este é o estudo da religião. Um teólogo tem conhecimentos sobre credos religiosos antigos e modernos, história das religiões, etc. Você deveria considerar a hipótese de ter esta perícia, com especialização em sua própria religião, se seu personagem for um sacerdote ou santo."
+    },
+    {
+        nome: "Zoologia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Esta é o estudo dos animais. Um zoólogo é capaz de identificar animais, ter uma boa idéia sobre sua dieta natural, seus hábitos e habitat, e prever seu comportamento."
+    },
+    {
+        nome: "Dissimulação",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 6] , ['Trovador' , 5] , ['Atuação' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de simular estados de ânimo, emoções e vozes e de mentir convincentemente por um período de tempo. Não é a mesma coisa que Disfarce e Atuação. Um sucesso em um teste de habilidade lhe permitirá fingir que pensa ou sente alguma coisa que você não sente. Modificadores: +1 para cada ponto de IQ que você tem a mais do que a pessoa que está tentando enganar (ou o mais inteligente do grupo) e -1 para cada ponto de IQ que a vítima tiver a mais do que você."
+    },
+    {
+        nome: "Administração",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 6] , ['Comércio' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de dirigir uma grande organização. Ela é útil principalmente para ganhar dinheiro ou se qualificar para ocupar altos postos. Um administrador treinado (nível maior ou igual a 15) receberá um bônus de +2 quando estiver lidando com um burocrata e, no caso de um sucesso em um teste de habilidade, será capaz de prognosticar qual a melhor forma de lidar com uma burocracia."
+    },
+    {
+        nome: "Conhecimento do Terreno",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a familiaridade com o povo, política e geografia de uma determinada área. Normalmente um personagem terá Conhecimento do Terreno apenas da área que ele considera sua “base”, seja isto uma simples fazenda ou todo um sistema solar. O GM poderá permitir que os personagens estudem Conhecimento do Terreno para outros lugares, se houver informação disponível. Os espiões, por exemplo, tentarão adquirir um Conhecimento do Terreno detalhado dos lugares onde irão operar."
+    },
+    {
+        nome: "Boemia",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['HT' , 4]],
+        preRequisito: null,
+        descricao: "Esta perícia é “comprada” com base no seu atributo HT e não DX. É a habilidade em participar de atividades sociais, festas, etc... Um sucesso em um teste de Boemia, feito sob as circunstâncias adequadas, lhe dará um bônus de +2 num pedido de ajuda ou informação, ou apenas numa reação geral. Uma falha significa que, de alguma maneira, você fez papel de bobo; há um redutor de -2 para qualquer teste de reação daquelas pessoas com quem você já farreou. Se você bebe em lugares impróprios, uma falha pode acarretar noutros perigos. Modificadores: de acordo com o GM, mas até +3 por pagar bebida ou outras diversões para seus companheiros de farra."
+    },
+    {
+        nome: "Diplomacia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em negociar, fazer acordos e conviver com os outros. Um teste de Diplomacia pode ser substituído por qualquer teste de reação numa situação em que não haja iminência de combate (v. Testes de Influência, pág. 93). Um teste bem sucedido lhe permitirá predizer os possíveis resultados de um curso de ação enquanto está negociando, ou escolher a melhor abordagem a fazer. Se você tiver um NH maior ou igual a 20 (especialista) em Diplomacia, receberá um bônus de +2 em todos os testes de reação. Modificadores: +2 se tiver a vantagem de Voz Melodiosa."
+    },
+    {
+        nome: "Lábia",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Dissimulação' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a capacidade de persuadir os outros a fazerem coisas contra seu bom-senso. Ela não é ensinada (pelo menos intencionalmente) nas escolas; ela é aprendida enquanto se trabalha como vendedor, vigarista, advogado, etc. Se seu NH em Lábia for maior ou igual a 20 (especialista), você receberá um bônus de +2 em todos os testes de reação em que conseguir falar. O GM pode exigir que o jogador dê detalhes da história que ele está contando, ao invés de simplesmente permitir que diga “Estou usando minha Lábia”."
+    },
+    {
+        nome: "Jogo",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Matemática' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade com jogos de azar. Um sucesso em um teste de Jogo poderá lhe dizer, entre outras coisas, se o jogo é limpo ou não, identificar um jogador em meio a um grupo de estranhos, ou avaliar as chances em uma situação complicada. Quando estiver jogando contra a casa, faça somente seu teste de habilidade (com um modificador, se o GM disser que a chance é pequena). "
+    },
+    {
+        nome: "Liderança",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['ST' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a perícia na coordenação de um grupo de pessoas em uma situação de tensão ou perigo. É necessário algum nível de liderança para conseguir um posto numa organização militar ou paramilitar. É preciso um sucesso em um teste de Liderança para conduzir os NPCs a uma situação de perigo (os jogadores poderão decidir por seus personagens, se eles o seguirão ou não). "
+    },
+    {
+        nome: "Comércio",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no trato comercial, comprando e vendendo mercadorias. Ela envolve um talento para vendas, compreensão das práticas comerciais e psicologia. No caso de um sucesso em um teste de habilidade, um Comerciante será capaz (entre outras coisas) de, em termos de sua cultura, avaliar um bem, descobrir onde um determinado artigo é comprado ou vendido, descobrir o valor local de mercado de qualquer artigo, etc. Modificadores: -3 se o artigo for ilegal, a menos que ele tenha Manha num nível 12+, ou seja especializado neste tipo de material. "
+    },
+    {
+        nome: "Sex-Appeal",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['HT' , 3]],
+        preRequisito: null,
+        descricao: "Baseada em HT e não IQ. Esta é a capacidade de impressionar o sexo oposto. Ela pode ser estudada somente nas horas de folga (um máximo de 3 horas por dia), a menos que você faça parte de um harém ou coisa parecida. O Sex Appeal tem tanto a ver com suas atitudes, quanto com a aparência. Se não desejar “seduzir” alguém para obter o que quer, você não terá, nem desejará, este talento. Modificador: +2 se tiver a Vantagem da Voz Melodiosa. Dobre todas as Desvantagens relacionadas com a aparência física."
+    },
+    {
+        nome: "Estratégia",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Tática' , 6] , ['Estratégia' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de planejar ações militares e prever as do inimigo. Normalmente é ensinada apenas por militares. Um sucesso em um teste de habilidade lhe permitirá deduzir os planos militares do inimigo, a menos que eles sejam liderados por alguém que tenha esta perícia. Neste caso, o GM deverá fazer uma Disputa de Habilidades entre os 2 estrategistas. Se o personagem do jogador perder, ele fará uma conjectura errada (i.e., o GM lhe dará informações erradas) acerca dos planos inimigos. A quantidade de informação conseguida dependerá de quão bom foi o seu resultado no teste, mas não da qualidade dos planos do inimigo. Uma malta uivante usa estratégia — apenas não o sabe e por isso é fácil de prever."
+    },
+    {
+        nome: "Tática",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Estratégia' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de planejar ações militares e prever as do inimigo. Normalmente é ensinada apenas por militares. Um sucesso em um teste de habilidade lhe permitirá deduzir os planos militares do inimigo, a menos que eles sejam liderados por alguém que tenha esta perícia. Neste caso, o GM deverá fazer uma Disputa de Habilidades entre os 2 estrategistas. Se o personagem do jogador perder, ele fará uma conjectura errada (i.e., o GM lhe dará informações erradas) acerca dos planos inimigos. A quantidade de informação conseguida dependerá de quão bom foi o seu resultado no teste, mas não da qualidade dos planos do inimigo. Uma malta uivante usa estratégia — apenas não o sabe e por isso é fácil de prever."
+    },
+    {
+        nome: "Pedagogia",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "É a habilidade em ensinar outras pessoas. Para poder ensinar alguém, você precisa conhecer a perícia que está sendo estudada num nível maior do que o de seu aluno. Para fins de jogo, qualquer um com um nível maior ou igual a 12 deveria poder agir como um professor na maioria das situações. Se for vital para a aventura que um assunto difícil seja ensinado a alguém, deverá ser exigido um teste. Se houver alguma barreira de língua, o GM também deverá fazer testes para verificar se o professor e o aluno estão se comunicando convenientemente."
     }
-
 ]
