@@ -1049,5 +1049,29 @@ export const pericias2 = [
         preDefinido: [['IQ' , 5]],
         preRequisito: null,
         descricao: "É a habilidade em ensinar outras pessoas. Para poder ensinar alguém, você precisa conhecer a perícia que está sendo estudada num nível maior do que o de seu aluno. Para fins de jogo, qualquer um com um nível maior ou igual a 12 deveria poder agir como um professor na maioria das situações. Se for vital para a aventura que um assunto difícil seja ensinado a alguém, deverá ser exigido um teste. Se houver alguma barreira de língua, o GM também deverá fazer testes para verificar se o professor e o aluno estão se comunicando convenientemente."
+    },
+    {
+        nome: "Camuflagem",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4] , ['Sobrevivência' , 2]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no uso de elementos naturais e/ou pintura para se disfarçar e esconder sua posição, equipamento, etc. Para determinar se a camuflagem foi bem feita, deve-se fazer uma Disputa de Habilidades (Visão vs. Camuflagem). Dependendo das circunstâncias, a camuflagem poderá esconder seu objetivo inteiramente ou apenas tornar indistinto o seu contorno, para fazê-lo mais difícil de atingir (redutor de -1 no NH do atacante)."
+    },
+    {
+        nome: "Demolição",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['Engenharia' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de explodir coisas. Toda vez que você for usar explosivos, será necessário um teste de Demolição. São necessários de 15 a 60 minutos para instalar explosivos de maneira adequada e detonálos. Um sucesso em um teste de habilidade significa que tudo foi bem. Uma falha indicará que você cometeu um engano; quanto pior o resultado do teste, pior o erro. Um resultado muito ruim com uma carga perto de você poderá mandá-lo pelos ares. Modificadores: -3 para um equipamento desconhecido; -2 se estiver com pressa; +2 se você tiver todo o tempo do mundo."
+    },
+    {
+        nome: "Detecção de Mentiras",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Psicologia' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a capacidade de dizer se alguém está mentindo ou não. Não é a mesma coisa que Interrogatório; a Detecção de Mentiras funciona em situações informais e sociais. Quando você pedir para usar esta perícia, o GM fará uma Disputa Rápida de Habilidades entre sua Detecção de Mentiras e a IQ de seu alvo (ou Lábia, ou Dissimulação). Se você vencer, o GM lhe dirá se ele estava mentindo. Se você perder, o GM mentirá acerca da veracidade do que lhe diziam, ou dirá apenas “Você não tem como saber”."
     }
 ]
