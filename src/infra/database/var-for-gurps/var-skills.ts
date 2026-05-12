@@ -1249,5 +1249,29 @@ export const pericias2 = [
         preDefinido: [['IQ' , 5] , ['DX' , 5]],
         preRequisito: null,
         descricao: "Esta é a habilidade em conduzir um tipo específico de veículo (é necessário uma especialização — pág. 43). Modificadores: -2 para um veículo de um tipo conhecido com o qual não se está familiarizado (ex.: de hidramático para câmbio manual); -2 ou mais para um veículo em mau estado; -2 ou mais para más condições de condução; -4 ou mais para um veículo de um tipo desconhecido (ex.: Modelo T quando se está acostumado a veículos de NT 7, ou um carro de corrida quando se está acostumado com um stock car). Note que a perícia necessária para conduzir uma parelha não é Condução, mas sim Carreiro"  
+    },
+    {
+        nome: "Motociclismo",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 5] , ['DX' , 5] , ['Ciclismo' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de conduzir uma motocicleta. É necessário se especializar em lambretas/motos leves, ou em motos médias e pesadas. Modificadores: -2 para uma moto não familiar de um tipo conhecido (ex.: Uma Harley quando sua moto é uma Shogun); -4 ou mais para uma moto em mau estado; -2 ou mais para uma estrada em más condições; -4 ou mais para uma moto de um tipo desconhecido (ex.: uma moto de um nível tecnológico diferente); +3 se a moto tiver side-car."  
+    },
+    {
+        nome: "Pilotagem",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de pilotar um tipo específico de aeronave ou espaçonave. É necessário uma especialização (pág.43). O nível prédefinido usa IQ, pois é preciso inteligência para entender os controles em uma emergência. Mas quando a perícia é aprendida normalmente, ela está baseada em DX como as outras perícias físicas."  
+    },
+    {
+        nome: "Motonáutica",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['DX' , 5] , ['Remo' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade para dirigir todos os tipos de pequenas embarcações motorizadas (v. Remo/Vela e Marinhagem para embarcações não motorizadas). Quando se está usando o nível pré-definido desta perícia é necessário fazer um teste de DX ou Remo/Vela quando se entra no barco (para evitar cair na água). Todas as situações de perigo exigem uma outra jogada. Modificadores: -4 se o barco for de um tipo não familiar; mau tempo imporá um redutor de -3 ou pior."  
     }
 ]
