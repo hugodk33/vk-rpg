@@ -41,7 +41,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return gameTableSkill
   }
 
-  async findAllGameTableSkills(id:any): Promise<any> {
+  async findAllGameTableSkills(id: any): Promise<any> {
+
     const table = db.prepare(`
       SELECT
         id,
@@ -52,15 +53,56 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE id = ?
     `).get(id as string)
 
-    const gameTableSkills = db.prepare(`
-      SELECT 
-      * FROM 
-      game_table_skills WHERE table_id = ?
+    // Busca todas as skills da mesa
+    const skills = db.prepare(`
+      SELECT *
+      FROM game_table_skills
+      WHERE table_id = ?
     `).all(id) as any[]
-    
+
+    // Busca dependências
+    const dependencies = db.prepare(`
+      SELECT
+        gtsd.origin_skill_id,
+        gtsd.depends_on_skill_value,
+        gtsd.depends_on_skill_for_others_attributes,
+
+        dependent_skill.id as dependent_skill_id,
+        dependent_skill.name as dependent_skill_name
+
+      FROM game_table_skill_dependencies gtsd
+
+      LEFT JOIN game_table_skills dependent_skill
+        ON dependent_skill.id = gtsd.depends_on_skill_id
+
+      WHERE gtsd.origin_skill_id IN (
+        SELECT id
+        FROM game_table_skills
+        WHERE table_id = ?
+      )
+    `).all(id) as any[]
+
+    // Monta skills com dependências
+    const formattedSkills = skills.map((skill) => {
+
+      const skillDependencies = dependencies
+        .filter(dep => dep.origin_skill_id === skill.id)
+        .map(dep => ({
+          skill: dep.dependent_skill_name || null,
+          value: dep.depends_on_skill_value || null,
+          depends_on_skill_for_others_attributes:
+            dep.depends_on_skill_for_others_attributes || null
+        }))
+
+      return {
+        ...skill,
+        predefinido: skillDependencies
+      }
+    })
+
     return {
-      table: table,
-      skill: gameTableSkills
+      table,
+      skills: formattedSkills
     }
   }
 
