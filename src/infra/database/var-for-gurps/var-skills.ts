@@ -11,7 +11,7 @@ export const pericias = [
         nome: "Falcoaria",
         tipo: 'mental',
         dificuldade: 'média',
-        preDefinido: [['IQ' , '6'] , ['Adestramento de Animais' , 6] ],
+        preDefinido: [['IQ' , 6] , ['Adestramento de Animais' , 6] ],
         preRequisito: "Adestramento de Animais",
         descricao: "Esta é a habilidade de caçar pequenos animais usando um falcão treinado. Um bom falcoeiro conhecerá técnicas de caça e treinamento, além de saber como cuidar de um falcão (veja a coluna lateral na pág. 142). Descobrir um ninho de falcão na primavera exige uma semana de busca e um sucesso em um teste de falcoaria. O ninho terá 1D-3 filhotes."
     },
@@ -191,10 +191,7 @@ export const pericias = [
         preRequisito: null,
         descricao: "Esta é a habilidade em usar um traje blindado auto-propelido, incluindo o armamento correspondente."
     },
-]
-
-export const pericias2 = [
-    {
+        {
         nome: "Armas de Feixe",
         tipo: 'Physical',
         dificuldade: 'Easy',
@@ -1073,5 +1070,205 @@ export const pericias2 = [
         preDefinido: [['IQ' , 6] , ['Psicologia' , 4]],
         preRequisito: null,
         descricao: "Esta é a capacidade de dizer se alguém está mentindo ou não. Não é a mesma coisa que Interrogatório; a Detecção de Mentiras funciona em situações informais e sociais. Quando você pedir para usar esta perícia, o GM fará uma Disputa Rápida de Habilidades entre sua Detecção de Mentiras e a IQ de seu alvo (ou Lábia, ou Dissimulação). Se você vencer, o GM lhe dirá se ele estava mentindo. Se você perder, o GM mentirá acerca da veracidade do que lhe diziam, ou dirá apenas “Você não tem como saber”."
+    },
+    {
+        nome: "Disfarce",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 6] , ['Psicologia' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de se fazer parecer com uma outra pessoa, através do uso de roupas, maquiagem, etc. São necessários 30 a 60 minutos para preparar um bom disfarce. Faça uma Disputa Rápida de Habilidades (normalmente Disfarce vs. IQ) para cada pessoa (ou grupo) que seu disfarce precisa enganar. Pessoas com perícias profissionais na área de Poderes Legais ou espionagem podem usar estas perícias no lugar de IQ, quando estiverem tentando desmascarar um impostor. Modificadores: +2 se você tiver todos aqueles pós e pinturas à disposição (não ajuda no caso de um teste com nível pré-definido): -1 a -5 (a cargo do GM) para se disfarçar em alguém muito diferente de você. Se tiver uma aparência muito díspar, ela também diminuirá seu NH efetivo em 1 a 5 pontos (opção do GM). Grupos grandes de pessoas poderão requerer vários testes de habilidade (novamente opção do GM)."  
+    },
+    {
+        nome: "Disfarce",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 6] , ['Psicologia' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de se fazer parecer com uma outra pessoa, através do uso de roupas, maquiagem, etc. São necessários 30 a 60 minutos para preparar um bom disfarce. Faça uma Disputa Rápida de Habilidades (normalmente Disfarce vs. IQ) para cada pessoa (ou grupo) que seu disfarce precisa enganar. Pessoas com perícias profissionais na área de Poderes Legais ou espionagem podem usar estas perícias no lugar de IQ, quando estiverem tentando desmascarar um impostor. Modificadores: +2 se você tiver todos aqueles pós e pinturas à disposição (não ajuda no caso de um teste com nível pré-definido): -1 a -5 (a cargo do GM) para se disfarçar em alguém muito diferente de você. Se tiver uma aparência muito díspar, ela também diminuirá seu NH efetivo em 1 a 5 pontos (opção do GM). Grupos grandes de pessoas poderão requerer vários testes de habilidade (novamente opção do GM)."  
+    },
+    {
+        nome: "Fuga",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em se soltar de cordas, algemas e atilhos semelhantes. A primeira tentativa de escapar leva 1 minuto; cada tentativa subseqüente levará 10 minutos. Modificadores: Quanto mais cuidadosamente você estiver preso, maior será o redutor que o GM aplicará ao teste: No caso de algemas modernas, por exemplo, o redutor seria igual a -5. Se você tiver a vantagem “Ultra-flexibilidade das Juntas” (pág. 20), terá um bônus de +3 nesta perícia."  
+    },
+    {
+        nome: "Falsificação",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['DX' , 8] , ['Artista' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de falsificar uma cédula, passaporte ou outro documento similar. Ela não é ensinada a não ser por organizações de espionagem e pelo submundo, apesar de que você sempre pode estudála sozinho. Será necessário um teste de habilidade toda vez que um documento falsificado que você está usando for inspecionado (a menos que você consiga um sucesso decisivo na primeira tentativa)."  
+    },
+    {
+        nome: "Ocultamento",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 5] , ['Prestidigitação' , 8]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de esconder objetos em seu corpo ou no de outras pessoas (normalmente com a cooperação delas). É também a habilidade de encontrar estes objetos escondidos por outrem."  
+    },
+    {
+        nome: "Serviço Secreto",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "A capacidade de analisar e interpretar informações secretas (normalmente militares) a fim de avaliar os planos e recursos do inimigo."  
+    },
+    {
+        nome: "Interrogatório",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a capacidade de interrogar um prisioneiro. Só é ensinada nos serviços secretos, polícias, penitenciárias, unidades militares e submundo."  
+    },
+    {
+        nome: "Leitura Labial",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['Visão' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de ver o que os outros estão dizendo. Para realizála é necessário estar a uma distância menor do que 6 metros, ou usar magia ou binóculos para fazer uma aproximação visual. Cada teste bem sucedido permitirá que você capte uma frase da conversa (presumindo, é claro, que você entende o idioma que está sendo falado). "  
+    },
+    {
+        nome: "Arrombamento",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de abrir fechaduras, cadeados e cofres sem ter a chave ou a combinação. Cada tentativa gasta 1 minuto. Se você for bem sucedido e conseguir abrir o cadeado/fechadura, cada ponto da sua margem de sucesso diminuirá 5 segundos do tempo gasto. (Uma casaforte, um cofre ou uma fechadura desafiadora podem exigir mais tempo, segundo a vontade do Mestre.) Note que se a fechadura tiver uma armadilha ou alarme ligado a ela, será necessário um teste de Armadilhas para ver se você consegue evitá-lo. Modificadores: -3 se você tiver apenas equipamento improvisado ao invés de gazuas verdadeiras; -5 se estiver escuro (trabalhando só com o tato); até +5 devido a equipamento de boa qualidade em cenários com NT alto. Informação “de dentro” dá bônus segundo critério do GM."  
+    },
+    {
+        nome: "Punga",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: [['DX' , 6] , ['Prestidigitação' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de tirar uma carteira, faca, etc., de alguém, ou “plantar” alguma coisa nele. Modificadores: +5 se a vítima estiver distraída; + 10 se ela estiver adormecida ou bêbada; até -5 para valores em um bolso interno e até -10 para um anel ou jóia similar."  
+    },
+    {
+        nome: "Venefício",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: [['IQ' , 6] , ['Química' , 4] , ['Medicina' , 3]],
+        preRequisito: null,
+        descricao: "Tem também como nível pré-definido Culinária-3 ou Trato Social3 na cultura adequada. Este é o conhecimento prático geral de venenos. Um teste bem sucedido permitir-lhe-á (entre outras coisas) reconhecer no campo uma planta portadora de veneno, destilar o veneno em uma forma útil, reconhecer um veneno pelo seu sabor em comida ou bebida, identificar um veneno pela observação de seus efeitos (bônus de +3 se for você a vítima), conhecer o antídoto adequado, reconhecer ou destilar o antídoto a partir de suas fontes. Note que cada uma destas proezas exige um teste separado. Modificadores: Olfato e Paladar apurados ajudarão na identificação do veneno."  
+    },
+    {
+        nome: "Captação",
+        tipo: 'Mental',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em encontrar, recuperar ou improvisar objetos úteis que outros não são capazes de localizar. Cada tentativa leva uma hora. O parasita não rouba necessariamente seu butim — ele apenas o localiza (de algum modo) e depois o obtém pelos meios que forem necessários. Note que se o parasita encontrar alguma coisa que está “presa”, ele deverá decidir sobre como tentará se apoderar dela, e talvez venha a ser necessário um teste de alguma outra perícia. Modificadores: Os que o GM achar necessários devido à raridade do objeto procurado."  
+    },
+    {
+        nome: "Sombra",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 6] , ['Furtividade' , 4]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de seguir uma outra pessoa em uma multidão sem ser notado. (Use Rastreamento e Furtividade quando estiver no campo.) Faça uma Disputa entre sua Sombra e a Visão da vítima a cada 10 minutos. Se ela vencer, você a terá perdido de vista. Se vencer por mais de 5 pontos, você terá sido visto. Modificadores: -2 ou mais (decisão do GM) se sua aparência for ímpar e -3 se a vítima o conhecer."  
+    },
+    {
+        nome: "Prestidigitação",
+        tipo: 'Physical',
+        dificuldade: 'Hard',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a habilidade de “empalmar” pequenos objetos, fazer truques com moedas e cartas, etc. Cada sucesso em um teste de habilidade permitir-lhe-á fazer um pequeno “truque de mágica”. Uma falha significa que você errou o truque. Modificadores: -3 se a pessoa que você quer enganar tiver Visão Aguçada ou conhecer Prestidigitação; +3 se a iluminação for deficiente; +3 se você tiver um cúmplice para distrair a atenção da vítima; +5 se você tiver se preparado antecipadamente (cartas na manga, etc...)."  
+    },
+    {
+        nome: "Furtividade",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['DX' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em se esconder e mover silenciosamente. Um sucesso em uma jogada de teste indicará que você é capaz de se esconder em qualquer lugar, menos num aposento completamente vazio, ou se movimentar tão quietamente que ninguém irá escutá-lo, ou seguir alguém sem ser notado (para seguir alguém no meio de uma multidão use a perícia Sombra já descrita). Modificadores: menos seu nível de Carga; -5 para se esconder em uma área sem “esconderijos” naturais; -5 para se mover silenciosamente se você estiver correndo ao invés de andar; -5 para enganar cães ao invés de pessoas."  
+    },
+    {
+        nome: "Manha",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['DX' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de conviver bem com “má-companhia”. Um sucesso em um teste desta perícia pode (entre outras coisas) permitir que você descubra onde qualquer tipo de “ato” ilegal está ocorrendo; quais policiais ou burocratas locais podem ser comprados e por quanto; como contatar o submundo local, etc. Note que se você pertencer a uma organização com bons contatos (Sindicato dos Assassinos, Irmandade, polícia, Illuminati, etc...), poderá ser capaz de conseguir esta informação perguntando a um contato. “Manha” é uma medida de sua capacidade de fazer seus próprios contatos quando necessário."  
+    },
+    {
+        nome: "Armadilhas",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['DX' , 5] , ['Arrombamento' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a perícia na construção de armadilhas e aparelhos de detecção e como anulá-los. Um sucesso em um teste de Armadilhas possibilitará (entre outras coisas) a detecção de uma armadilha, se você estiver procurando por isso; desarmar uma armadilha depois de descoberta, rearmá-la depois de passar; ou (tendo o material apropriado) construir uma nova. Lembre-se que uma armadilha pode ser qualquer coisa variando entre um poço com estacas e um elaborado sistema de segurança. Tempo: O mesmo que para Arrombamento (pág. 67). Modificadores: Infinitamente variável. Quanto mais sofisticada a armadilha, mais difícil será vê-la e desarmá-la. Note que uma armadilha pode ser (por exemplo) fácil de achar, mas difícil de desarmar. Isto tudo fica por conta do GM ou do autor da aventura. Os modificadores de Visão ajudam a achar as armadilhas, mas não a desarmá-las. É importante salientar que, se você não tem esta perícia, o GM deveria fazer um teste de DX (nível pré-definido da perícia) somente para desarmar a armadilha e NÃO para detectar ou construir uma."  
+    },
+    {
+        nome: "Demolição Subaquática",
+        tipo: 'Mental',
+        dificuldade: 'Medium',
+        preDefinido: [['Demolição' , 2]],
+        preRequisito: ['Mergulho' ,'Demolição'],
+        descricao: "Habilidade na preparação e detonação de uma carga explosiva debaixo d’água. De resto, igual à Demolição (acima). Se um engenheiro de demolição estiver usando o nível pré-definido nesta perícia, o teste só servirá para avaliar a preparação da carga. Se a instalação da carga exigir trabalho sob a água, ele terá que jogar contra o nível pré-definido de Mergulho, ou encontrar alguém para posicionar os explosivos, pois seu treinamento em Demolição não envolve instruções sobre mergulho."  
+    },
+    {
+        nome: "Ventriloquismo",
+        tipo: 'Mental',
+        dificuldade: 'Hard',
+        preDefinido: null,
+        preRequisito: null,
+        descricao: "Esta é a habilidade em disfarcar e “lançar” sua voz a uma pequena distância. Um sucesso em um teste de habilidade permitirá que você lance sua voz bem o suficiente para enganar sua audiência. Modificadores: +5 se você tiver um boneco ou cúmplice para distrair a atenção da audiência (é mais fácil “ver” uma face falar do que é acreditar que a voz vem de um objeto imóvel); -3 se a audiência tiver motivos para suspeitar."  
+    },
+    {
+        nome: "Ciclismo",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['DX' , 4] , ['Motociclismo' , 0]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em andar de bicicleta sem cair. Pode-se também fazer uma jogada de teste com redutor de -5 para tentar consertar uma bicicleta avariada, admitindo-se que as ferramentas e partes sobressalentes estão à disposição."  
+    },
+    {
+        nome: "Remo",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['DX' , 5] , ['Motonáutica' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a perícia no trato com canoas, barcos a remos, pequenos barcos a vela, etc. Por definição, é necessário uma jogada de teste quando se entra no bote (para evitar cair n’água) e outra para pôr o bote em movimento. O GM pode exigir novos testes sempre que surgir um perigo. Modificadores: -5 se o barco não for de um tipo familiar (se você já tiver esta perícia, um dia de experiência, será suficiente para se familiarizar com o novo tipo); o mau tempo imporá um redutor de -3 ou pior."  
+    },
+    {
+        nome: "Condução",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['DX' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade em conduzir um tipo específico de veículo (é necessário uma especialização — pág. 43). Modificadores: -2 para um veículo de um tipo conhecido com o qual não se está familiarizado (ex.: de hidramático para câmbio manual); -2 ou mais para um veículo em mau estado; -2 ou mais para más condições de condução; -4 ou mais para um veículo de um tipo desconhecido (ex.: Modelo T quando se está acostumado a veículos de NT 7, ou um carro de corrida quando se está acostumado com um stock car). Note que a perícia necessária para conduzir uma parelha não é Condução, mas sim Carreiro"  
+    },
+    {
+        nome: "Motociclismo",
+        tipo: 'Physical',
+        dificuldade: 'Easy',
+        preDefinido: [['IQ' , 5] , ['DX' , 5] , ['Ciclismo' , 5]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de conduzir uma motocicleta. É necessário se especializar em lambretas/motos leves, ou em motos médias e pesadas. Modificadores: -2 para uma moto não familiar de um tipo conhecido (ex.: Uma Harley quando sua moto é uma Shogun); -4 ou mais para uma moto em mau estado; -2 ou mais para uma estrada em más condições; -4 ou mais para uma moto de um tipo desconhecido (ex.: uma moto de um nível tecnológico diferente); +3 se a moto tiver side-car."  
+    },
+    {
+        nome: "Pilotagem",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 6]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade de pilotar um tipo específico de aeronave ou espaçonave. É necessário uma especialização (pág.43). O nível prédefinido usa IQ, pois é preciso inteligência para entender os controles em uma emergência. Mas quando a perícia é aprendida normalmente, ela está baseada em DX como as outras perícias físicas."  
+    },
+    {
+        nome: "Motonáutica",
+        tipo: 'Physical',
+        dificuldade: 'Medium',
+        preDefinido: [['IQ' , 5] , ['DX' , 5] , ['Remo' , 3]],
+        preRequisito: null,
+        descricao: "Esta é a habilidade para dirigir todos os tipos de pequenas embarcações motorizadas (v. Remo/Vela e Marinhagem para embarcações não motorizadas). Quando se está usando o nível pré-definido desta perícia é necessário fazer um teste de DX ou Remo/Vela quando se entra no barco (para evitar cair na água). Todas as situações de perigo exigem uma outra jogada. Modificadores: -4 se o barco for de um tipo não familiar; mau tempo imporá um redutor de -3 ou pior."  
     }
 ]
