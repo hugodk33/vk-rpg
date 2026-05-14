@@ -11,7 +11,7 @@ export const pericias = [
         nome: "Falcoaria",
         tipo: 'mental',
         dificuldade: 'média',
-        preDefinido: [['IQ' , '6'] , ['Adestramento de Animais' , 6] ],
+        preDefinido: [['IQ' , 6] , ['Adestramento de Animais' , 6] ],
         preRequisito: "Adestramento de Animais",
         descricao: "Esta é a habilidade de caçar pequenos animais usando um falcão treinado. Um bom falcoeiro conhecerá técnicas de caça e treinamento, além de saber como cuidar de um falcão (veja a coluna lateral na pág. 142). Descobrir um ninho de falcão na primavera exige uma semana de busca e um sucesso em um teste de falcoaria. O ninho terá 1D-3 filhotes."
     },
@@ -191,10 +191,7 @@ export const pericias = [
         preRequisito: null,
         descricao: "Esta é a habilidade em usar um traje blindado auto-propelido, incluindo o armamento correspondente."
     },
-]
-
-export const pericias2 = [
-    {
+        {
         nome: "Armas de Feixe",
         tipo: 'Physical',
         dificuldade: 'Easy',

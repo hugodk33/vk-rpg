@@ -331,12 +331,52 @@ for (const modifierNarrationsLocation of modifierNarrationsLocations) {
 }
 
 const modifierGameTableSkillDependencystmt = db.prepare(`
-  INSERT INTO game_table_skill_dependencies(id, origin_skill_id, depends_on_skill_id, depends_on_skill_for_others_attributes)
-  VALUES (?, ?, ?, ?)
+  INSERT INTO game_table_skill_dependencies(
+    id,
+    origin_skill_id,
+    depends_on_skill_id,
+    depends_on_skill_value,
+    depends_on_skill_for_others_attributes
+  )
+  VALUES (?, ?, ?, ?, ?)
 `)
 
-for (const modifierGameTableSkillDependency of modifierGameTableSkillsDependecies ) {
-  modifierGameTableSkillDependencystmt.run(modifierGameTableSkillDependency.id, modifierGameTableSkillDependency.origin_skill_id, modifierGameTableSkillDependency.depends_on_skill_id, modifierGameTableSkillDependency.depends_on_skill_for_others_attributes)
+for (const modifierGameTableSkillDependency of modifierGameTableSkillsDependecies) {
+  try {
+    modifierGameTableSkillDependencystmt.run(
+      modifierGameTableSkillDependency.id,
+      modifierGameTableSkillDependency.origin_skill_id,
+      modifierGameTableSkillDependency.depends_on_skill_id,
+      modifierGameTableSkillDependency.depends_on_skill_value,
+      modifierGameTableSkillDependency.depends_on_skill_for_others_attributes
+    )
+
+    console.log(
+      `✅ Inserido: ${modifierGameTableSkillDependency.id}`
+    )
+
+  } catch (error) {
+
+    console.error('❌ Erro ao inserir dependência')
+    
+    console.error('ID:', modifierGameTableSkillDependency.id)
+
+    console.error('origin_skill_id:', modifierGameTableSkillDependency.origin_skill_id)
+
+    console.error('depends_on_skill_id:', modifierGameTableSkillDependency.depends_on_skill_id)
+
+    console.error(
+      'depends_on_skill_for_others_attributes:',
+      modifierGameTableSkillDependency.depends_on_skill_for_others_attributes
+    )
+
+    console.error('Erro SQLite:', )
+
+    console.error('Objeto completo:')
+    console.dir(modifierGameTableSkillDependency, { depth: null })
+
+    throw error
+  }
 }
 
 console.log('🌱 Seed executed successfully!')
