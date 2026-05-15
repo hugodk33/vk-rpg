@@ -1,7 +1,7 @@
 // src/infra/database/seed.ts
 import { db } from './database'
 
-import { users , narrators  , gameTables , gameTablePlayers , skills , characters ,characterSheets  , newNpcs , items , advantages , disadvantages , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations , modifierGameTableSkillsDependecies} from '../variables/varsForSeeds'
+import { users , narrators  , gameTables , gameTablePlayers , skills , characters ,characterSheets  , newNpcs , items , advantages , disadvantages , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations , modifierGameTableSkillsPreDetermined , modifierGameTableSkillsDependecies} from '../variables/varsForSeeds'
 
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -336,47 +336,40 @@ const modifierGameTableSkillDependencystmt = db.prepare(`
     origin_skill_id,
     depends_on_skill_id,
     depends_on_skill_value,
-    depends_on_skill_for_others_attributes
+    depends_type
   )
   VALUES (?, ?, ?, ?, ?)
 `)
 
 for (const modifierGameTableSkillDependency of modifierGameTableSkillsDependecies) {
-  try {
     modifierGameTableSkillDependencystmt.run(
       modifierGameTableSkillDependency.id,
       modifierGameTableSkillDependency.origin_skill_id,
       modifierGameTableSkillDependency.depends_on_skill_id,
       modifierGameTableSkillDependency.depends_on_skill_value,
-      modifierGameTableSkillDependency.depends_on_skill_for_others_attributes
+      modifierGameTableSkillDependency.depends_type    
     )
+}
 
-    console.log(
-      `✅ Inserido: ${modifierGameTableSkillDependency.id}`
-    )
+const modifierGameTableSkillPreDeterminedstmt = db.prepare(`
+  INSERT INTO game_table_skill_predefinede(
+    id,
+    origin_skill_id,
+    depends_on_skill_id,
+    depends_on_skill_value,
+    depends_on_skill_for_others_attributes
+  )
+  VALUES (?, ?, ?, ? , ? )
+`)
 
-  } catch (error) {
-
-    console.error('❌ Erro ao inserir dependência')
-    
-    console.error('ID:', modifierGameTableSkillDependency.id)
-
-    console.error('origin_skill_id:', modifierGameTableSkillDependency.origin_skill_id)
-
-    console.error('depends_on_skill_id:', modifierGameTableSkillDependency.depends_on_skill_id)
-
-    console.error(
-      'depends_on_skill_for_others_attributes:',
-      modifierGameTableSkillDependency.depends_on_skill_for_others_attributes
-    )
-
-    console.error('Erro SQLite:', )
-
-    console.error('Objeto completo:')
-    console.dir(modifierGameTableSkillDependency, { depth: null })
-
-    throw error
-  }
+for (const modifierGameTableSkillDependency of modifierGameTableSkillsPreDetermined) {
+  modifierGameTableSkillPreDeterminedstmt.run(
+    modifierGameTableSkillDependency.id,
+    modifierGameTableSkillDependency.origin_skill_id,
+    modifierGameTableSkillDependency.depends_on_skill_id,
+    modifierGameTableSkillDependency.depends_on_skill_value,
+    modifierGameTableSkillDependency.depends_on_skill_for_others_attributes
+  )
 }
 
 console.log('🌱 Seed executed successfully!')
