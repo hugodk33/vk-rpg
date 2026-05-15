@@ -3,43 +3,44 @@ import { db } from '../database/database'
 import crypto from 'crypto'
 
 // limpa dados (opcional, mas útil em dev)
-db.exec(`
-  DELETE FROM log;
-  DELETE FROM game_table_modifier_scenes;
-  DELETE FROM game_table_modifier_items;
-  DELETE FROM game_table_modifier_advantages;
-  DELETE FROM game_table_modifier_skills;
-  DELETE FROM game_table_modifier_attributes;
-  DELETE FROM narrations;
-  DELETE FROM narration_actions;
-  DELETE FROM narration_characters;
-  DELETE FROM narration_locations;
-  DELETE FROM narration_npcs;
-  DELETE FROM scenes;
-  DELETE FROM game_table_modifiers;
-  DELETE FROM game_table_npcs;
-  DELETE FROM game_table_damages;
-  DELETE FROM game_table_character_skills;
-  DELETE FROM game_table_advantages;
-  DELETE FROM game_table_disadvantages;
-  DELETE FROM game_table_character_advantages;
-  DELETE FROM game_table_character_disadvantages;
-  DELETE FROM game_table_peculiarities;
-  DELETE FROM game_table_character_images;
-  DELETE FROM game_table_character_sheets;
-  DELETE FROM characters;
-  DELETE FROM item_images;
-  DELETE FROM game_table_items;
-  DELETE FROM table_images;
-  DELETE FROM table_locations;
-  DELETE FROM game_table_skill_dependencies;
-  DELETE FROM game_table_skills;
-  DELETE FROM game_table_players;
-  DELETE FROM narrator_images;
-  DELETE FROM game_tables;
-  DELETE FROM narrators;
-  DELETE FROM users;
-`)
+// db.exec(`
+//   DELETE FROM log;
+//   DELETE FROM game_table_modifier_scenes;
+//   DELETE FROM game_table_modifier_items;
+//   DELETE FROM game_table_modifier_advantages;
+//   DELETE FROM game_table_modifier_skills;
+//   DELETE FROM game_table_modifier_attributes;
+//   DELETE FROM narrations;
+//   DELETE FROM narration_actions;
+//   DELETE FROM narration_characters;
+//   DELETE FROM narration_locations;
+//   DELETE FROM narration_npcs;
+//   DELETE FROM scenes;
+//   DELETE FROM game_table_modifiers;
+//   DELETE FROM game_table_npcs;
+//   DELETE FROM game_table_damages;
+//   DELETE FROM game_table_character_skills;
+//   DELETE FROM game_table_advantages;
+//   DELETE FROM game_table_disadvantages;
+//   DELETE FROM game_table_character_advantages;
+//   DELETE FROM game_table_character_disadvantages;
+//   DELETE FROM game_table_peculiarities;
+//   DELETE FROM game_table_character_images;
+//   DELETE FROM game_table_character_sheets;
+//   DELETE FROM characters;
+//   DELETE FROM item_images;
+//   DELETE FROM game_table_items;
+//   DELETE FROM table_images;
+//   DELETE FROM table_locations;
+//   DELETE FROM game_table_skill_dependencies;
+//   DELETE FROM game_table_skill_predefinede;
+//   DELETE FROM game_table_skills;
+//   DELETE FROM game_table_players;
+//   DELETE FROM narrator_images;
+//   DELETE FROM game_tables;
+//   DELETE FROM narrators;
+//   DELETE FROM users;
+// `)
 
 const  adminId = crypto.randomUUID()
 
@@ -3289,7 +3290,7 @@ export const  modifierNarrationsLocations: SeedModifierNarrationLocations[] = [
   }  
 ]
 
-type SeedModifierGameTableSkillsDependecies = {
+type SeedModifierGameTableSkillsPreDetermined = {
     id: string,
     origin_skill_id: string,
     depends_on_skill_id: string | null,
@@ -3297,7 +3298,7 @@ type SeedModifierGameTableSkillsDependecies = {
     depends_on_skill_for_others_attributes: string | null
 }
 
-export const  modifierGameTableSkillsDependecies: SeedModifierGameTableSkillsDependecies[] = [
+export const  modifierGameTableSkillsPreDetermined: SeedModifierGameTableSkillsPreDetermined[] = [
     // Animal Training (Adestramento de Animais): [['IQ', 6]]
     {
         id: crypto.randomUUID(),
@@ -4518,4 +4519,71 @@ export const  modifierGameTableCharacterAdvantages: SeedModifierGameTableCharact
     cost_points: 15,
     effect: 'Luck that helps in critical moments.'
   }
+]
+
+type SeedModifierGameTableSkillsDependecies = {
+    id: string,
+    origin_skill_id: string,
+    depends_on_skill_id: string | null,
+    depends_on_skill_value: string | null,
+    depends_type: string | null
+}
+
+export const  modifierGameTableSkillsDependecies: SeedModifierGameTableSkillsDependecies[] = [
+    // Falconry (Falcoaria) → Animal Training (Adestramento de Animais)
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillFalconryId,
+        depends_on_skill_id: skillAnimalTrainingId,
+        depends_on_skill_value: null,
+        depends_type: null
+    },
+    // Lance (Lança de Justa) → Riding (Cavalgar)
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillLanceId,
+        depends_on_skill_id: skillRidingId,
+        depends_on_skill_value: null,
+        depends_type: null
+    },
+    // Surgery (Cirurgia) → Medicine (Medicina)
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillSurgeryId,
+        depends_on_skill_id: skillMedicineId,
+        depends_on_skill_value: null,
+        depends_type: null
+    },
+    // Biochemistry (Bioquímica) → Chemistry (Química)
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillBiochemistryId,
+        depends_on_skill_id: skillChemistryId,
+        depends_on_skill_value: null,
+        depends_type: null
+    },
+    // Computer Programming (Programação de Computadores) → Computer Operation (Operação de Computadores)
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillComputerProgrammingId,
+        depends_on_skill_id: skillComputerOperationId,
+        depends_on_skill_value: null,
+        depends_type: null
+    },
+    // Electronics (Eletrônica) → Mathematics (Matemática)
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillElectronicsId,
+        depends_on_skill_id: skillMathematicsId,
+        depends_on_skill_value: null,
+        depends_type: null
+    },
+    // Engineering Mechanical (Engenharia Mecânica) → Mathematics (Matemática)
+    {
+        id: crypto.randomUUID(),
+        origin_skill_id: skillEngineeringMechanicalId,
+        depends_on_skill_id: skillMathematicsId,
+        depends_on_skill_value: null,
+        depends_type: null
+    }
 ]

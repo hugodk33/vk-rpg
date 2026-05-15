@@ -53,19 +53,47 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE id = ?
     `).get(id as string)
 
-    // Busca todas as skills da mesa
+    // Todas as skills
     const skills = db.prepare(`
       SELECT *
       FROM game_table_skills
       WHERE table_id = ?
     `).all(id) as any[]
 
-    // Busca dependências
+    // =========================
+    // PREDEFINITIONS
+    // =========================
+
+    const predefinitions = db.prepare(`
+      SELECT
+        gtsp.origin_skill_id,
+        gtsp.depends_on_skill_value,
+        gtsp.depends_on_skill_for_others_attributes,
+
+        dependent_skill.id as dependent_skill_id,
+        dependent_skill.name as dependent_skill_name
+
+      FROM game_table_skill_predefinede gtsp
+
+      LEFT JOIN game_table_skills dependent_skill
+        ON dependent_skill.id = gtsp.depends_on_skill_id
+
+      WHERE gtsp.origin_skill_id IN (
+        SELECT id
+        FROM game_table_skills
+        WHERE table_id = ?
+      )
+    `).all(id) as any[]
+
+    // =========================
+    // DEPENDENCIES
+    // =========================
+
     const dependencies = db.prepare(`
       SELECT
         gtsd.origin_skill_id,
         gtsd.depends_on_skill_value,
-        gtsd.depends_on_skill_for_others_attributes,
+        gtsd.depends_type,
 
         dependent_skill.id as dependent_skill_id,
         dependent_skill.name as dependent_skill_name
@@ -82,21 +110,33 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       )
     `).all(id) as any[]
 
-    // Monta skills com dependências
+    // =========================
+    // FORMATAÇÃO FINAL
+    // =========================
+
     const formattedSkills = skills.map((skill) => {
+
+      const skillPredefinitions = predefinitions
+        .filter(pre => pre.origin_skill_id === skill.id)
+        .map(pre => ({
+          skill: pre.dependent_skill_name || null,
+          value: pre.depends_on_skill_value || null,
+          depends_on_skill_for_others_attributes:
+            pre.depends_on_skill_for_others_attributes || null
+        }))
 
       const skillDependencies = dependencies
         .filter(dep => dep.origin_skill_id === skill.id)
         .map(dep => ({
           skill: dep.dependent_skill_name || null,
           value: dep.depends_on_skill_value || null,
-          depends_on_skill_for_others_attributes:
-            dep.depends_on_skill_for_others_attributes || null
+          type: dep.depends_type || null
         }))
 
       return {
         ...skill,
-        predefinido: skillDependencies
+        predefinition: skillPredefinitions,
+        dependencies: skillDependencies
       }
     })
 
