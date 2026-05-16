@@ -1,5 +1,5 @@
-import * as skillsIds from './uuidSkills'
-import { mainGameTableId } from './uuidGeral'
+import * as skillsIds from './MainUUIDIds/uuidSkills'
+import { mainGameTableId } from './MainUUIDIds/uuidGeral'
 
 type SeedSkill = {
   id: string

@@ -1,8 +1,14 @@
 // src/infra/database/seed.ts
 import { db } from './database'
 
-import { users , narrators  , gameTables , gameTablePlayers , characters ,characterSheets  , newNpcs , items , advantages , disadvantages , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations , modifierGameTableSkillsPreDetermined , modifierGameTableSkillsDependecies} from '../variables/varsForSeeds'
+import { narrators  , gameTables , gameTablePlayers ,characterSheets  , newNpcs , items , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations } from '../variables/varsForSeeds'
 import { skills } from '../variables/varSkills'
+import { advantages } from '../variables/varAdvantages'
+import { disadvantages } from '../variables/varDisadvantage'
+import { users } from '../variables/varUsers'
+import { characters } from '../variables/varCharacters'
+import { modifierGameTableSkillsPreDetermined } from '../variables/varPreDetermined'
+import { modifierGameTableSkillsDependecies } from '../variables/varDependecies'
 
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
