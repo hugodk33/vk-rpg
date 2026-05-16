@@ -1,12 +1,15 @@
 // src/infra/database/seed.ts
 import { db } from './database'
 
-import { narrators  , gameTables , gameTablePlayers ,characterSheets  , newNpcs , items , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations } from '../variables/varsForSeeds'
+import { narrators  , gameTables , gameTablePlayers  , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations } from '../variables/varsForSeeds'
 import { skills } from '../variables/varSkills'
+import { items } from '../variables/varItems'
 import { advantages } from '../variables/varAdvantages'
 import { disadvantages } from '../variables/varDisadvantage'
 import { users } from '../variables/varUsers'
 import { characters } from '../variables/varCharacters'
+import { newNpcs } from '../variables/varNPC'
+import { characterSheets } from '../variables/varCharacterSheets'
 import { modifierGameTableSkillsPreDetermined } from '../variables/varPreDetermined'
 import { modifierGameTableSkillsDependecies } from '../variables/varDependecies'
 
