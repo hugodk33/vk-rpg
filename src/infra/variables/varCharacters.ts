@@ -1,6 +1,9 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import { users } from "./varUsers"
 import { characterMiraId, characterGarrickId, characterKasumiId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+import * as skillsIds from './MainUUIDIds/uuidSkills'
+import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
+import * as itemsIds from "./MainUUIDIds/uuidItems"
 
 type SeedCharacter = {
   id: string
@@ -185,8 +188,89 @@ export const  characterSheets: SeedCharacterSheet[] = [
   }
 ]
 
-type SeedNpc = {
+type SeedDamage = {
   id: string
-  character_id: string
-  status: 'enemy' | 'ally' | 'neutral' | 'boss'
+  name: string
+  description: string
+  type: string
+  value: string
+  range: string
+  characterId: string
+  itemId?: string
+  skillId?: string
+  advantageId?: string
 }
+
+export const  damages: SeedDamage[] = [
+  {
+    id: crypto.randomUUID(),
+    name: 'Cutting Strike',
+    description: 'A fast slash with a short sword designed to open armor gaps.',
+    type: 'Physical',
+    value: 'sw+2 cut',
+    range: 'Melee',
+    characterId: characterMiraId,
+    itemId: itemsIds.shortSwordId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Power Shot',
+    description: 'A heavy arrow fired from the recurved bow.',
+    type: 'Physical',
+    value: '2d+1 imp',
+    range: '75 yards',
+    characterId: characterKasumiId,
+    itemId: itemsIds.bowId,
+    skillId: skillsIds.skillBowsId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Arcane Blast',
+    description: 'A small burst of magical energy fueled by Magery.',
+    type: 'Energy',
+    value: '3d burning',
+    range: 'Medium',
+    characterId: characterKasumiId,
+    skillId: skillsIds.skillMagicId,
+    advantageId: advantagesIds.advantageMageryId
+  }
+]
+
+type SeedCharacterSkill = {
+  id: string
+  characterId: string
+  skillId: string
+  costPoints: number
+  effect: string
+}
+
+export const  characterSkills: SeedCharacterSkill[] = [
+  {
+    id: crypto.randomUUID(),
+    characterId: characterMiraId,
+    skillId: skillsIds.skillSwordsmanshipId,
+    costPoints: 14,
+    effect: 'Used for melee attacks with swords and blades.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterGarrickId,
+    skillId: skillsIds.skillTacticsId,
+    costPoints: 10,
+    effect: 'Used to coordinate allies and plan battlefield movement.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterKasumiId,
+    skillId: skillsIds.skillMagicId,
+    costPoints: 25,
+    effect: 'Used to cast spells and channel magical energy.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterGarrickId,
+    skillId: skillsIds.skillStealthId,
+    costPoints: 12,
+    effect: 'Used to move quietly when avoiding patrols.'
+  }
+]

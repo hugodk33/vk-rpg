@@ -1,12 +1,16 @@
 import crypto from 'crypto'
 
-import * as skillsIds from './MainUUIDIds/uuidSkills'
-import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
+
 
 import { mainGameTableId , adminId } from './MainUUIDIds/uuidGeral'
 
 import { users } from './varUsers'
 import { characterMiraId, characterGarrickId, characterKasumiId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+import { shortSwordId, leatherArmorId, bowId } from "./MainUUIDIds/uuidItems"
+import { locationId1, locationId2, locationId3 } from "./MainUUIDIds/uuidLocation"
+import { narration1, narration2, narration3 } from "./MainUUIDIds/uuidNarrations"
+import * as skillsIds from './MainUUIDIds/uuidSkills'
+import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as NPCIds from "./MainUUIDIds/uuidNPC"
 
 type SeedNarrator = {
@@ -69,129 +73,6 @@ export const  gameTablePlayers: SeedGameTablePlayer[] = [
   { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[3].id },
   { id: crypto.randomUUID(), tableId: gameTables[1].id, userId: users[4].id },
   { id: crypto.randomUUID(), tableId: gameTables[1].id, userId: users[5].id }
-]
-
-const  shortSwordId = crypto.randomUUID()
-const  leatherArmorId = crypto.randomUUID()
-const  bowId = crypto.randomUUID()
-
-type SeedPeculiarity = {
-  id: string
-  table_id: string
-  name: string
-  costPoints: number
-  effect: string
-}
-
-export const  peculiarities: SeedPeculiarity[] = [
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Bad Temper',
-    costPoints: -5,
-    effect: '-2 reaction rolls when provoked.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Night Owl',
-    costPoints: -5,
-    effect: 'Harder to sleep at night, +1 alertness after midnight.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Fragile Bones',
-    costPoints: -10,
-    effect: '+1 injury roll from falls and blunt trauma.'
-  }
-]
-
-type SeedDamage = {
-  id: string
-  name: string
-  description: string
-  type: string
-  value: string
-  range: string
-  characterId: string
-  itemId?: string
-  skillId?: string
-  advantageId?: string
-}
-
-export const  damages: SeedDamage[] = [
-  {
-    id: crypto.randomUUID(),
-    name: 'Cutting Strike',
-    description: 'A fast slash with a short sword designed to open armor gaps.',
-    type: 'Physical',
-    value: 'sw+2 cut',
-    range: 'Melee',
-    characterId: characterMiraId,
-    itemId: shortSwordId
-  },
-  {
-    id: crypto.randomUUID(),
-    name: 'Power Shot',
-    description: 'A heavy arrow fired from the recurved bow.',
-    type: 'Physical',
-    value: '2d+1 imp',
-    range: '75 yards',
-    characterId: characterKasumiId,
-    itemId: bowId,
-    skillId: skillsIds.skillBowsId
-  },
-  {
-    id: crypto.randomUUID(),
-    name: 'Arcane Blast',
-    description: 'A small burst of magical energy fueled by Magery.',
-    type: 'Energy',
-    value: '3d burning',
-    range: 'Medium',
-    characterId: characterKasumiId,
-    skillId: skillsIds.skillMagicId,
-    advantageId: advantagesIds.advantageMageryId
-  }
-]
-
-type SeedCharacterSkill = {
-  id: string
-  characterId: string
-  skillId: string
-  costPoints: number
-  effect: string
-}
-
-export const  characterSkills: SeedCharacterSkill[] = [
-  {
-    id: crypto.randomUUID(),
-    characterId: characterMiraId,
-    skillId: skillsIds.skillSwordsmanshipId,
-    costPoints: 14,
-    effect: 'Used for melee attacks with swords and blades.'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterGarrickId,
-    skillId: skillsIds.skillTacticsId,
-    costPoints: 10,
-    effect: 'Used to coordinate allies and plan battlefield movement.'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterKasumiId,
-    skillId: skillsIds.skillMagicId,
-    costPoints: 25,
-    effect: 'Used to cast spells and channel magical energy.'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterGarrickId,
-    skillId: skillsIds.skillStealthId,
-    costPoints: 12,
-    effect: 'Used to move quietly when avoiding patrols.'
-  }
 ]
 
 type SeedModifier = {
@@ -297,109 +178,6 @@ export const  modifierItems: SeedModifierItem[] = [
     id: crypto.randomUUID(),
     modifierId: modifierCurseId,
     itemId: leatherArmorId
-  }
-]
-
-type SeedModifierScene= {
-  id: string
-  table_id: string
-  title: string
-  chapter: number
-  moment: number
-}
-
-export const  modifierScenes: [SeedModifierScene ,  SeedModifierScene , SeedModifierScene , SeedModifierScene ] = [
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    title: 'The Forest',
-    chapter: 1,
-    moment: 0,
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    title: 'The Clearing',
-    chapter: 1,
-    moment: 1,
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    title: 'The River',
-    chapter: 1,
-    moment: 2
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    title: 'The Mountain Pass',
-    chapter: 1,
-    moment: 3
-  }
-]
-
-type SeedModifierNarration= {
-  id: string
-  table_id: string
-  scene_id: string
-  title: string
-  narration: string
-  moment: number
-}
-
-const  narration1 = crypto.randomUUID()
-const  narration2 = crypto.randomUUID()
-const  narration3 = crypto.randomUUID()
-
-export const  modifierNarrations: SeedModifierNarration[] = [
-  {
-    id: narration1,
-    table_id: mainGameTableId,
-    scene_id: modifierScenes[0].id,
-    title: 'The Forest', 
-    narration: 'The party enters the forest.',
-    moment: 0 
-  },
-  {
-    id: narration2,
-    table_id: mainGameTableId,
-    scene_id: modifierScenes[0].id, 
-    title: 'The Clearing',
-    narration: 'The party enters the forest.',
-    moment: 1 
-  },
-  {
-    id: narration3,
-    table_id: mainGameTableId,
-    scene_id: modifierScenes[0].id, 
-    title: 'The River',
-    narration: 'The party enters the forest.',
-    moment: 2 
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    scene_id: modifierScenes[0].id, 
-    title: 'The Mountain Pass',
-    narration: 'The party enters the forest.',
-    moment: 2 
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    scene_id: modifierScenes[0].id, 
-    title: 'The Mountain Pass',
-    narration: 'The party enters the forest.',
-    moment: 3 
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    scene_id: modifierScenes[1].id, 
-    title: 'The River',
-    narration: 'The party enters the forest.',
-    moment: 3 
   }
 ]
 
