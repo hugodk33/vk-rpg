@@ -1,8 +1,22 @@
 // src/infra/database/seed.ts
 import { db } from './database'
 
-import { users , narrators  , gameTables , gameTablePlayers , characters ,characterSheets  , newNpcs , items , advantages , disadvantages , peculiarities , damages , characterSkills , modifiers , modifierAttributes , modifierSkills , modifierAdvantages , modifierItems , modifierScenes , modifierNarrations , modifierNarrationsActions , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierTableLocations , modifierNarrationsLocations , modifierGameTableSkillsPreDetermined , modifierGameTableSkillsDependecies} from '../variables/varsForSeeds'
+import { narrators  , gameTables , gameTablePlayers  } from '../variables/varGameTable'
+import { modifiers, modifierAttributes, modifierSkills, modifierAdvantages, modifierItems, modifierNarrationsActions , modifierNarrationsLocations , modifierNarrationsCharacters , modifierNarrationsNPCs } from '../variables/varModifiers'
 import { skills } from '../variables/varSkills'
+import { items } from '../variables/varItems'
+import { advantages } from '../variables/varAdvantages'
+import { disadvantages } from '../variables/varDisadvantage'
+import { users } from '../variables/varUsers'
+import { characters , damages , characterSkills } from '../variables/varCharacters'
+import { newNpcs } from '../variables/varNPC'
+import { characterSheets } from '../variables/varCharacterSheets'
+import { peculiarities } from '../variables/varPeculiarites'
+import { scenes } from '../variables/varScenes'
+import { narrations } from '../variables/varNarrations'
+import { modifierTableLocations } from '../variables/varLocations'
+import { modifierGameTableSkillsPreDetermined } from '../variables/varPreDetermined'
+import { modifierGameTableSkillsDependecies } from '../variables/varDependecies'
 
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -273,7 +287,7 @@ const modifierSceneStmt = db.prepare(`
   VALUES (?, ?, ?, ?, ?)
 `)
 
-for (const modifierScene of modifierScenes) {
+for (const modifierScene of scenes ) {
   modifierSceneStmt.run(modifierScene.id, modifierScene.table_id , modifierScene.title, modifierScene.chapter, modifierScene.moment)
 }
 
@@ -282,7 +296,7 @@ const modifierNarrationstmt = db.prepare(`
   VALUES (?, ?, ?, ?, ?, ?)
 `)
 
-for (const modifierNarration of modifierNarrations) {
+for (const modifierNarration of narrations) {
   modifierNarrationstmt.run(modifierNarration.id, modifierNarration.table_id, modifierNarration.title , modifierNarration.scene_id, modifierNarration.narration, modifierNarration.moment)
 }
 
