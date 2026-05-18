@@ -611,6 +611,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         cs.bio,
         cs.backstory,
         cs.points,
+        cs.health,
         cs.hp,
         cs.st,
         cs.dx,
@@ -672,7 +673,25 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE character_id = ?
     `).all(characterId) as any[]
 
+    const basicSpeed = (characterData.dx as number + characterData.ht as number) / 4
+    const itemsWeight = items.reduce((total, item) => total + (item.weight as number || 0), 0)
+    const st = characterData.st as number;
+
+  const encumbranceValue =
+      itemsWeight <= st * 2 ? 0 :
+      itemsWeight <= st * 4 ? 1 :
+      itemsWeight <= st * 6 ? 2 :
+      itemsWeight <= st * 12 ? 3 :
+      itemsWeight <= st * 20 ? 4 :
+      0;
+
     return {
+      table: {
+        id: characterData.table_id,
+        title: characterData.table_title,
+        intro: characterData.table_intro,
+        system: characterData.table_system
+      },
       character: {
         id: characterData.character_id,
         name: characterData.character_name,
@@ -689,24 +708,21 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
           bio: characterData.bio,
           backstory: characterData.backstory,
           points: characterData.points,
+          health: characterData.health,
           hp: characterData.hp,
           st: characterData.st,
           dx: characterData.dx,
           iq: characterData.iq,
           ht: characterData.ht,
           fatigue: characterData.fatigue,
-          encumbrance: characterData.encumbrance
-        } : null,
+          encumbrance: characterData.encumbrance,
+          basic_speed: basicSpeed,
+          move: basicSpeed - encumbranceValue
+          } : null,
         advantages,
         skills,
         items,
         damages
-      },
-      table: {
-        id: characterData.table_id,
-        title: characterData.table_title,
-        intro: characterData.table_intro,
-        system: characterData.table_system
       },
       peculiarities
     }

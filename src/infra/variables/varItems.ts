@@ -21,6 +21,22 @@ type SeedItem = {
 
 export const  items: SeedItem[] = [
   {
+    id: itemsIds.daggerId,
+    table_id: mainGameTableId,
+    name: 'Dagger',
+    type: 1,
+    category: 'Melee',
+    weight: 1,
+    dimensions: '10cm',
+    description: 'A balanced steel Dagger for fast close combat.',
+    quality: 'Fine',
+    condition: 'Good',
+    holderId: users[1].id,
+    ownerId: users[1].id,
+    skillUserId: users[1].id,
+    skillLevel: 'Swordsmanship 15'
+  },
+  {
     id: itemsIds.shortSwordId,
     table_id: mainGameTableId,
     name: 'Short Sword',
