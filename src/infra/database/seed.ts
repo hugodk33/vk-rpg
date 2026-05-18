@@ -119,8 +119,8 @@ for (const character of characters) {
 
 // insert character sheets
 const characterSheetStmt = db.prepare(`
-  INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, health, hp, st, dx, iq, ht, fatigue, encumbrance)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const sheet of characterSheets) {
@@ -131,6 +131,7 @@ for (const sheet of characterSheets) {
     sheet.bio,
     sheet.backstory,
     sheet.points,
+    sheet.health,
     sheet.hp,
     sheet.st,
     sheet.dx,

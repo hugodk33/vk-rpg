@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS game_table_character_sheets (
   bio TEXT,
   backstory TEXT,
   points INTEGER,
+  health INTEGER,
   hp INTEGER,
   st INTEGER,
   dx INTEGER,
