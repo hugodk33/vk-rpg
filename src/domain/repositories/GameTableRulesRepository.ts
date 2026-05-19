@@ -215,11 +215,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
   async createGamePeculiarites(data: any): Promise<void> {
     db.prepare(`
-      INSERT INTO game_table_peculiarities (id, table_id, name, cost_points, effect, description)
+      INSERT INTO game_table_characters_quirks (id, character_id, name, cost_points, effect, description)
       VALUES (?, ?, ?, ?, ?, ?)
     `).run(
       crypto.randomUUID(),
-      data.table_id,
+      data.character_id,
       data.name,
       data.cost_points,
       data.effect,
@@ -228,7 +228,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   }
   async editGamePeculiarites(data: any): Promise<void> {
     db.prepare(`
-      UPDATE game_table_peculiarities
+      UPDATE game_table_characters_quirks
       SET name = ?, cost_points = ?, effect = ?, description = ?
       WHERE id = ?
     `).run(
@@ -242,7 +242,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async findGamePeculiarites(id: any): Promise<any> {
     const gameTablePeculiarity = db.prepare(`
       SELECT *
-      FROM game_table_peculiarities
+      FROM game_table_characters_quirks
       WHERE id = ?
     `).get(id) as any
     return gameTablePeculiarity
@@ -439,9 +439,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).all(userId, userId) as any[]
 
     const peculiarities = db.prepare(`
-      SELECT * FROM game_table_peculiarities
-      WHERE table_id = ?
-    `).all(tableId) as any[]
+      SELECT * FROM game_table_characters_quirks
+      WHERE character_id = ?
+    `).all(characterId) as any[]
 
     const damages = db.prepare(`
       SELECT * FROM game_table_damages
@@ -515,7 +515,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         cs.iq,
         cs.ht
       FROM game_table_npcs npc
-      LEFT JOIN characters c ON c.id = npc.character_id
+      LEFT JOIN game_table_characters c ON c.id = npc.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       WHERE c.table_id = ?
     `).all(tableId) as any[]
@@ -576,7 +576,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
   async createGameCharacter(data: any): Promise<void> {
     db.prepare(`
-      INSERT INTO characters (id, user_id, table_id, name)
+      INSERT INTO game_table_characters (id, user_id, table_id, name)
       VALUES (?, ?, ?, ?)
     `).run(
       crypto.randomUUID(),
@@ -588,7 +588,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
   async editGameCharacter(data: any): Promise<void> {
     db.prepare(`
-      UPDATE characters
+      UPDATE game_table_characters
       SET user_id = ?, table_id = ?, name = ?
       WHERE id = ?
     `).run(
@@ -626,7 +626,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         g.title as table_title,
         g.intro as table_intro,
         g.system as table_system
-      FROM characters c
+      FROM game_table_characters c
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       LEFT JOIN users u ON u.id = c.user_id
       LEFT JOIN game_tables g ON g.id = c.table_id
@@ -664,9 +664,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).all(userId, userId) as any[]
 
     const peculiarities = db.prepare(`
-      SELECT * FROM game_table_peculiarities
-      WHERE table_id = ?
-    `).all(tableId) as any[]
+      SELECT * FROM game_table_characters_quirks
+      WHERE character_id = ?
+    `).all(characterId) as any[]
 
     const damages = db.prepare(`
       SELECT * FROM game_table_damages
@@ -753,7 +753,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         cs.iq,
         cs.ht,
         u.username
-      FROM characters c
+      FROM game_table_characters c
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       LEFT JOIN users u ON u.id = c.user_id
       WHERE c.table_id = ?

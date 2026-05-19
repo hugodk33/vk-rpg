@@ -109,7 +109,7 @@ for (const skill of skills) {
 
 // insert characters
 const characterStmt = db.prepare(`
-  INSERT INTO characters (id, user_id, table_id, name)
+  INSERT INTO game_table_characters (id, user_id, table_id, name)
   VALUES (?, ?, ?, ?)
 `)
 
@@ -219,14 +219,14 @@ for (const characterSkill of characterSkills) {
 
 // insert peculiarities
 const peculiarityStmt = db.prepare(`
-  INSERT INTO game_table_peculiarities (id, table_id , name, cost_points, effect)
+  INSERT INTO game_table_characters_quirks (id, character_id, name, cost_points, effect)
   VALUES (?, ?, ?, ?, ?)
 `)
 
 for (const peculiarity of peculiarities) {
   peculiarityStmt.run(
     peculiarity.id,
-    peculiarity.table_id,
+    peculiarity.character_id,
     peculiarity.name,
     peculiarity.costPoints,
     peculiarity.effect
