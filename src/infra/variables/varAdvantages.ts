@@ -124,7 +124,7 @@ export const advantages: SeedModifierGameTableAdvantages[] = [
     description: 'The character\'s body is extraordinarily flexible. He receives a bonus equal to +3 on any Escape attempt or attempts to get free of ropes, shackles or other similar movement restriction means, and also on Mechanic tests.'
   },
   {
-    id: crypto.randomUUID(),
+    id: advantagesIds.advantageEideticMemoryId,
     table_id: mainGameTableId,
     name: 'Eidetic Memory',
     costPoints: 30,

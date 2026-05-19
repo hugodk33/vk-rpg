@@ -8,7 +8,7 @@ import { items } from '../variables/varItems'
 import { advantages } from '../variables/varAdvantages'
 import { disadvantages } from '../variables/varDisadvantage'
 import { users } from '../variables/varUsers'
-import { characters , damages , characterSkills } from '../variables/varCharacters'
+import { characters , damages , characterSkills , characterAdvantages } from '../variables/varCharacters'
 import { newNpcs } from '../variables/varNPC'
 import { characterSheets } from '../variables/varCharacterSheets'
 import { peculiarities } from '../variables/varPeculiarites'
@@ -416,6 +416,33 @@ for (const damage of damages) {
     damage.item_id,
     damage.skill_id,
     damage.advantage_id
+  )
+}
+
+const modifierGameTableCharacterAdvantagestmt = db.prepare(`
+  INSERT INTO game_table_character_advantages(
+  id,
+  advantage_id,
+  name,
+  category,
+  subcategory,
+  character_id,
+  cost_points,
+  effect
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const modifierGameTableCharacterAdvantage of characterAdvantages) {
+  modifierGameTableCharacterAdvantagestmt.run(
+    modifierGameTableCharacterAdvantage.id,
+    modifierGameTableCharacterAdvantage.advantage_id,
+    modifierGameTableCharacterAdvantage.name,
+    modifierGameTableCharacterAdvantage.category,
+    modifierGameTableCharacterAdvantage.subcategory,
+    modifierGameTableCharacterAdvantage.character_id,
+    modifierGameTableCharacterAdvantage.cost_points,
+    modifierGameTableCharacterAdvantage.effect
   )
 }
 
