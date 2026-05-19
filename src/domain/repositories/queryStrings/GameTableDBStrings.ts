@@ -72,7 +72,7 @@ export const GameTableDBStrings:any = {
     LEFT JOIN narration_characters nc 
       ON nc.narrations_id = n.id
 
-    LEFT JOIN characters cn 
+    LEFT JOIN game_table_characters cn 
       ON cn.id = nc.character_id
 
     LEFT JOIN narration_npcs nn
@@ -81,7 +81,7 @@ export const GameTableDBStrings:any = {
     LEFT JOIN game_table_npcs npc
       ON npc.id = nn.npc_id
 
-    LEFT JOIN characters c_npc 
+    LEFT JOIN game_table_characters c_npc 
       ON c_npc.id = npc.character_id
 
     -- LOCATION
@@ -166,13 +166,13 @@ export const GameTableDBStrings:any = {
       JOIN narrators n ON g.narrator_id = n.id
       JOIN users u ON n.user_id = u.id
       LEFT JOIN game_table_players p ON p.table_id = g.id
-      LEFT JOIN characters c ON c.table_id = g.id AND c.user_id = p.user_id
-      LEFT JOIN character_sheets cs ON cs.character_id = c.id
-      LEFT JOIN damages d ON d.character_id = c.id
-      LEFT JOIN items i ON i.holder_id = p.user_id
-      LEFT JOIN character_advantages a ON a.character_id = c.id
-      LEFT JOIN character_skills csk ON csk.character_id = c.id
-      LEFT JOIN peculiarities pec ON pec.character_id = c.id
+      LEFT JOIN game_table_characters c ON c.table_id = g.id AND c.user_id = p.user_id
+      LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
+      LEFT JOIN game_table_damages d ON d.character_id = c.id
+      LEFT JOIN game_table_items i ON i.holder_id = p.user_id
+      LEFT JOIN game_table_character_advantages a ON a.character_id = c.id
+      LEFT JOIN game_table_character_skills csk ON csk.character_id = c.id
+      LEFT JOIN game_table_characters_quirks pec ON pec.character_id = c.id
     `,
     GameTableFindById:`
       SELECT
@@ -241,13 +241,13 @@ export const GameTableDBStrings:any = {
       JOIN narrators n ON g.narrator_id = n.id
       JOIN users u ON n.user_id = u.id
       LEFT JOIN game_table_players p ON p.table_id = g.id
-      LEFT JOIN characters c ON c.table_id = g.id AND c.user_id = p.user_id
-      LEFT JOIN character_sheets cs ON cs.character_id = c.id
-      LEFT JOIN damages d ON d.character_id = c.id
-      LEFT JOIN items i ON i.holder_id = p.user_id
-      LEFT JOIN character_advantages a ON a.character_id = c.id
-      LEFT JOIN character_skills csk ON csk.character_id = c.id
-      LEFT JOIN peculiarities pec ON pec.character_id = c.id
+      LEFT JOIN game_table_characters c ON c.table_id = g.id AND c.user_id = p.user_id
+      LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
+      LEFT JOIN game_table_damages d ON d.character_id = c.id
+      LEFT JOIN game_table_items i ON i.holder_id = p.user_id
+      LEFT JOIN game_table_character_advantages a ON a.character_id = c.id
+      LEFT JOIN game_table_character_skills csk ON csk.character_id = c.id
+      LEFT JOIN game_table_characters_quirks pec ON pec.character_id = c.id
       WHERE g.id = ?
     `,
     GameTableFindBySceneId:`
@@ -267,8 +267,8 @@ export const GameTableDBStrings:any = {
         c.name AS character_name
       FROM scenes s
       LEFT JOIN narrations n ON n.scene_id = s.id
-      LEFT JOIN actions a ON a.scene_id = s.id
-      LEFT JOIN characters c ON c.user_id = a.user_id AND c.table_id = s.table_id
+      LEFT JOIN narration_actions a ON a.scene_id = s.id
+      LEFT JOIN game_table_characters c ON c.user_id = a.user_id AND c.table_id = s.table_id
       WHERE s.id = ?
       ORDER BY n.moment ASC, a.id ASC
     `,

@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS game_table_players (
 -- =========================
 -- CHARACTERS
 -- =========================
-CREATE TABLE IF NOT EXISTS characters (
+CREATE TABLE IF NOT EXISTS game_table_characters (
   id TEXT PRIMARY KEY,
   user_id TEXT,
   table_id TEXT,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS game_table_character_images (
   id TEXT PRIMARY KEY,
   character_id TEXT,
   url TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 -- =========================
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS game_table_character_sheets (
   ht INTEGER,
   fatigue INTEGER,
   encumbrance TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 -- =========================
@@ -148,14 +148,14 @@ CREATE TABLE IF NOT EXISTS narration_actions (
   dice_roll TEXT,
   character_id TEXT,
   FOREIGN KEY (narrations_id) REFERENCES narrations(id),
-  FOREIGN KEY (character_id) REFERENCES characters(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 CREATE TABLE IF NOT EXISTS narration_characters (
   id TEXT PRIMARY KEY,
   character_id TEXT,
   narrations_id TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (narrations_id) REFERENCES narrations(id)
 );
 
@@ -219,7 +219,7 @@ CREATE TABLE IF NOT EXISTS game_table_damages (
   item_id TEXT,
   skill_id TEXT,
   advantage_id TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (item_id) REFERENCES game_table_items(id),
   FOREIGN KEY (skill_id) REFERENCES game_table_character_skills(id),
   FOREIGN KEY (advantage_id) REFERENCES game_table_character_advantages(id)
@@ -232,7 +232,7 @@ CREATE TABLE IF NOT EXISTS game_table_npcs (
   id TEXT PRIMARY KEY,
   character_id TEXT,
   status TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 CREATE TABLE IF NOT EXISTS narration_npcs (
@@ -287,7 +287,7 @@ CREATE TABLE IF NOT EXISTS game_table_character_skills (
   skill_id TEXT,
   cost_points INTEGER,
   effect TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id),
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (skill_id) REFERENCES game_table_skills(id)
 );
 
@@ -303,7 +303,7 @@ CREATE TABLE IF NOT EXISTS game_table_character_advantages (
   character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
   FOREIGN KEY (advantage_id) REFERENCES game_table_advantages(id)
 );
 
@@ -316,21 +316,21 @@ CREATE TABLE IF NOT EXISTS game_table_character_disadvantages (
   character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
-  FOREIGN KEY (character_id) REFERENCES characters(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
   FOREIGN KEY (disadvantage_id) REFERENCES game_table_disadvantages(id)
 );
 
 -- =========================
 -- DISADVANTAGES / PECULIARITIES
 -- =========================
-CREATE TABLE IF NOT EXISTS game_table_peculiarities (
+CREATE TABLE IF NOT EXISTS game_table_characters_quirks (
   id TEXT PRIMARY KEY,
-  table_id TEXT,
+  character_id TEXT,
   name TEXT,
   cost_points INTEGER,
   effect TEXT,
   description TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_advantages (
@@ -400,6 +400,7 @@ CREATE TABLE IF NOT EXISTS game_table_modifier_items (
   id TEXT PRIMARY KEY,
   modifier_id TEXT,
   item_id TEXT,
+  equiped BOOLEAN,
   FOREIGN KEY (item_id) REFERENCES game_table_items(id),
   FOREIGN KEY (modifier_id) REFERENCES game_table_modifiers(id)
 );
