@@ -210,7 +210,6 @@ CREATE TABLE IF NOT EXISTS table_images (
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_damages (
   id TEXT PRIMARY KEY,
-  table_id TEXT,
   name TEXT,
   description TEXT,
   type TEXT,
@@ -220,10 +219,9 @@ CREATE TABLE IF NOT EXISTS game_table_damages (
   item_id TEXT,
   skill_id TEXT,
   advantage_id TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id),
   FOREIGN KEY (character_id) REFERENCES characters(id),
   FOREIGN KEY (item_id) REFERENCES game_table_items(id),
-  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
+  FOREIGN KEY (skill_id) REFERENCES game_table_character_skills(id),
   FOREIGN KEY (advantage_id) REFERENCES game_table_character_advantages(id)
 );
 

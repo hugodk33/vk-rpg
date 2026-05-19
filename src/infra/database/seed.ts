@@ -388,4 +388,35 @@ for (const modifierGameTableSkillDependency of modifierGameTableSkillsPreDetermi
   )
 }
 
+const modifierGameTableDamagetmt = db.prepare(`
+  INSERT INTO game_table_damages(
+    id,
+    name,
+    description,
+    type,
+    value,
+    range,
+    character_id,
+    item_id,
+    skill_id,
+    advantage_id
+  )
+  VALUES (?, ?, ? , ? , ?, ?, ?, ?, ?, ?)
+`)
+
+for (const damage of damages) {
+  modifierGameTableDamagetmt.run(
+    damage.id,
+    damage.name,
+    damage.description,
+    damage.type,
+    damage.value,
+    damage.range,
+    damage.character_id,
+    damage.item_id,
+    damage.skill_id,
+    damage.advantage_id
+  )
+}
+
 console.log('🌱 Seed executed successfully!')
