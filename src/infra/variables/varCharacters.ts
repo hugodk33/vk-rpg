@@ -1,6 +1,7 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import { users } from "./varUsers"
-import { characterMiraId, characterGarrickId, characterKasumiId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+
+import { characterMiraId, characterGarrickId, characterKasumiId, characterNPCsIds , miraSwordSkill} from "./MainUUIDIds/uuidCharacters"
 import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as itemsIds from "./MainUUIDIds/uuidItems"
@@ -12,7 +13,7 @@ type SeedCharacter = {
   name: string
 }
 
-export const  characters: SeedCharacter[] = [
+export const characters: SeedCharacter[] = [
   {
     id: characterMiraId,
     userId: users[1].id,
@@ -60,7 +61,7 @@ type SeedCharacterSheet = {
   encumbrance: string
 }
 
-export const  characterSheets: SeedCharacterSheet[] = [
+export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterMiraId,
@@ -106,7 +107,7 @@ export const  characterSheets: SeedCharacterSheet[] = [
     fatigue: 10,
     encumbrance: 'Light'
   },
-    {
+  {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[0] as string,
     name: 'Riven Kael Sheet',
@@ -195,13 +196,13 @@ type SeedDamage = {
   type: string
   value: string
   range: string
-  characterId: string
-  itemId?: string
-  skillId?: string
-  advantageId?: string
+  character_id: string
+  item_id?: string
+  skill_id?: string
+  advantage_id?: string
 }
 
-export const  damages: SeedDamage[] = [
+export const damages: SeedDamage[] = [
   {
     id: crypto.randomUUID(),
     name: 'Cutting Strike',
@@ -209,8 +210,8 @@ export const  damages: SeedDamage[] = [
     type: 'Physical',
     value: 'sw+2 cut',
     range: 'Melee',
-    characterId: characterMiraId,
-    itemId: itemsIds.shortSwordId
+    character_id: characterMiraId,
+    item_id: itemsIds.shortSwordId
   },
   {
     id: crypto.randomUUID(),
@@ -219,9 +220,9 @@ export const  damages: SeedDamage[] = [
     type: 'Physical',
     value: '2d+1 imp',
     range: '75 yards',
-    characterId: characterKasumiId,
-    itemId: itemsIds.bowId,
-    skillId: skillsIds.skillBowsId
+    character_id: characterKasumiId,
+    item_id: itemsIds.bowId,
+    skill_id: skillsIds.skillBowsId
   },
   {
     id: crypto.randomUUID(),
@@ -230,10 +231,46 @@ export const  damages: SeedDamage[] = [
     type: 'Energy',
     value: '3d burning',
     range: 'Medium',
-    characterId: characterKasumiId,
-    skillId: skillsIds.skillMagicId,
-    advantageId: advantagesIds.advantageMageryId
-  }
+    character_id: characterKasumiId,
+    skill_id: skillsIds.skillMagicId,
+    advantage_id: advantagesIds.advantageMageryId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Swinging Fist Strike",
+    description: "A powerful punch with a swinging motion.",
+    type: "melee attack",
+    value: "1d-2 cr",
+    range: "close",
+    character_id: characterMiraId,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Straight Punch",
+    description: "A direct and fast punch aimed at the target.",
+    type: "melee attack",
+    value: "1d-1 cr",
+    range: "close",
+    character_id: characterMiraId,
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Sword Thrust",
+    description: "A precise thrusting attack using the sword point.",
+    type: "melee attack",
+    value: "1d imp",
+    range: "1",
+    character_id: characterMiraId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Sword Swing",
+    description: "A wide swinging slash attack with the sword.",
+    type: "melee attack",
+    value: "2d cut",
+    range: "1",
+    character_id: characterMiraId
+  },
 ]
 
 type SeedCharacterSkill = {
@@ -244,9 +281,9 @@ type SeedCharacterSkill = {
   effect: string
 }
 
-export const  characterSkills: SeedCharacterSkill[] = [
+export const characterSkills: SeedCharacterSkill[] = [
   {
-    id: crypto.randomUUID(),
+    id: miraSwordSkill,
     characterId: characterMiraId,
     skillId: skillsIds.skillSwordsmanshipId,
     costPoints: 14,
