@@ -222,7 +222,6 @@ export const damages: SeedDamage[] = [
     range: '75 yards',
     character_id: characterKasumiId,
     item_id: itemsIds.bowId,
-    skill_id: skillsIds.skillBowsId
   },
   {
     id: crypto.randomUUID(),
@@ -231,9 +230,7 @@ export const damages: SeedDamage[] = [
     type: 'Energy',
     value: '3d burning',
     range: 'Medium',
-    character_id: characterKasumiId,
-    skill_id: skillsIds.skillMagicId,
-    advantage_id: advantagesIds.advantageMageryId
+    character_id: characterKasumiId
   },
   {
     id: crypto.randomUUID(),
@@ -311,3 +308,28 @@ export const characterSkills: SeedCharacterSkill[] = [
     effect: 'Used to move quietly when avoiding patrols.'
   }
 ]
+
+type SeedCharacterAdvantage = {
+  id: string
+  advantage_id: string
+  name: string
+  category: string
+  subcategory: string
+  character_id: string
+  cost_points: string
+  effect: string
+}
+
+export const characterAdvantages: SeedCharacterAdvantage[] = [
+  {
+    id: crypto.randomUUID(),
+    advantage_id: advantagesIds.advantageEideticMemoryId,
+    name: 'Leadership',
+    category: 'Social',
+    subcategory: 'Command',
+    character_id: characterMiraId,
+    cost_points: '5',
+    effect: 'Used to inspire allies and lead them in battle.'
+  }
+]
+
