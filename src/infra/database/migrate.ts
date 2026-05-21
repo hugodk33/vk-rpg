@@ -353,58 +353,6 @@ CREATE TABLE IF NOT EXISTS game_table_disadvantages (
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
--- =========================
--- MODIFIERS
--- =========================
-CREATE TABLE IF NOT EXISTS game_table_modifiers (
-  id TEXT PRIMARY KEY,
-  table_id TEXT,
-  name TEXT,
-  duration TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
-);
-
--- RELAÇÕES (arrays)
-CREATE TABLE IF NOT EXISTS game_table_modifier_scenes (
-  id TEXT PRIMARY KEY,
-  modifier_id TEXT,
-  scene_id TEXT,
-  FOREIGN KEY (modifier_id) REFERENCES game_table_modifiers(id),
-  FOREIGN KEY (scene_id) REFERENCES scenes(id)
-);
-
-CREATE TABLE IF NOT EXISTS game_table_modifier_attributes (
-  id TEXT PRIMARY KEY,
-  modifier_id TEXT,
-  attribute TEXT,
-  FOREIGN KEY (modifier_id) REFERENCES game_table_modifiers(id)
-);
-
-CREATE TABLE IF NOT EXISTS game_table_modifier_skills (
-  id TEXT PRIMARY KEY,
-  modifier_id TEXT,
-  skill_id TEXT,
-  FOREIGN KEY (modifier_id) REFERENCES game_table_modifiers(id),
-  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id)
-);
-
-CREATE TABLE IF NOT EXISTS game_table_modifier_advantages (
-  id TEXT PRIMARY KEY,
-  modifier_id TEXT,
-  advantage_id TEXT,
-  FOREIGN KEY (modifier_id) REFERENCES game_table_modifiers(id),
-  FOREIGN KEY (advantage_id) REFERENCES game_table_character_advantages(id)
-);
-
-CREATE TABLE IF NOT EXISTS game_table_modifier_items (
-  id TEXT PRIMARY KEY,
-  modifier_id TEXT,
-  item_id TEXT,
-  equiped BOOLEAN,
-  FOREIGN KEY (item_id) REFERENCES game_table_items(id),
-  FOREIGN KEY (modifier_id) REFERENCES game_table_modifiers(id)
-);
-
 CREATE TABLE IF NOT EXISTS log (
   id TEXT PRIMARY KEY,
   user_id TEXT,
