@@ -234,34 +234,34 @@ for (const peculiarity of peculiarities) {
 }
 
 // insert modifiers
-const modifierStmt = db.prepare(`
-  INSERT INTO game_table_modifiers (id, table_id, name, duration)
-  VALUES (?, ?, ?, ?)
-`)
+// const modifierStmt = db.prepare(`
+//   INSERT INTO game_table_modifiers (id, table_id, name, duration)
+//   VALUES (?, ?, ?, ?)
+// `)
 
-for (const modifier of modifiers) {
-  modifierStmt.run(modifier.id, modifier.tableId, modifier.name, modifier.duration)
-}
+// for (const modifier of modifiers) {
+//   modifierStmt.run(modifier.id, modifier.tableId, modifier.name, modifier.duration)
+// }
 
-// insert modifier attributes
-const modifierAttributeStmt = db.prepare(`
-  INSERT INTO game_table_modifier_attributes (id, modifier_id, attribute)
-  VALUES (?, ?, ?)
-`)
+// // insert modifier attributes
+// const modifierAttributeStmt = db.prepare(`
+//   INSERT INTO game_table_modifier_attributes (id, modifier_id, attribute)
+//   VALUES (?, ?, ?)
+// `)
 
-for (const modifierAttribute of modifierAttributes) {
-  modifierAttributeStmt.run(modifierAttribute.id, modifierAttribute.modifierId, modifierAttribute.attribute)
-}
+// for (const modifierAttribute of modifierAttributes) {
+//   modifierAttributeStmt.run(modifierAttribute.id, modifierAttribute.modifierId, modifierAttribute.attribute)
+// }
 
-// insert modifier skills
-const modifierSkillStmt = db.prepare(`
-  INSERT INTO game_table_modifier_skills (id, modifier_id, skill_id)
-  VALUES (?, ?, ?)
-`)
+// // insert modifier skills
+// const modifierSkillStmt = db.prepare(`
+//   INSERT INTO game_table_modifier_skills (id, modifier_id, skill_id)
+//   VALUES (?, ?, ?)
+// `)
 
-for (const modifierSkill of modifierSkills) {
-  modifierSkillStmt.run(modifierSkill.id, modifierSkill.modifierId, modifierSkill.skillId)
-}
+// for (const modifierSkill of modifierSkills) {
+//   modifierSkillStmt.run(modifierSkill.id, modifierSkill.modifierId, modifierSkill.skillId)
+// }
 
 // insert modifier advantages
 // const modifierModifierAdvantageStmt = db.prepare(`
@@ -274,14 +274,14 @@ for (const modifierSkill of modifierSkills) {
 // }
 
 // insert modifier items
-const modifierItemStmt = db.prepare(`
-  INSERT INTO game_table_modifier_items (id, modifier_id, item_id)
-  VALUES (?, ?, ?)
-`)
+// const modifierItemStmt = db.prepare(`
+//   INSERT INTO game_table_modifier_items (id, modifier_id, item_id)
+//   VALUES (?, ?, ?)
+// `)
 
-for (const modifierItem of modifierItems) {
-  modifierItemStmt.run(modifierItem.id, modifierItem.modifierId, modifierItem.itemId)
-}
+// for (const modifierItem of modifierItems) {
+//   modifierItemStmt.run(modifierItem.id, modifierItem.modifierId, modifierItem.itemId)
+// }
 
 const modifierSceneStmt = db.prepare(`
   INSERT INTO scenes(id, table_id , title , chapter , moment)
