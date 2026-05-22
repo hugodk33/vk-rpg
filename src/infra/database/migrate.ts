@@ -83,7 +83,6 @@ CREATE TABLE IF NOT EXISTS game_table_character_sheets (
   bio TEXT,
   backstory TEXT,
   points INTEGER,
-  health INTEGER,
   hp INTEGER,
   st INTEGER,
   dx INTEGER,
@@ -351,6 +350,33 @@ CREATE TABLE IF NOT EXISTS game_table_disadvantages (
   effect TEXT,
   description TEXT,
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
+);
+
+CREATE TABLE IF NOT EXISTS modifiers (
+  id TEXT PRIMARY KEY,
+  table_id TEXT,
+  character_id TEXT,
+  item_id TEXT,
+  skill_id TEXT,
+  advantage_id TEXT,
+  disadvantage_id TEXT,
+  name TEXT,
+  cost_points INTEGER,
+  effect TEXT,
+  description TEXT,
+  hp INTEGER,
+  st INTEGER,
+  dx INTEGER,
+  iq INTEGER,
+  ht INTEGER,
+  fatigue INTEGER,
+  encumbrance TEXT,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id),
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
+  FOREIGN KEY (item_id) REFERENCES game_table_items(id),
+  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
+  FOREIGN KEY (advantage_id) REFERENCES game_table_advantages(id),
+  FOREIGN KEY (disadvantage_id) REFERENCES game_table_disadvantages(id)
 );
 
 CREATE TABLE IF NOT EXISTS log (
