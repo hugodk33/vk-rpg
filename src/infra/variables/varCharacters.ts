@@ -270,6 +270,32 @@ export const damages: SeedDamage[] = [
   },
 ]
 
+type SeedArmor = {
+  id: string
+  name: string
+  description: string
+  type: string
+  value: string
+  fit: string
+  character_id: string
+  item_id?: string
+  skill_id?: string
+  advantage_id?: string
+}
+
+export const armors: SeedArmor[] = [
+  {
+    id: crypto.randomUUID(),
+    name: 'Cutting Strike',
+    description: 'A fast slash with a short sword designed to open armor gaps.',
+    type: 'Perry',
+    value: 'sw+2 cut',
+    fit: 'Melee',
+    character_id: characterMiraId,
+    item_id: itemsIds.shortSwordId
+  }
+]
+
 type SeedCharacterSkill = {
   id: string
   characterId: string
