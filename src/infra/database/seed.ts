@@ -8,7 +8,7 @@ import { items } from '../variables/varItems'
 import { advantages } from '../variables/varAdvantages'
 import { disadvantages } from '../variables/varDisadvantage'
 import { users } from '../variables/varUsers'
-import { characters , damages , characterSkills , characterAdvantages } from '../variables/varCharacters'
+import { characters , damages , armors , characterSkills , characterAdvantages } from '../variables/varCharacters'
 import { newNpcs } from '../variables/varNPC'
 import { characterSheets } from '../variables/varCharacterSheets'
 import { peculiarities } from '../variables/varPeculiarites'
@@ -392,6 +392,37 @@ for (const modifierGameTableCharacterAdvantage of characterAdvantages) {
     modifierGameTableCharacterAdvantage.character_id,
     modifierGameTableCharacterAdvantage.cost_points,
     modifierGameTableCharacterAdvantage.effect
+  )
+}
+
+const modifierGameTableCharacterArmorstmt = db.prepare(`
+  INSERT INTO game_table_armors(
+    id,
+    name,
+    description,
+    type,
+    value,
+    fit,
+    character_id,
+    item_id,
+    skill_id,
+    advantage_id
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const modifierGameTableCharacterArmor of armors) {
+  modifierGameTableCharacterArmorstmt.run(
+    modifierGameTableCharacterArmor.id,
+    modifierGameTableCharacterArmor.name,
+    modifierGameTableCharacterArmor.description,
+    modifierGameTableCharacterArmor.type,
+    modifierGameTableCharacterArmor.value,
+    modifierGameTableCharacterArmor.fit,
+    modifierGameTableCharacterArmor.character_id,
+    modifierGameTableCharacterArmor.item_id,
+    modifierGameTableCharacterArmor.skill_id,
+    modifierGameTableCharacterArmor.advantage_id
   )
 }
 

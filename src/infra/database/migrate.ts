@@ -212,8 +212,27 @@ CREATE TABLE IF NOT EXISTS game_table_damages (
   name TEXT,
   description TEXT,
   type TEXT,
+  subtype TEXT,
   value TEXT,
   range TEXT,
+  character_id TEXT,
+  item_id TEXT,
+  skill_id TEXT,
+  advantage_id TEXT,
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
+  FOREIGN KEY (item_id) REFERENCES game_table_items(id),
+  FOREIGN KEY (skill_id) REFERENCES game_table_character_skills(id),
+  FOREIGN KEY (advantage_id) REFERENCES game_table_character_advantages(id)
+);
+
+CREATE TABLE IF NOT EXISTS game_table_armors (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  description TEXT,
+  type TEXT,
+  subtype TEXT,
+  value TEXT,
+  fit TEXT,
   character_id TEXT,
   item_id TEXT,
   skill_id TEXT,
