@@ -1,4 +1,4 @@
-import { characterMiraId } from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId } from "./MainUUIDIds/uuidCharacters"
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 
 type SeedPeculiarity = {
@@ -12,21 +12,21 @@ type SeedPeculiarity = {
 export const  peculiarities: SeedPeculiarity[] = [
   {
     id: crypto.randomUUID(),
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
     name: 'Bad Temper',
     costPoints: -5,
     effect: '-2 reaction rolls when provoked.'
   },
   {
     id: crypto.randomUUID(),
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
     name: 'Night Owl',
     costPoints: -5,
     effect: 'Harder to sleep at night, +1 alertness after midnight.'
   },
   {
     id: crypto.randomUUID(),
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
     name: 'Fragile Bones',
     costPoints: -10,
     effect: '+1 injury roll from falls and blunt trauma.'

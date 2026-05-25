@@ -61,7 +61,6 @@ CREATE TABLE IF NOT EXISTS game_table_characters (
   id TEXT PRIMARY KEY,
   user_id TEXT,
   table_id TEXT,
-  name TEXT,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );

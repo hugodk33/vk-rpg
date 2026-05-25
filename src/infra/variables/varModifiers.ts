@@ -4,7 +4,7 @@ import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as itemsIds from "./MainUUIDIds/uuidItems"
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import { narration1, narration2, narration3 } from "./MainUUIDIds/uuidNarrations"
-import { characterMiraId, characterGarrickId, characterKasumiId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId, characterGarrickId, characterKasumiId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
 import { locationId1, locationId2, locationId3 } from "./MainUUIDIds/uuidLocation"
 
 const  modifierFocusId = crypto.randomUUID()
@@ -28,7 +28,7 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     test: '9',
     description: 'Mira used the attack skill and succeeded',
     dice_roll: '3d6 [ 7 , 1 , 4 ]',
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
   },
   {
     id: crypto.randomUUID(),
@@ -55,7 +55,7 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     test: '10',
     description: 'Mira used the attack skill again and succeeded',
     dice_roll: '3d6 [ 3 , 4 , 2 ]',
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
   }
 ]
 
@@ -68,7 +68,7 @@ type SeedModifierNarrationCharacter= {
 export const  modifierNarrationsCharacters: SeedModifierNarrationCharacter[] = [
   {
     id: crypto.randomUUID(),
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
     narrations_id: narration1
   },
   {

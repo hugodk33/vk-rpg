@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { adminId } from './MainUUIDIds/uuidGeral'
+import { adminId , playerOneId } from './MainUUIDIds/uuidGeral'
 
 type SeedUser = {
   id: string
@@ -28,28 +28,28 @@ export const  users: [
     email: 'admin@email.com'
   },
   {
-    id: crypto.randomUUID(),
+    id: playerOneId,
     type: 1,
-    username: 'Mira Thorne',
+    username: 'John Doe',
     password: '123456',
     phone: '85888888888',
-    email: 'mira.thorne@email.com'
+    email: 'john.doe@email.com'
   },
   {
     id: crypto.randomUUID(),
     type: 1,
-    username: 'Garrick Stone',
+    username: 'Garry S Mod',
     password: '123456',
     phone: '85777777777',
-    email: 'garrick.stone@email.com'
+    email: 'garrys.mod@email.com'
   },
   {
     id: crypto.randomUUID(),
     type: 1,
-    username: 'Kasumi Noh',
+    username: 'Rafael Silva',
     password: '123456',
     phone: '85666666666',
-    email: 'kasumi.noh@email.com'
+    email: 'rafael.silva@email.com'
   },
   {
     id: crypto.randomUUID(),

@@ -380,7 +380,6 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         npc.status,
         npc.character_id,
         c.table_id,
-        c.name as character_name,
         c.user_id,
         cs.id as sheet_id,
         cs.name as sheet_name,
@@ -506,7 +505,6 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         npc.id as npc_id,
         npc.status,
         npc.character_id,
-        c.name as character_name,
         cs.name as sheet_name,
         cs.points,
         cs.hp,
@@ -576,25 +574,23 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
   async createGameCharacter(data: any): Promise<void> {
     db.prepare(`
-      INSERT INTO game_table_characters (id, user_id, table_id, name)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO game_table_characters (id, user_id, table_id)
+      VALUES (?, ?, ?)
     `).run(
       crypto.randomUUID(),
       data.user_id,
-      data.table_id,
-      data.name
+      data.table_id
     )
   }
 
   async editGameCharacter(data: any): Promise<void> {
     db.prepare(`
       UPDATE game_table_characters
-      SET user_id = ?, table_id = ?, name = ?
+      SET user_id = ?, table_id = ?
       WHERE id = ?
     `).run(
       data.user_id,
       data.table_id,
-      data.name,
       data.id
     )
   }
@@ -605,13 +601,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         c.id as character_id,
         c.user_id,
         c.table_id,
-        c.name as character_name,
         cs.id as sheet_id,
         cs.name as sheet_name,
         cs.bio,
         cs.backstory,
         cs.points,
-        cs.health,
         cs.hp,
         cs.st,
         cs.dx,
@@ -708,7 +702,6 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
           bio: characterData.bio,
           backstory: characterData.backstory,
           points: characterData.points,
-          health: characterData.health,
           hp: characterData.hp,
           st: characterData.st,
           dx: characterData.dx,
@@ -743,7 +736,6 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       SELECT
         c.id as character_id,
         c.user_id,
-        c.name as character_name,
         cs.id as sheet_id,
         cs.name as sheet_name,
         cs.points,

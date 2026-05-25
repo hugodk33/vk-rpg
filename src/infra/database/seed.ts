@@ -8,9 +8,8 @@ import { items } from '../variables/varItems'
 import { advantages } from '../variables/varAdvantages'
 import { disadvantages } from '../variables/varDisadvantage'
 import { users } from '../variables/varUsers'
-import { characters , damages , armors , characterSkills , characterAdvantages } from '../variables/varCharacters'
+import { characters , characterSheets , damages , armors , characterSkills , characterAdvantages } from '../variables/varCharacters'
 import { newNpcs } from '../variables/varNPC'
-import { characterSheets } from '../variables/varCharacterSheets'
 import { peculiarities } from '../variables/varPeculiarites'
 import { scenes } from '../variables/varScenes'
 import { narrations } from '../variables/varNarrations'
@@ -109,12 +108,12 @@ for (const skill of skills) {
 
 // insert characters
 const characterStmt = db.prepare(`
-  INSERT INTO game_table_characters (id, user_id, table_id, name)
-  VALUES (?, ?, ?, ?)
+  INSERT INTO game_table_characters (id, user_id, table_id)
+  VALUES (?, ?, ?)
 `)
 
 for (const character of characters) {
-  characterStmt.run(character.id, character.userId, character.tableId, character.name)
+  characterStmt.run(character.id, character.userId, character.tableId)
 }
 
 // insert character sheets
