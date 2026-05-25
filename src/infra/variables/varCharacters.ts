@@ -1,47 +1,44 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import { users } from "./varUsers"
-
-import { characterMiraId, characterGarrickId, characterKasumiId, characterNPCsIds , miraSwordSkill} from "./MainUUIDIds/uuidCharacters"
+import * as CharacterIds from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId , characterGarrickId, characterKasumiId, characterNPCsIds , miraSwordSkill} from "./MainUUIDIds/uuidCharacters"
 import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as itemsIds from "./MainUUIDIds/uuidItems"
+import * as UserCharacterIds from "./MainUUIDIds/uuidGeral"
 
 type SeedCharacter = {
   id: string
   userId: string
   tableId: string
-  name: string
 }
 
 export const characters: SeedCharacter[] = [
   {
-    id: characterMiraId,
-    userId: users[1].id,
-    tableId: mainGameTableId,
-    name: 'Mira Thorne'
+    id: characterGalarhornId,
+    userId: UserCharacterIds.playerOneId,
+    tableId: mainGameTableId
   },
   {
     id: characterGarrickId,
     userId: users[2].id,
-    tableId: mainGameTableId,
-    name: 'Garrick Stone'
+    tableId: mainGameTableId
   },
   {
     id: characterKasumiId,
     userId: users[3].id,
-    tableId: mainGameTableId,
-    name: 'Kasumi Noh'
+    tableId: mainGameTableId
   },
-  { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Riven Kael' },
-  { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Thorne Black' },
-  { id: characterNPCsIds[2] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Selene Voss' },
-  { id: characterNPCsIds[3] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Kael Draven' },
-  { id: characterNPCsIds[4] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Lyra Moonfall' },
-  { id: characterNPCsIds[5] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Borin Stonehelm' },
-  { id: characterNPCsIds[6] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Nyx Shadowend' },
-  { id: characterNPCsIds[7] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Eldric Vale' },
-  { id: characterNPCsIds[8] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Vera Hollow' },
-  { id: characterNPCsIds[9] as string, userId: users[0]?.id, tableId: mainGameTableId, name: 'Dante Crowe' }
+  { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId },
+  { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: mainGameTableId },
+  { id: characterNPCsIds[2] as string, userId: users[0]?.id, tableId: mainGameTableId },
+  { id: characterNPCsIds[3] as string, userId: users[0]?.id, tableId: mainGameTableId },
+  { id: characterNPCsIds[4] as string, userId: users[0]?.id, tableId: mainGameTableId },
+  { id: characterNPCsIds[5] as string, userId: users[0]?.id, tableId: mainGameTableId },
+  { id: characterNPCsIds[6] as string, userId: users[0]?.id, tableId: mainGameTableId},
+  { id: characterNPCsIds[7] as string, userId: users[0]?.id, tableId: mainGameTableId},
+  { id: characterNPCsIds[8] as string, userId: users[0]?.id, tableId: mainGameTableId},
+  { id: characterNPCsIds[9] as string, userId: users[0]?.id, tableId: mainGameTableId}
 
 ]
 
@@ -64,7 +61,7 @@ type SeedCharacterSheet = {
 export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
-    characterId: characterMiraId,
+    characterId: characterGalarhornId,
     name: 'Mira Thorne Sheet',
     bio: 'A streetwise duelist with quick reflexes.',
     backstory: 'Former city watch turned blade-for-hire, she fights for freedom and survival.',
@@ -210,7 +207,7 @@ export const damages: SeedDamage[] = [
     type: 'Physical',
     value: 'sw+2 cut',
     range: 'Melee',
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
     item_id: itemsIds.shortSwordId
   },
   {
@@ -239,7 +236,7 @@ export const damages: SeedDamage[] = [
     type: "melee attack",
     value: "1d-2 cr",
     range: "close",
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
   },
   {
     id: crypto.randomUUID(),
@@ -248,7 +245,7 @@ export const damages: SeedDamage[] = [
     type: "melee attack",
     value: "1d-1 cr",
     range: "close",
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
   },
   {
     id: crypto.randomUUID(),
@@ -257,7 +254,7 @@ export const damages: SeedDamage[] = [
     type: "melee attack",
     value: "1d imp",
     range: "1",
-    character_id: characterMiraId
+    character_id: characterGalarhornId
   },
   {
     id: crypto.randomUUID(),
@@ -266,7 +263,7 @@ export const damages: SeedDamage[] = [
     type: "melee attack",
     value: "2d cut",
     range: "1",
-    character_id: characterMiraId
+    character_id: characterGalarhornId
   },
 ]
 
@@ -291,7 +288,7 @@ export const armors: SeedArmor[] = [
     type: 'Perry',
     value: 'sw+2 cut',
     fit: 'Melee',
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
     item_id: itemsIds.shortSwordId
   }
 ]
@@ -307,7 +304,7 @@ type SeedCharacterSkill = {
 export const characterSkills: SeedCharacterSkill[] = [
   {
     id: miraSwordSkill,
-    characterId: characterMiraId,
+    characterId: characterGalarhornId,
     skillId: skillsIds.skillSwordsmanshipId,
     costPoints: 14,
     effect: 'Used for melee attacks with swords and blades.'
@@ -353,7 +350,7 @@ export const characterAdvantages: SeedCharacterAdvantage[] = [
     name: 'Leadership',
     category: 'Social',
     subcategory: 'Command',
-    character_id: characterMiraId,
+    character_id: characterGalarhornId,
     cost_points: '5',
     effect: 'Used to inspire allies and lead them in battle.'
   }
