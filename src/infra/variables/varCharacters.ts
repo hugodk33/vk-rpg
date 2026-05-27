@@ -62,7 +62,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterGalarhornId,
-    name: 'Mira Thorne Sheet',
+    name: 'Sir Galarhorn Denmark',
     bio: 'A streetwise duelist with quick reflexes.',
     backstory: 'Former city watch turned blade-for-hire, she fights for freedom and survival.',
     points: 150,
@@ -71,7 +71,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     dx: 12,
     iq: 13,
     ht: 10,
-    fatigue: 10,
+    fatigue: 0,
     encumbrance: 'Light'
   },
   {
