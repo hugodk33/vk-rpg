@@ -33,7 +33,7 @@ export const advantages: SeedModifierGameTableAdvantages[] = [
   },
   // Additional GURPS advantages from var-advantages.ts
   {
-    id: crypto.randomUUID(),
+    id: advantagesIds.advantageAbsoluteDirectionId,
     table_id: mainGameTableId,
     name: 'Absolute Direction',
     costPoints: 5,
@@ -138,7 +138,7 @@ export const advantages: SeedModifierGameTableAdvantages[] = [
     description: 'The character has a \'sensitivity\' for other people. When he meets someone for the first time, the GM will say what the character \'feels\' about that person. Excellent for identifying impostors and determining loyalty.'
   },
   {
-    id: crypto.randomUUID(),
+    id: advantagesIds.advantageHighPainThresholdId,
     table_id: mainGameTableId,
     name: 'High Pain Threshold',
     costPoints: 10,

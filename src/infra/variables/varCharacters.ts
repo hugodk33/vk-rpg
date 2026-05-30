@@ -310,20 +310,6 @@ export const characterSkills: SeedCharacterSkill[] = [
   },
   {
     id: crypto.randomUUID(),
-    characterId: characterGalarhornId,
-    skillId: advantagesIds.advantageCombatReflexesId,
-    costPoints: 14,
-    effect:  ''
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterGalarhornId,
-    skillId: advantagesIds.advantageAbsoluteDirectionId,
-    costPoints: 14,
-    effect: ''
-  },
-  {
-    id: crypto.randomUUID(),
     characterId: characterGarrickId,
     skillId: skillsIds.skillTacticsId,
     costPoints: 10,
@@ -366,6 +352,26 @@ export const characterAdvantages: SeedCharacterAdvantage[] = [
     character_id: characterGalarhornId,
     cost_points: '5',
     effect: 'Used to inspire allies and lead them in battle.'
+  },
+  {
+    id: crypto.randomUUID(),
+    advantage_id: advantagesIds.advantageAbsoluteDirectionId,
+    name: 'Absolute Direction',
+    category: 'Social',
+    subcategory: 'Command',
+    character_id: characterGalarhornId,
+    cost_points: '10',
+    effect: 'Used to always know which way is north and navigate effectively.'
+  },
+  {
+    id: crypto.randomUUID(),
+    advantage_id: advantagesIds.advantageCombatReflexesId,
+    name: 'Combat Reflexes',
+    category: 'Social',
+    subcategory: 'Command',
+    character_id: characterGalarhornId,
+    cost_points: '15',
+    effect: 'Used to react quickly in combat and avoid attacks.'
   }
 ]
 
