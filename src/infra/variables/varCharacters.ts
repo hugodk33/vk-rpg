@@ -1,7 +1,6 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import { users } from "./varUsers"
-import * as CharacterIds from "./MainUUIDIds/uuidCharacters"
-import { characterGalarhornId , characterGarrickId, characterKasumiId, characterNPCsIds , miraSwordSkill} from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId , characterGarrickId, characterKasumiId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
 import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as itemsIds from "./MainUUIDIds/uuidItems"
@@ -62,7 +61,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterGalarhornId,
-    name: 'Sir Galarhorn Denmark',
+    name: 'Elric Galrhorn Denmark',
     bio: 'A streetwise duelist with quick reflexes.',
     backstory: 'Former city watch turned blade-for-hire, she fights for freedom and survival.',
     points: 150,
@@ -303,11 +302,25 @@ type SeedCharacterSkill = {
 
 export const characterSkills: SeedCharacterSkill[] = [
   {
-    id: miraSwordSkill,
+    id: crypto.randomUUID(),
     characterId: characterGalarhornId,
     skillId: skillsIds.skillSwordsmanshipId,
     costPoints: 14,
     effect: 'Used for melee attacks with swords and blades.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterGalarhornId,
+    skillId: advantagesIds.advantageCombatReflexesId,
+    costPoints: 14,
+    effect:  ''
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterGalarhornId,
+    skillId: advantagesIds.advantageAbsoluteDirectionId,
+    costPoints: 14,
+    effect: ''
   },
   {
     id: crypto.randomUUID(),
