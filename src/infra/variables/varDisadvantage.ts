@@ -1,4 +1,5 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
+import * as disadvantagesIds from "./MainUUIDIds/uuidDisadvantages"
 
 type SeedModifierGameTableDisadvantage = {
   id: string
@@ -136,7 +137,7 @@ export const disadvantages: SeedModifierGameTableDisadvantage[] = [
     description: 'The character has a certain degree of reduction in his mobility. Maimed Leg: -15 points. Peg Leg: -25 points. No legs or paraplegic: -35 points.'
   },
   {
-    id: crypto.randomUUID(),
+    id: disadvantagesIds.disadvantageLowPainThresholdId,
     table_id: mainGameTableId,
     name: 'Low Pain Threshold',
     costPoints: 10,
@@ -255,7 +256,7 @@ export const disadvantages: SeedModifierGameTableDisadvantage[] = [
     description: 'You like to intimidate people whenever possible with impunity. Represent this on your own account. As no one likes a braggart, your reaction tests will be subject to a -2 penalty.'
   },
   {
-    id: crypto.randomUUID(),
+    id: disadvantagesIds.disadvantageCodeOfHonorId,
     table_id: mainGameTableId,
     name: 'Code of Honor',
     costPoints: 5,
@@ -318,7 +319,7 @@ export const disadvantages: SeedModifierGameTableDisadvantage[] = [
     description: 'You like too much good food and drink. If given a chance, you will always overload yourself with extra provisions and will never lose a meal of your own free will.'
   },
   {
-    id: crypto.randomUUID(),
+    id: disadvantagesIds.disadvantageGreedId,
     table_id: mainGameTableId,
     name: 'Greed',
     costPoints: 15,
@@ -402,7 +403,7 @@ export const disadvantages: SeedModifierGameTableDisadvantage[] = [
     description: 'Similar to Greed except that the character is much more interested in what he already has. He must succeed on a Will test, every time he has to spend some money, and must always look for the best price.'
   },
   {
-    id: crypto.randomUUID(),
+    id: disadvantagesIds.disadvantageOverconfidenceId,
     table_id: mainGameTableId,
     name: 'Overconfidence',
     costPoints: 10,

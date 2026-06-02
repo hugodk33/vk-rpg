@@ -72,6 +72,13 @@ type GameTablePeculiarity = {
   effect: string
 }
 
+type GameTableDisadvantage = {
+  id: string
+  name: string
+  costPoints: number
+  effect: string
+}
+
 type GameTableCharacter = {
   id: string
   userId: string
@@ -80,6 +87,7 @@ type GameTableCharacter = {
   damages: GameTableDamage[]
   items: GameTableItem[]
   advantages: GameTableAdvantage[]
+  disadvantages: GameTableDisadvantage[]
   skills: GameTableSkill[]
   peculiarities: GameTablePeculiarity[]
 }

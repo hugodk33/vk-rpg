@@ -4,6 +4,7 @@ import { characterGalarhornId , characterGarrickId, characterKasumiId, character
 import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as itemsIds from "./MainUUIDIds/uuidItems"
+import * as disadvantagesIds from "./MainUUIDIds/uuidDisadvantages"
 import * as UserCharacterIds from "./MainUUIDIds/uuidGeral"
 
 type SeedCharacter = {
@@ -605,6 +606,90 @@ export const characterAdvantages: SeedCharacterAdvantage[] = [
     character_id: characterKaelId,
     cost_points: '5',
     effect: 'Used to gain a bonus on Climbing and Escape checks.'
+  }
+]
+
+type SeedCharacterDisadvantage = {
+  id: string
+  disadvantage_id: string | null
+  name: string
+  character_id: string
+  cost_points: number
+  effect: string
+}
+
+export const characterDisadvantages: SeedCharacterDisadvantage[] = [
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageCodeOfHonorId,
+    name: 'Code of Honor (Soldier)',
+    character_id: characterGalarhornId,
+    cost_points: -10,
+    effect: 'Maintains discipline and professional conduct.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: null,
+    name: 'Enemy',
+    character_id: characterGalarhornId,
+    cost_points: -10,
+    effect: 'A corrupt former captain of the city watch seeks revenge.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageOverconfidenceId,
+    name: 'Overconfidence',
+    character_id: characterGalarhornId,
+    cost_points: -5,
+    effect: 'Frequently underestimates opponents.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: null,
+    name: 'Curious',
+    character_id: characterLyraId,
+    cost_points: -5,
+    effect: 'Cannot resist investigating mysteries.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageLowPainThresholdId,
+    name: 'Low Pain Threshold',
+    character_id: characterLyraId,
+    cost_points: -10,
+    effect: 'Poor tolerance for injury.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: null,
+    name: 'Pacifism (Reluctant Killer)',
+    character_id: characterLyraId,
+    cost_points: -5,
+    effect: 'Avoids taking lives whenever possible.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageGreedId,
+    name: 'Greed',
+    character_id: characterKaelId,
+    cost_points: -15,
+    effect: 'Has difficulty ignoring valuable treasures.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: null,
+    name: 'Secret',
+    character_id: characterKaelId,
+    cost_points: -10,
+    effect: 'Wanted by a major thieves guild.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageOverconfidenceId,
+    name: 'Overconfidence',
+    character_id: characterKaelId,
+    cost_points: -5,
+    effect: 'Often takes unnecessary risks.'
   }
 ]
 
