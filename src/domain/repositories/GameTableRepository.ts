@@ -89,6 +89,7 @@ export class GameTableRepository implements IGameTableRepository {
               }
               : null,
             damages: [],
+            armors: [],
             items: [],
             advantages: [],
             disadvantages: [],
@@ -219,6 +220,7 @@ export class GameTableRepository implements IGameTableRepository {
               }
               : null,
             damages: [],
+            armors: [],
             items: [],
             advantages: [],
             disadvantages: [],

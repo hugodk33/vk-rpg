@@ -667,6 +667,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE character_id = ?
     `).all(characterId) as any[]
 
+    const armors = db.prepare(`
+      SELECT * FROM game_table_armors
+      WHERE character_id = ?
+    `).all(characterId) as any[]
+
     const damages = db.prepare(`
       SELECT * FROM game_table_damages
       WHERE character_id = ?
@@ -719,6 +724,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
           } : null,
         advantages,
         disadvantages,
+        armors,
         skills,
         items,
         damages

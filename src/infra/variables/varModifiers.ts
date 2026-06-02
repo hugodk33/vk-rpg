@@ -1,10 +1,6 @@
-import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import * as NPCIds from "./MainUUIDIds/uuidNPC"
-import * as skillsIds from './MainUUIDIds/uuidSkills'
-import * as itemsIds from "./MainUUIDIds/uuidItems"
-import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import { narration1, narration2, narration3 } from "./MainUUIDIds/uuidNarrations"
-import { characterGalarhornId, characterGarrickId, characterKasumiId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId, characterGarrickId, characterKasumiId } from "./MainUUIDIds/uuidCharacters"
 import { locationId1, locationId2, locationId3 } from "./MainUUIDIds/uuidLocation"
 
 const  modifierFocusId = crypto.randomUUID()

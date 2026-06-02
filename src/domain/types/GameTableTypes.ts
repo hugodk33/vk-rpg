@@ -65,6 +65,15 @@ type GameTableSkill = {
   effect: string
 }
 
+type GameTableArmor = {
+  id: string
+  name: string
+  description: string
+  type: string
+  value: string
+  fit: string
+}
+
 type GameTablePeculiarity = {
   id: string
   name: string
@@ -85,6 +94,7 @@ type GameTableCharacter = {
   name: string
   sheet: GameTableCharacterSheet | null
   damages: GameTableDamage[]
+  armors: GameTableArmor[]
   items: GameTableItem[]
   advantages: GameTableAdvantage[]
   disadvantages: GameTableDisadvantage[]

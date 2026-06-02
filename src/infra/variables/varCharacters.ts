@@ -409,13 +409,83 @@ type SeedArmor = {
 export const armors: SeedArmor[] = [
   {
     id: crypto.randomUUID(),
-    name: 'Cutting Strike',
-    description: 'A fast slash with a short sword designed to open armor gaps.',
-    type: 'Perry',
-    value: 'sw+2 cut',
-    fit: 'Melee',
+    name: 'Leather Armor',
+    description: 'Sturdy leather armor offering moderate protection.',
+    type: 'Armor',
+    value: 'DR 2',
+    fit: 'Torso',
     character_id: characterGalarhornId,
-    item_id: itemsIds.shortSwordId
+    item_id: itemsIds.galhornLeatherArmorId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Leather Bracers',
+    description: 'Leather forearm guards for added protection.',
+    type: 'Armor',
+    value: 'DR 1',
+    fit: 'Arms',
+    character_id: characterGalarhornId,
+    item_id: itemsIds.leatherBracersId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Leather Boots',
+    description: 'Sturdy leather boots that protect the feet and lower legs.',
+    type: 'Armor',
+    value: 'DR 1',
+    fit: 'Legs',
+    character_id: characterGalarhornId,
+    item_id: itemsIds.leatherBootsId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Medium Shield',
+    description: 'A wooden shield reinforced with metal bands.',
+    type: 'Shield',
+    value: 'DB 2',
+    fit: 'One Arm',
+    character_id: characterGalarhornId,
+    item_id: itemsIds.mediumShieldId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Travel Cloak',
+    description: 'A simple travel cloak for weather protection.',
+    type: 'Clothing',
+    value: '-',
+    fit: 'Shoulders',
+    character_id: characterGalarhornId,
+    item_id: itemsIds.travelCloakId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Robes',
+    description: 'Simple but durable wizard robes.',
+    type: 'Clothing',
+    value: '-',
+    fit: 'Full body',
+    character_id: characterLyraId,
+    item_id: itemsIds.robesId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Leather Armor',
+    description: 'Light leather armor optimized for stealth and mobility.',
+    type: 'Armor',
+    value: 'DR 2',
+    fit: 'Torso',
+    character_id: characterKaelId,
+    item_id: itemsIds.kaelLeatherArmorId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dark Hooded Cloak',
+    description: 'A dark, hooded cloak that helps blend into shadows.',
+    type: 'Clothing',
+    value: '-',
+    fit: 'Shoulders',
+    character_id: characterKaelId,
+    item_id: itemsIds.darkHoodedCloakId
   }
 ]
 
