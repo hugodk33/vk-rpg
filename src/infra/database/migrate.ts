@@ -314,9 +314,6 @@ CREATE TABLE IF NOT EXISTS game_table_character_skills (
 CREATE TABLE IF NOT EXISTS game_table_character_advantages (
   id TEXT PRIMARY KEY,
   advantage_id TEXT,
-  name TEXT,
-  category TEXT,
-  subcategory TEXT,
   character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
@@ -328,8 +325,6 @@ CREATE TABLE IF NOT EXISTS game_table_character_disadvantages (
   id TEXT PRIMARY KEY,
   disadvantage_id TEXT,
   name TEXT,
-  category TEXT,
-  subcategory TEXT,
   character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
@@ -354,8 +349,9 @@ CREATE TABLE IF NOT EXISTS game_table_advantages (
   id TEXT PRIMARY KEY,
   table_id TEXT,
   name TEXT,
+  category TEXT,
+  subcategory TEXT,
   cost_points INTEGER,
-  effect TEXT,
   description TEXT,
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
@@ -364,6 +360,8 @@ CREATE TABLE IF NOT EXISTS game_table_disadvantages (
   id TEXT PRIMARY KEY,
   table_id TEXT,
   name TEXT,
+  category TEXT,
+  subcategory TEXT,
   cost_points INTEGER,
   effect TEXT,
   description TEXT,

@@ -26,14 +26,14 @@ export const GameTableDBStrings:any = {
       
       -- CHARACTER (via action)
       ca.id AS action_character_ref_id,
-      ca.name AS action_character_name,
+      -- ca.name AS action_character_name,
 
       -- CHARACTER (narration_characters)
       nc.id AS narration_character_link_id,
       nc.character_id AS narration_character_id,
 
       cn.id AS narration_character_ref_id,
-      cn.name AS narration_character_name,
+      -- cn.name AS narration_character_name,
 
       -- NPC
       nn.id AS narration_npc_link_id,
@@ -42,7 +42,7 @@ export const GameTableDBStrings:any = {
       npc.status AS narration_npc_status,
 
       c_npc.id AS narration_npc_ref_id,
-      c_npc.name AS narration_npc_name,
+      -- c_npc.name AS narration_npc_name,
 
       -- LOCATION
       nl.id AS narration_location_link_id,
@@ -66,7 +66,7 @@ export const GameTableDBStrings:any = {
     LEFT JOIN narration_actions na 
       ON na.narrations_id = n.id
 
-    LEFT JOIN characters ca 
+    LEFT JOIN game_table_characters ca 
       ON ca.id = na.character_id
 
     LEFT JOIN narration_characters nc 

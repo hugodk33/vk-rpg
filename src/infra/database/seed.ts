@@ -55,15 +55,14 @@ for (const table of gameTables) {
 
 // insert advantages
 const advantageStmt = db.prepare(`
-  INSERT INTO game_table_advantages (id, table_id , name, cost_points, description)
-  VALUES (?, ?, ?, ?, ?)
+  INSERT INTO game_table_advantages (id, table_id , cost_points, description)
+  VALUES (?, ?, ?, ?)
 `)
 
 for (const advantage of advantages) {
   advantageStmt.run(
     advantage.id,
     advantage.table_id,
-    advantage.name,
     advantage.costPoints,
     advantage.description
   )
@@ -72,15 +71,14 @@ for (const advantage of advantages) {
 }
 
 const disadvantageStmt = db.prepare(`
-  INSERT INTO game_table_disadvantages (id, table_id , name, cost_points, description)
-  VALUES (?, ?, ?, ?, ?)
+  INSERT INTO game_table_disadvantages (id, table_id , cost_points, description)
+  VALUES (?, ?, ?, ?)
 `)
 
 for (const disadvantage of disadvantages) {
   disadvantageStmt.run(
     disadvantage.id,
     disadvantage.table_id,
-    disadvantage.name,
     disadvantage.costPoints,
     disadvantage.description
   )
@@ -371,23 +369,17 @@ const modifierGameTableCharacterAdvantagestmt = db.prepare(`
   INSERT INTO game_table_character_advantages(
   id,
   advantage_id,
-  name,
-  category,
-  subcategory,
   character_id,
   cost_points,
   effect
   )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  VALUES ( ?, ?, ?, ?, ?)
 `)
 
 for (const modifierGameTableCharacterAdvantage of characterAdvantages) {
   modifierGameTableCharacterAdvantagestmt.run(
     modifierGameTableCharacterAdvantage.id,
     modifierGameTableCharacterAdvantage.advantage_id,
-    modifierGameTableCharacterAdvantage.name,
-    modifierGameTableCharacterAdvantage.category,
-    modifierGameTableCharacterAdvantage.subcategory,
     modifierGameTableCharacterAdvantage.character_id,
     modifierGameTableCharacterAdvantage.cost_points,
     modifierGameTableCharacterAdvantage.effect
