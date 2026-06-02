@@ -1317,5 +1317,21 @@ export const  skills: SeedSkill[] = [
         predefinition_type: 'Physical',
         predefinition_difficulty: 'Medium',
         description: "This is the ability to drive all types of small motorized vessels. When using the default level of this skill, a DX or Boating test is needed when getting into the boat (to avoid falling in the water). All dangerous situations require another roll."
+    },
+    {
+        id: skillsIds.skillMeditationId,
+        table_id: mainGameTableId,
+        name: 'Meditation',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Hard',
+        description: 'The ability to calm the mind and achieve inner peace. Can be used to resist mental attacks and recover fatigue from mental exertion.'
+    },
+    {
+        id: skillsIds.skillThaumatologyId,
+        table_id: mainGameTableId,
+        name: 'Thaumatology',
+        predefinition_type: 'Mental',
+        predefinition_difficulty: 'Very Hard',
+        description: 'The scholarly study of magic, including its theory, history, and underlying principles. Provides knowledge of all magical colleges.'
     }
 ]
