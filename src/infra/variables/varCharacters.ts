@@ -1,6 +1,6 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import { users } from "./varUsers"
-import { characterGalarhornId , characterGarrickId, characterKasumiId, characterLyraId, characterKaelId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId, characterGarrickId, characterKasumiId, characterLyraId, characterKaelId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
 import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as itemsIds from "./MainUUIDIds/uuidItems"
@@ -20,16 +20,6 @@ export const characters: SeedCharacter[] = [
     tableId: mainGameTableId
   },
   {
-    id: characterGarrickId,
-    userId: users[2].id,
-    tableId: mainGameTableId
-  },
-  {
-    id: characterKasumiId,
-    userId: users[3].id,
-    tableId: mainGameTableId
-  },
-  {
     id: characterLyraId,
     userId: users[4].id,
     tableId: mainGameTableId
@@ -37,6 +27,16 @@ export const characters: SeedCharacter[] = [
   {
     id: characterKaelId,
     userId: users[5].id,
+    tableId: mainGameTableId
+  },
+  {
+    id: characterGarrickId,
+    userId: users[2].id,
+    tableId: mainGameTableId
+  },
+  {
+    id: characterKasumiId,
+    userId: users[3].id,
     tableId: mainGameTableId
   },
   { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId },
@@ -82,36 +82,6 @@ export const characterSheets: SeedCharacterSheet[] = [
     iq: 13,
     ht: 10,
     fatigue: 0,
-    encumbrance: 'Light'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterGarrickId,
-    name: 'Garrick Stone Sheet',
-    bio: 'A hulking veteran whose strength keeps him alive.',
-    backstory: 'A former soldier carrying the scars of many battles into the city.',
-    points: 145,
-    hp: 12,
-    st: 12,
-    dx: 11,
-    iq: 10,
-    ht: 11,
-    fatigue: 11,
-    encumbrance: 'Medium'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterKasumiId,
-    name: 'Kasumi Noh Sheet',
-    bio: 'A scholar whose magic is still growing.',
-    backstory: 'Raised in a hidden tower, she now seeks her place among the city shadows.',
-    points: 155,
-    hp: 10,
-    st: 9,
-    dx: 13,
-    iq: 14,
-    ht: 10,
-    fatigue: 10,
     encumbrance: 'Light'
   },
   {
@@ -249,25 +219,6 @@ export const damages: SeedDamage[] = [
     range: 'Melee',
     character_id: characterGalarhornId,
     item_id: itemsIds.shortSwordId
-  },
-  {
-    id: crypto.randomUUID(),
-    name: 'Power Shot',
-    description: 'A heavy arrow fired from the recurved bow.',
-    type: 'Physical',
-    value: '2d+1 imp',
-    range: '75 yards',
-    character_id: characterKasumiId,
-    item_id: itemsIds.bowId,
-  },
-  {
-    id: crypto.randomUUID(),
-    name: 'Arcane Blast',
-    description: 'A small burst of magical energy fueled by Magery.',
-    type: 'Energy',
-    value: '3d burning',
-    range: 'Medium',
-    character_id: characterKasumiId
   },
   {
     id: crypto.randomUUID(),
@@ -504,27 +455,6 @@ export const characterSkills: SeedCharacterSkill[] = [
     skillId: skillsIds.skillSwordsmanshipId,
     costPoints: 14,
     effect: 'Used for melee attacks with swords and blades.'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterGarrickId,
-    skillId: skillsIds.skillTacticsId,
-    costPoints: 10,
-    effect: 'Used to coordinate allies and plan battlefield movement.'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterKasumiId,
-    skillId: skillsIds.skillMagicId,
-    costPoints: 25,
-    effect: 'Used to cast spells and channel magical energy.'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterGarrickId,
-    skillId: skillsIds.skillStealthId,
-    costPoints: 12,
-    effect: 'Used to move quietly when avoiding patrols.'
   },
   {
     id: crypto.randomUUID(),

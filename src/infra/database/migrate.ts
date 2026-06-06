@@ -140,10 +140,11 @@ CREATE TABLE IF NOT EXISTS table_locations (
 CREATE TABLE IF NOT EXISTS narration_actions (
   id TEXT PRIMARY KEY,
   narrations_id TEXT,
-  value TEXT,
+  queue NUMERIC,
   test TEXT,
-  description TEXT,
+  result TEXT,
   dice_roll TEXT,
+  description TEXT,
   character_id TEXT,
   FOREIGN KEY (narrations_id) REFERENCES narrations(id),
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)

@@ -149,11 +149,15 @@ export type GameTableWithNarrator = {
 
 type GameTableSceneAction = {
   id: string
-  name: string
+  queue: number
+  test: string
+  result: string
   description: string
-  userId: string
+  dice_roll: string
   character: {
     id: string
     name: string
+    userId: string
+    username: string
   } | null
 }

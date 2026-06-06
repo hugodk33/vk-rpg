@@ -9,8 +9,9 @@ const  modifierCurseId = crypto.randomUUID()
 type SeedModifierNarrationActions= {
   id: string,
   narrations_id: string,
-  value: string,
+  queue: number,
   test: string,
+  result: string,
   description: string,
   dice_roll: string,
   character_id: string,
@@ -20,17 +21,9 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
-    value: '10',
-    test: '9',
-    description: 'Mira used the attack skill and succeeded',
-    dice_roll: '3d6 [ 7 , 1 , 4 ]',
-    character_id: characterGalarhornId,
-  },
-  {
-    id: crypto.randomUUID(),
-    narrations_id: narration1,
-    value: '17',
+    queue: 1,
     test: '12',
+    result: '17',
     description: 'Garrick used the defense skill and failed',
     dice_roll: '3d6 [ 4 , 1 , 5 ]',
     character_id: characterGarrickId,
@@ -38,8 +31,9 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
-    value: '',
+    queue: 2,
     test: '',
+    result: '',
     description: 'Kasumi did nothing',
     dice_roll: '3d6 [ 0 , 0 , 0 ]',
     character_id: characterKasumiId,
@@ -47,8 +41,19 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
   {
     id: crypto.randomUUID(),
     narrations_id: narration1,
-    value: '11',
+    queue: 3,
+    test: '9',
+    result: '10',
+    description: 'Mira used the attack skill and succeeded',
+    dice_roll: '3d6 [ 7 , 1 , 4 ]',
+    character_id: characterGalarhornId,
+  },
+  {
+    id: crypto.randomUUID(),
+    narrations_id: narration1,
+    queue: 4,
     test: '10',
+    result: '11',
     description: 'Mira used the attack skill again and succeeded',
     dice_roll: '3d6 [ 3 , 4 , 2 ]',
     character_id: characterGalarhornId,
@@ -65,16 +70,6 @@ export const  modifierNarrationsCharacters: SeedModifierNarrationCharacter[] = [
   {
     id: crypto.randomUUID(),
     character_id: characterGalarhornId,
-    narrations_id: narration1
-  },
-  {
-    id: crypto.randomUUID(),
-    character_id: characterGarrickId,
-    narrations_id: narration1
-  },
-  {
-    id: crypto.randomUUID(),
-    character_id: characterKasumiId,
     narrations_id: narration1
   }
 ]

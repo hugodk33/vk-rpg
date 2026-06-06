@@ -19,21 +19,26 @@ export const GameTableDBStrings:any = {
       -- ACTION
       na.id AS action_id,
       na.test AS action_test,
-      na.value AS action_value,
+      na.queue AS action_queue,
+      na.result AS action_result,
       na.character_id AS action_character_id,
       na.description AS action_description,
       na.dice_roll AS action_dice_roll,
       
       -- CHARACTER (via action)
       ca.id AS action_character_ref_id,
-      -- ca.name AS action_character_name,
+      cas.name AS action_character_name,
+      au.id AS action_character_user_id,
+      au.username AS action_character_username,
 
       -- CHARACTER (narration_characters)
       nc.id AS narration_character_link_id,
       nc.character_id AS narration_character_id,
 
       cn.id AS narration_character_ref_id,
-      -- cn.name AS narration_character_name,
+      cns.name AS narration_character_name,
+      cnu.id AS narration_character_user_id,
+      cnu.username AS narration_character_username,
 
       -- NPC
       nn.id AS narration_npc_link_id,
@@ -42,7 +47,7 @@ export const GameTableDBStrings:any = {
       npc.status AS narration_npc_status,
 
       c_npc.id AS narration_npc_ref_id,
-      -- c_npc.name AS narration_npc_name,
+      npc_cs.name AS narration_npc_name,
 
       -- LOCATION
       nl.id AS narration_location_link_id,
@@ -69,11 +74,23 @@ export const GameTableDBStrings:any = {
     LEFT JOIN game_table_characters ca 
       ON ca.id = na.character_id
 
+    LEFT JOIN game_table_character_sheets cas
+      ON cas.character_id = ca.id
+
+    LEFT JOIN users au
+      ON au.id = ca.user_id
+
     LEFT JOIN narration_characters nc 
       ON nc.narrations_id = n.id
 
     LEFT JOIN game_table_characters cn 
       ON cn.id = nc.character_id
+
+    LEFT JOIN game_table_character_sheets cns
+      ON cns.character_id = cn.id
+
+    LEFT JOIN users cnu
+      ON cnu.id = cn.user_id
 
     LEFT JOIN narration_npcs nn
       ON nn.narration_id = n.id
@@ -83,6 +100,9 @@ export const GameTableDBStrings:any = {
 
     LEFT JOIN game_table_characters c_npc 
       ON c_npc.id = npc.character_id
+
+    LEFT JOIN game_table_character_sheets npc_cs
+      ON npc_cs.character_id = c_npc.id
 
     -- LOCATION
     LEFT JOIN narration_locations nl
@@ -260,17 +280,24 @@ export const GameTableDBStrings:any = {
         n.narration AS narration_text,
         n.moment AS narration_moment,
         a.id AS action_id,
-        a.name AS action_name,
+        a.queue AS action_queue,
+        a.test AS action_test,
+        a.result AS action_result,
         a.description AS action_description,
-        a.user_id AS action_user_id,
-        c.id AS character_id,
-        c.name AS character_name
+        a.dice_roll AS action_dice_roll,
+        a.character_id AS action_character_id,
+        cs.id AS action_character_sheet_id,
+        cs.name AS action_character_name,
+        u.id AS action_character_user_id,
+        u.username AS action_character_username
       FROM scenes s
       LEFT JOIN narrations n ON n.scene_id = s.id
-      LEFT JOIN narration_actions a ON a.scene_id = s.id
-      LEFT JOIN game_table_characters c ON c.user_id = a.user_id AND c.table_id = s.table_id
+      LEFT JOIN narration_actions a ON a.narrations_id = n.id
+      LEFT JOIN game_table_characters c ON c.id = a.character_id
+      LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
+      LEFT JOIN users u ON u.id = c.user_id
       WHERE s.id = ?
-      ORDER BY n.moment ASC, a.id ASC
+      ORDER BY n.moment ASC, a.queue ASC
     `,
     GameTableFindTableById:`
       SELECT
