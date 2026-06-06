@@ -1,6 +1,6 @@
 // src/infra/database/seed.ts
 import { db } from './database'
-
+import './migrate'
 import { narrators  , gameTables , gameTablePlayers  } from '../variables/varGameTable'
 import { modifierNarrationsActions , modifierNarrationsLocations , modifierNarrationsCharacters , modifierNarrationsNPCs } from '../variables/varModifiers'
 import { skills } from '../variables/varSkills'
@@ -369,17 +369,19 @@ const modifierGameTableCharacterAdvantagestmt = db.prepare(`
   INSERT INTO game_table_character_advantages(
   id,
   advantage_id,
+  name,
   character_id,
   cost_points,
   effect
   )
-  VALUES ( ?, ?, ?, ?, ?)
+  VALUES ( ?, ?, ?, ?, ?, ?)
 `)
 
 for (const modifierGameTableCharacterAdvantage of characterAdvantages) {
   modifierGameTableCharacterAdvantagestmt.run(
     modifierGameTableCharacterAdvantage.id,
     modifierGameTableCharacterAdvantage.advantage_id,
+    modifierGameTableCharacterAdvantage.name,
     modifierGameTableCharacterAdvantage.character_id,
     modifierGameTableCharacterAdvantage.cost_points,
     modifierGameTableCharacterAdvantage.effect

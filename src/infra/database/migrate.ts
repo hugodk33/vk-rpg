@@ -315,6 +315,7 @@ CREATE TABLE IF NOT EXISTS game_table_character_skills (
 CREATE TABLE IF NOT EXISTS game_table_character_advantages (
   id TEXT PRIMARY KEY,
   advantage_id TEXT,
+  name TEXT,
   character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
