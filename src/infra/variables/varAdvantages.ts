@@ -39,90 +39,20 @@ export const advantages: SeedModifierGameTableAdvantages[] = [
     costPoints: 5,
     description: 'The character always knows which way is North and is always able to retrace a route taken during the last 30 days. +3 bonus to Navigation skill. Works underground, underwater and on other planets.'
   },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Accurate Time Sense',
-    costPoints: 5,
-    description: 'You always know the exact time, can measure any time lapse with precision, wake up at a pre-determined hour and are not affected by time zone changes (but are by time travel).'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Acute Hearing',
-    costPoints: 2,
-    description: 'Bonus to Hearing tests. Costs 2 points per bonus point.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Acute Taste and Smell',
-    costPoints: 2,
-    description: 'Bonus to all Taste or Smell tests. Costs 2 points per bonus point.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Acute Vision',
-    costPoints: 2,
-    description: 'Bonus to all Vision tests when searching for something. Costs 2 points per bonus point.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Alertness',
-    costPoints: 5,
-    description: 'General bonus to any Sense or Perception (IQ) tests. Can be combined with acute senses advantages. Cost: 5 points per bonus point.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Ambidexterity',
-    costPoints: 10,
-    description: 'The character is capable of using both hands with the same skill. He is not subject to the -4 penalty on his Dexterity attribute for using the off-hand and can fight with either hand interchangeably, or with both at once. If an accident occurs with one of his arms, assume it was with the left one.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Animal Empathy',
-    costPoints: 5,
-    description: 'The character understands and likes animals, and they like the character. He receives a +2 bonus on any reaction test with a wild animal, and +4 on tests involving animal-related skills. However, you can never kill an animal without a very good reason, and must try to prevent others from doing so.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Charisma',
-    costPoints: 5,
-    description: 'This is the natural ability to impress and lead other people. Anyone can achieve illusory charisma through good appearance, good manners and intelligence, but real charisma works independently of these factors. It affects any reaction test made by an intelligent creature. Cost: 5 points per bonus point.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Clerisy',
-    costPoints: 5,
-    description: 'The character was ordained as a minister of some religion. A cleric has some powers and privileges that a layperson does not. Cost: 5 points for social only, 10+ points if able to invoke divine help.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Common Sense',
-    costPoints: 10,
-    description: 'Every time the character starts to do something that the GM thinks is stupid, he makes a test against his IQ attribute. Success means he should warn the character. This Advantage allows an impulsive player to play the role of a thoughtful character.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Danger Sense',
-    costPoints: 15,
-    description: 'You can\'t count on it always, but now and then you have that weird feeling on the back of your neck that says something is wrong. The GM will secretly make a test against your IQ attribute whenever the situation involves an ambush, an imminent disaster or some other danger. Success means you should receive a warning.'
-  },
-  {
-    id: crypto.randomUUID(),
-    table_id: mainGameTableId,
-    name: 'Double-Jointed',
-    costPoints: 5,
-    description: 'The character\'s body is extraordinarily flexible. He receives a bonus equal to +3 on any Escape attempt or attempts to get free of ropes, shackles or other similar movement restriction means, and also on Mechanic tests.'
-  },
+    {
+        id: advantagesIds.advantageFlexibilityId,
+        table_id: mainGameTableId,
+        name: 'Flexibility',
+        costPoints: 5,
+        description: 'The character has a flexible and well-conditioned body. +3 bonus on Climbing and Escape skills.'
+    },
+    {
+        id: crypto.randomUUID(),
+        table_id: mainGameTableId,
+        name: 'Double-Jointed',
+        costPoints: 5,
+        description: 'The character\'s body is extraordinarily flexible. He receives a bonus equal to +3 on any Escape attempt or attempts to get free of ropes, shackles or other similar movement restriction means, and also on Mechanic tests.'
+    },
   {
     id: advantagesIds.advantageEideticMemoryId,
     table_id: mainGameTableId,

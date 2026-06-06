@@ -89,8 +89,10 @@ export class GameTableRepository implements IGameTableRepository {
               }
               : null,
             damages: [],
+            armors: [],
             items: [],
             advantages: [],
+            disadvantages: [],
             skills: [],
             peculiarities: []
           }
@@ -218,8 +220,10 @@ export class GameTableRepository implements IGameTableRepository {
               }
               : null,
             damages: [],
+            armors: [],
             items: [],
             advantages: [],
+            disadvantages: [],
             skills: [],
             peculiarities: []
           }
@@ -343,19 +347,20 @@ export class GameTableRepository implements IGameTableRepository {
             moment: number
             actions: Array<{
               id: string
-              name: string
-              userId: string
+              queue: number
               test: string
+              result: string
               description: string
               dice_roll: string
-              value: string
-              character: { id: string; name: string } | null
+              character: { id: string; name: string; userId: string; username: string } | null
             }>
             characters: Map<
               string,
               {
                 id: string
                 name: string
+                userId: string
+                username: string
               }
             >
             npcs: Map<
@@ -426,16 +431,17 @@ export class GameTableRepository implements IGameTableRepository {
       ) {
         narration.actions.push({
           id: row.action_id,
-          name: row.action_name,
-          description: row.action_description,
-          userId: row.action_user_id,
+          queue: row.action_queue,
           test: row.action_test,
+          result: row.action_result,
+          description: row.action_description,
           dice_roll: row.action_dice_roll,
-          value: row.action_value,
           character: row.action_character_id
             ? {
               id: row.action_character_id,
-              name: row.action_character_name
+              name: row.action_character_name,
+              userId: row.action_character_user_id,
+              username: row.action_character_username
             }
             : null
         })
@@ -448,7 +454,9 @@ export class GameTableRepository implements IGameTableRepository {
       ) {
         narration.characters.set(row.narration_character_id, {
           id: row.narration_character_ref_id,
-          name: row.narration_character_name
+          name: row.narration_character_name,
+          userId: row.narration_character_user_id,
+          username: row.narration_character_username
         })
       }
 

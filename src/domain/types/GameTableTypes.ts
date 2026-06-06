@@ -65,7 +65,23 @@ type GameTableSkill = {
   effect: string
 }
 
+type GameTableArmor = {
+  id: string
+  name: string
+  description: string
+  type: string
+  value: string
+  fit: string
+}
+
 type GameTablePeculiarity = {
+  id: string
+  name: string
+  costPoints: number
+  effect: string
+}
+
+type GameTableDisadvantage = {
   id: string
   name: string
   costPoints: number
@@ -78,8 +94,10 @@ type GameTableCharacter = {
   name: string
   sheet: GameTableCharacterSheet | null
   damages: GameTableDamage[]
+  armors: GameTableArmor[]
   items: GameTableItem[]
   advantages: GameTableAdvantage[]
+  disadvantages: GameTableDisadvantage[]
   skills: GameTableSkill[]
   peculiarities: GameTablePeculiarity[]
 }
@@ -131,11 +149,15 @@ export type GameTableWithNarrator = {
 
 type GameTableSceneAction = {
   id: string
-  name: string
+  queue: number
+  test: string
+  result: string
   description: string
-  userId: string
+  dice_roll: string
   character: {
     id: string
     name: string
+    userId: string
+    username: string
   } | null
 }

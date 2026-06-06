@@ -1,9 +1,10 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import { users } from "./varUsers"
-import { characterGalarhornId , characterGarrickId, characterKasumiId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId, characterGarrickId, characterKasumiId, characterLyraId, characterKaelId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
 import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as itemsIds from "./MainUUIDIds/uuidItems"
+import * as disadvantagesIds from "./MainUUIDIds/uuidDisadvantages"
 import * as UserCharacterIds from "./MainUUIDIds/uuidGeral"
 
 type SeedCharacter = {
@@ -16,6 +17,16 @@ export const characters: SeedCharacter[] = [
   {
     id: characterGalarhornId,
     userId: UserCharacterIds.playerOneId,
+    tableId: mainGameTableId
+  },
+  {
+    id: characterLyraId,
+    userId: users[4].id,
+    tableId: mainGameTableId
+  },
+  {
+    id: characterKaelId,
+    userId: users[5].id,
     tableId: mainGameTableId
   },
   {
@@ -75,33 +86,33 @@ export const characterSheets: SeedCharacterSheet[] = [
   },
   {
     id: crypto.randomUUID(),
-    characterId: characterGarrickId,
-    name: 'Garrick Stone Sheet',
-    bio: 'A hulking veteran whose strength keeps him alive.',
-    backstory: 'A former soldier carrying the scars of many battles into the city.',
-    points: 145,
-    hp: 12,
-    st: 12,
-    dx: 11,
-    iq: 10,
-    ht: 11,
-    fatigue: 11,
-    encumbrance: 'Medium'
+    characterId: characterLyraId,
+    name: 'Lyra Moonwhisper',
+    bio: 'A gifted wizard obsessed with ancient knowledge.',
+    backstory: 'Raised within a secluded arcane academy, Lyra left to uncover forgotten magical secrets.',
+    points: 150,
+    hp: 9,
+    st: 9,
+    dx: 10,
+    iq: 15,
+    ht: 10,
+    fatigue: 13,
+    encumbrance: 'None'
   },
   {
     id: crypto.randomUUID(),
-    characterId: characterKasumiId,
-    name: 'Kasumi Noh Sheet',
-    bio: 'A scholar whose magic is still growing.',
-    backstory: 'Raised in a hidden tower, she now seeks her place among the city shadows.',
-    points: 155,
+    characterId: characterKaelId,
+    name: 'Kael Shadowstep',
+    bio: 'A nimble rogue specializing in infiltration and silent kills.',
+    backstory: 'Raised among thieves and smugglers, Kael learned that information is often worth more than gold.',
+    points: 150,
     hp: 10,
-    st: 9,
-    dx: 13,
-    iq: 14,
-    ht: 10,
-    fatigue: 10,
-    encumbrance: 'Light'
+    st: 10,
+    dx: 14,
+    iq: 12,
+    ht: 11,
+    fatigue: 11,
+    encumbrance: 'None'
   },
   {
     id: crypto.randomUUID(),
@@ -211,25 +222,6 @@ export const damages: SeedDamage[] = [
   },
   {
     id: crypto.randomUUID(),
-    name: 'Power Shot',
-    description: 'A heavy arrow fired from the recurved bow.',
-    type: 'Physical',
-    value: '2d+1 imp',
-    range: '75 yards',
-    character_id: characterKasumiId,
-    item_id: itemsIds.bowId,
-  },
-  {
-    id: crypto.randomUUID(),
-    name: 'Arcane Blast',
-    description: 'A small burst of magical energy fueled by Magery.',
-    type: 'Energy',
-    value: '3d burning',
-    range: 'Medium',
-    character_id: characterKasumiId
-  },
-  {
-    id: crypto.randomUUID(),
     name: "Swinging Fist Strike",
     description: "A powerful punch with a swinging motion.",
     type: "melee attack",
@@ -264,6 +256,92 @@ export const damages: SeedDamage[] = [
     range: "1",
     character_id: characterGalarhornId
   },
+  {
+    id: crypto.randomUUID(),
+    name: 'Staff Strike',
+    description: 'A blunt strike with a wizard staff.',
+    type: 'melee attack',
+    value: '1d cr',
+    range: '1',
+    character_id: characterLyraId,
+    item_id: itemsIds.wizardStaffId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Fireball',
+    description: 'A ball of fire launched at the target.',
+    type: 'energy attack',
+    value: '2d burn',
+    range: '25',
+    character_id: characterLyraId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Lightning Bolt',
+    description: 'A bolt of lightning arcing toward the target.',
+    type: 'energy attack',
+    value: '2d burn surge',
+    range: '20',
+    character_id: characterLyraId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Ice Shard',
+    description: 'A sharp shard of ice hurled at the target.',
+    type: 'energy attack',
+    value: '1d+2 imp',
+    range: '15',
+    character_id: characterLyraId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Punch',
+    description: 'A quick punch with the fist.',
+    type: 'melee attack',
+    value: '1d-2 cr',
+    range: 'C',
+    character_id: characterKaelId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dagger Thrust',
+    description: 'A precise thrusting attack with a dagger.',
+    type: 'melee attack',
+    value: '1d imp',
+    range: 'C,1',
+    character_id: characterKaelId,
+    item_id: itemsIds.fineDaggerId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dagger Slash',
+    description: 'A slashing cut with a dagger.',
+    type: 'melee attack',
+    value: '1d+1 cut',
+    range: 'C,1',
+    character_id: characterKaelId,
+    item_id: itemsIds.fineDaggerId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Thrown Knife',
+    description: 'A knife thrown at the target.',
+    type: 'ranged attack',
+    value: '1d imp',
+    range: '10',
+    character_id: characterKaelId,
+    item_id: itemsIds.throwingKnifeId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Sneak Attack',
+    description: 'A devastating precision strike from hiding.',
+    type: 'melee attack',
+    value: '1d+2 imp',
+    range: 'C,1',
+    character_id: characterKaelId,
+    item_id: itemsIds.fineDaggerId
+  },
 ]
 
 type SeedArmor = {
@@ -282,13 +360,83 @@ type SeedArmor = {
 export const armors: SeedArmor[] = [
   {
     id: crypto.randomUUID(),
-    name: 'Cutting Strike',
-    description: 'A fast slash with a short sword designed to open armor gaps.',
-    type: 'Perry',
-    value: 'sw+2 cut',
-    fit: 'Melee',
+    name: 'Leather Armor',
+    description: 'Sturdy leather armor offering moderate protection.',
+    type: 'Armor',
+    value: 'DR 2',
+    fit: 'Torso',
     character_id: characterGalarhornId,
-    item_id: itemsIds.shortSwordId
+    item_id: itemsIds.galhornLeatherArmorId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Leather Bracers',
+    description: 'Leather forearm guards for added protection.',
+    type: 'Armor',
+    value: 'DR 1',
+    fit: 'Arms',
+    character_id: characterGalarhornId,
+    item_id: itemsIds.leatherBracersId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Leather Boots',
+    description: 'Sturdy leather boots that protect the feet and lower legs.',
+    type: 'Armor',
+    value: 'DR 1',
+    fit: 'Legs',
+    character_id: characterGalarhornId,
+    item_id: itemsIds.leatherBootsId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Medium Shield',
+    description: 'A wooden shield reinforced with metal bands.',
+    type: 'Shield',
+    value: 'DB 2',
+    fit: 'One Arm',
+    character_id: characterGalarhornId,
+    item_id: itemsIds.mediumShieldId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Travel Cloak',
+    description: 'A simple travel cloak for weather protection.',
+    type: 'Clothing',
+    value: '-',
+    fit: 'Shoulders',
+    character_id: characterGalarhornId,
+    item_id: itemsIds.travelCloakId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Robes',
+    description: 'Simple but durable wizard robes.',
+    type: 'Clothing',
+    value: '-',
+    fit: 'Full body',
+    character_id: characterLyraId,
+    item_id: itemsIds.robesId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Leather Armor',
+    description: 'Light leather armor optimized for stealth and mobility.',
+    type: 'Armor',
+    value: 'DR 2',
+    fit: 'Torso',
+    character_id: characterKaelId,
+    item_id: itemsIds.kaelLeatherArmorId
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Dark Hooded Cloak',
+    description: 'A dark, hooded cloak that helps blend into shadows.',
+    type: 'Clothing',
+    value: '-',
+    fit: 'Shoulders',
+    character_id: characterKaelId,
+    item_id: itemsIds.darkHoodedCloakId
   }
 ]
 
@@ -310,24 +458,80 @@ export const characterSkills: SeedCharacterSkill[] = [
   },
   {
     id: crypto.randomUUID(),
-    characterId: characterGarrickId,
-    skillId: skillsIds.skillTacticsId,
-    costPoints: 10,
-    effect: 'Used to coordinate allies and plan battlefield movement.'
+    characterId: characterLyraId,
+    skillId: skillsIds.skillThaumatologyId,
+    costPoints: 8,
+    effect: 'Used to study and understand the principles of magic.'
   },
   {
     id: crypto.randomUUID(),
-    characterId: characterKasumiId,
-    skillId: skillsIds.skillMagicId,
-    costPoints: 25,
-    effect: 'Used to cast spells and channel magical energy.'
+    characterId: characterLyraId,
+    skillId: skillsIds.skillResearchId,
+    costPoints: 4,
+    effect: 'Used to conduct investigations in libraries and archives.'
   },
   {
     id: crypto.randomUUID(),
-    characterId: characterGarrickId,
+    characterId: characterLyraId,
+    skillId: skillsIds.skillOccultismId,
+    costPoints: 4,
+    effect: 'Used to recognize and understand occult symbols and practices.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterLyraId,
+    skillId: skillsIds.skillAlchemyId,
+    costPoints: 4,
+    effect: 'Used to brew potions and identify alchemical substances.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterLyraId,
+    skillId: skillsIds.skillMeditationId,
+    costPoints: 2,
+    effect: 'Used to calm the mind and focus magical energy.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterKaelId,
     skillId: skillsIds.skillStealthId,
     costPoints: 12,
-    effect: 'Used to move quietly when avoiding patrols.'
+    effect: 'Used to move silently and hide in shadows.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterKaelId,
+    skillId: skillsIds.skillLockpickingId,
+    costPoints: 8,
+    effect: 'Used to open locks without a key.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterKaelId,
+    skillId: skillsIds.skillPickpocketId,
+    costPoints: 8,
+    effect: 'Used to steal items from pockets unnoticed.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterKaelId,
+    skillId: skillsIds.skillKnifeId,
+    costPoints: 8,
+    effect: 'Used for close combat with knives and daggers.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterKaelId,
+    skillId: skillsIds.skillClimbingId,
+    costPoints: 4,
+    effect: 'Used to scale walls and other vertical surfaces.'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterKaelId,
+    skillId: skillsIds.skillStreetwiseId,
+    costPoints: 4,
+    effect: 'Used to gather information in urban underworlds.'
   }
 ]
 
@@ -372,6 +576,120 @@ export const characterAdvantages: SeedCharacterAdvantage[] = [
     character_id: characterGalarhornId,
     cost_points: '15',
     effect: 'Used to react quickly in combat and avoid attacks.'
+  },
+  {
+    id: crypto.randomUUID(),
+    advantage_id: advantagesIds.advantageMageryId,
+    name: 'Magery 3',
+    category: 'Magical',
+    subcategory: 'Talent',
+    character_id: characterLyraId,
+    cost_points: '35',
+    effect: 'Used to channel and enhance magical spells.'
+  },
+  {
+    id: crypto.randomUUID(),
+    advantage_id: advantagesIds.advantageEideticMemoryId,
+    name: 'Eidetic Memory',
+    category: 'Mental',
+    subcategory: 'Talent',
+    character_id: characterLyraId,
+    cost_points: '5',
+    effect: 'Used to remember spells and research with exceptional clarity.'
+  },
+  {
+    id: crypto.randomUUID(),
+    advantage_id: advantagesIds.advantageFlexibilityId,
+    name: 'Flexibility',
+    category: 'Physical',
+    subcategory: 'Talent',
+    character_id: characterKaelId,
+    cost_points: '5',
+    effect: 'Used to gain a bonus on Climbing and Escape checks.'
+  }
+]
+
+type SeedCharacterDisadvantage = {
+  id: string
+  disadvantage_id: string | null
+  name: string
+  character_id: string
+  cost_points: number
+  effect: string
+}
+
+export const characterDisadvantages: SeedCharacterDisadvantage[] = [
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageCodeOfHonorId,
+    name: 'Code of Honor (Soldier)',
+    character_id: characterGalarhornId,
+    cost_points: -10,
+    effect: 'Maintains discipline and professional conduct.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: null,
+    name: 'Enemy',
+    character_id: characterGalarhornId,
+    cost_points: -10,
+    effect: 'A corrupt former captain of the city watch seeks revenge.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageOverconfidenceId,
+    name: 'Overconfidence',
+    character_id: characterGalarhornId,
+    cost_points: -5,
+    effect: 'Frequently underestimates opponents.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: null,
+    name: 'Curious',
+    character_id: characterLyraId,
+    cost_points: -5,
+    effect: 'Cannot resist investigating mysteries.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageLowPainThresholdId,
+    name: 'Low Pain Threshold',
+    character_id: characterLyraId,
+    cost_points: -10,
+    effect: 'Poor tolerance for injury.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: null,
+    name: 'Pacifism (Reluctant Killer)',
+    character_id: characterLyraId,
+    cost_points: -5,
+    effect: 'Avoids taking lives whenever possible.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageGreedId,
+    name: 'Greed',
+    character_id: characterKaelId,
+    cost_points: -15,
+    effect: 'Has difficulty ignoring valuable treasures.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: null,
+    name: 'Secret',
+    character_id: characterKaelId,
+    cost_points: -10,
+    effect: 'Wanted by a major thieves guild.'
+  },
+  {
+    id: crypto.randomUUID(),
+    disadvantage_id: disadvantagesIds.disadvantageOverconfidenceId,
+    name: 'Overconfidence',
+    character_id: characterKaelId,
+    cost_points: -5,
+    effect: 'Often takes unnecessary risks.'
   }
 ]
 
