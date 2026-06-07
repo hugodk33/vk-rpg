@@ -29,16 +29,6 @@ export const characters: SeedCharacter[] = [
     userId: users[5].id,
     tableId: mainGameTableId
   },
-  {
-    id: characterGarrickId,
-    userId: users[2].id,
-    tableId: mainGameTableId
-  },
-  {
-    id: characterKasumiId,
-    userId: users[3].id,
-    tableId: mainGameTableId
-  },
   { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId },
   { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: mainGameTableId },
   { id: characterNPCsIds[2] as string, userId: users[0]?.id, tableId: mainGameTableId },
