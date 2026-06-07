@@ -698,7 +698,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       },
       character: {
         id: characterData.character_id,
-        name: characterData.character_name,
+        name: characterData.sheet_name,
         user: {
           id: characterData.user_id,
           username: characterData.username,
