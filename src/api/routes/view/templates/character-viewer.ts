@@ -1,30 +1,26 @@
-function layout(title: string, content: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${title} - VKRPG</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-zinc-900 text-zinc-100 min-h-screen">
-  ${content}
-</body>
-</html>`
-}
+import { layout } from './layout'
 
 export function characterViewer(data: any): string {
   const ch = data.character
   const sheet = ch.sheet
-
   return layout(sheet?.name || ch.name || 'Character', `
     <div class="max-w-2xl mx-auto p-6">
-      <h1 class="text-3xl font-bold mb-6">${sheet?.name || ch.name}</h1>
-      <div class="grid grid-cols-2 gap-4 mb-8">
+      <h1 class="text-3xl font-bold mb-4">${sheet?.name || ch.name}</h1>
+      <hr class="text-3xl font-bold mb-1"/>
+      <p class="text-lg text-zinc-300">${sheet?.points || ch.points}</p>
+      <p class="text-lg text-zinc-300">${sheet?.bio || ch.bio}</p>
+      <p class="text-lg text-zinc-300 mb-3">${sheet?.backstory || ch.backstory}</p>
+      <div class="grid grid-cols-2 gap-4 mb-3">
         <div class="bg-zinc-800 rounded p-4">
           <span class="text-zinc-400 text-sm">HP</span>
           <p class="text-xl font-semibold">${sheet?.hp ?? '-'}</p>
         </div>
+        <div class="bg-zinc-800 rounded p-4">
+          <span class="text-zinc-400 text-sm">Fatigue</span>
+          <p class="text-xl font-semibold">${sheet?.fatigue ?? '-'}</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-4 gap-4 mb-8">
         <div class="bg-zinc-800 rounded p-4">
           <span class="text-zinc-400 text-sm">ST</span>
           <p class="text-xl font-semibold">${sheet?.st ?? '-'}</p>
@@ -43,7 +39,15 @@ export function characterViewer(data: any): string {
         </div>
         <div class="bg-zinc-800 rounded p-4">
           <span class="text-zinc-400 text-sm">Basic Speed</span>
-          <p class="text-xl font-semibold">${sheet?.basic_speed ?? '-'}</p>
+          <p class="text-xl font-semibold">${sheet?.basic_speed ? `${sheet.basic_speed} km/h` : '-'}</p>
+        </div>
+        <div class="bg-zinc-800 rounded p-4">
+          <span class="text-zinc-400 text-sm">Move</span>
+          <p class="text-xl font-semibold">${sheet?.move ?? '-'}</p>
+        </div>
+        <div class="bg-zinc-800 rounded p-4">
+          <span class="text-zinc-400 text-sm">Encumbrance</span>
+          <p class="text-xl font-semibold">${sheet?.encumbrance ?? '-'}</p>
         </div>
       </div>
 
@@ -93,6 +97,18 @@ export function characterViewer(data: any): string {
             <div class="bg-zinc-800 rounded p-3 flex justify-between">
               <span>${a.name}</span>
               <span class="text-zinc-400 text-sm">DR ${a.value ?? '-'}</span>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-3">Items</h2>
+        <div class="space-y-2">
+          ${(ch.items ?? []).map((i: any) => `
+            <div class="bg-zinc-800 rounded p-3 flex justify-between">
+              <span>${i.name}</span>
+              <span class="text-zinc-400 text-sm">DR ${i.value ?? '-'}</span>
             </div>
           `).join('')}
         </div>
