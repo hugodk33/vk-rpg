@@ -33,9 +33,9 @@ export const  gameTables: [SeedGameTable, SeedGameTable, SeedGameTable] = [
   {
     id: mainGameTableId,
     narratorId,
-    title: 'Shadows at Fortress City',
+    title: 'City of Steel',
     system: 'GURPS',
-    intro: 'A adventure set in a sprawling medieval, where players navigate political intrigue, guilds , and supernatural mysteries to uncover hidden secrets and survive the dangers lurking in the shadows.'
+    intro: 'A gritty urban fantasy set in a sprawling industrial metropolis. Steam, steel, and sorcery collide as the party investigates a wave of mysterious disappearances in the shadows of the foundries.'
   },
   {
     id: crypto.randomUUID(),
