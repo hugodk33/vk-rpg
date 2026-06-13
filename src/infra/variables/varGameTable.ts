@@ -33,9 +33,9 @@ export const  gameTables: [SeedGameTable, SeedGameTable, SeedGameTable] = [
   {
     id: mainGameTableId,
     narratorId,
-    title: 'City of Steel',
+    title: 'Shadows of the Old Kingdom',
     system: 'GURPS',
-    intro: 'A gritty urban fantasy set in a sprawling industrial metropolis. Steam, steel, and sorcery collide as the party investigates a wave of mysterious disappearances in the shadows of the foundries.'
+    intro: 'In the crumbling streets of the kingdom\'s capital, a shadow falls over the city. The ancient noble houses whisper of disappearances in the night, and the party must navigate intrigue, forbidden ruins, and dark magic to uncover the truth before the kingdom falls into chaos.'
   },
   {
     id: crypto.randomUUID(),

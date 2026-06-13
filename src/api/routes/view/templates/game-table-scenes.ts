@@ -17,7 +17,21 @@ function locationCard(loc: any): string {
   `
 }
 
+function entityBadge(id: string, name: string, subtitle: string): string {
+  return `
+    <a href="/game-table-character-viewer/${id}"
+       class="inline-flex items-center gap-2 bg-zinc-700 hover:bg-zinc-600 rounded px-3 py-1.5 text-sm transition-colors">
+      <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+      <div>
+        <div class="font-medium text-zinc-200">${name}</div>
+        <div class="text-xs text-zinc-500">${subtitle}</div>
+      </div>
+    </a>
+  `
+}
+
 function actionRow(a: any): string {
+  const charId = a.character?.id || ''
   const charName = a.character?.name || a.character?.username || 'Unknown'
   const statusClass = a.result && a.test
     ? (Number(a.result) <= Number(a.test) ? 'text-green-400' : 'text-red-400')
@@ -27,7 +41,7 @@ function actionRow(a: any): string {
       <span class="text-xs text-zinc-500 w-4 mt-1">${a.queue}.</span>
       <div class="flex-1">
         <div class="flex items-baseline gap-2">
-          <span class="font-medium text-sm">${charName}</span>
+          ${charId ? `<a href="/game-table-character-viewer/${charId}" class="font-medium text-sm text-zinc-200 hover:text-blue-400">${charName}</a>` : `<span class="font-medium text-sm">${charName}</span>`}
           <span class="text-xs text-zinc-500">${a.test ? `TN ${a.test}` : ''}</span>
         </div>
         <p class="text-sm text-zinc-300">${a.description}</p>
@@ -38,6 +52,11 @@ function actionRow(a: any): string {
 }
 
 function narrationBlock(n: any): string {
+  const participants = [
+    ...(n.characters ?? []).map((ch: any) => entityBadge(ch.id, ch.name || ch.username || 'Unknown', 'Player')),
+    ...(n.npcs ?? []).map((npc: any) => entityBadge(npc.characterId, npc.name || 'Unknown', npc.status || 'NPC'))
+  ]
+
   return `
     <div class="bg-zinc-800/30 rounded-lg p-4 mb-3">
       <div class="flex items-center gap-2 mb-2">
@@ -48,20 +67,16 @@ function narrationBlock(n: any): string {
 
       ${n.location ? locationCard(n.location) : ''}
 
+      ${participants.length ? `
+        <div class="flex flex-wrap gap-2 mb-3">
+          ${participants.join('')}
+        </div>
+      ` : ''}
+
       ${n.actions?.length ? `
         <div class="mt-3">
           <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1">Actions</div>
           ${n.actions.map(actionRow).join('')}
-        </div>
-      ` : ''}
-
-      ${n.npcs?.length ? `
-        <div class="mt-2 flex flex-wrap gap-2">
-          ${n.npcs.map((npc: any) => `
-            <span class="text-xs bg-zinc-700 rounded px-2 py-1">
-              ${npc.name} <span class="text-zinc-500">(${npc.status})</span>
-            </span>
-          `).join('')}
         </div>
       ` : ''}
     </div>
@@ -78,6 +93,9 @@ export function gameTableScenes(data: any): string {
         <a href="/" class="text-blue-400 hover:text-blue-300 text-sm">&larr; Back to tables</a>
         <h1 class="text-3xl font-bold mt-2">${table?.title || 'Scenes'}</h1>
         ${table?.intro ? `<p class="text-zinc-400 mt-1">${table.intro}</p>` : ''}
+        <div class="flex gap-3 mt-3">
+          <a href="/view/game_table_characters/${table?.id}" class="text-emerald-400 hover:text-emerald-300 text-sm">View Characters &rarr;</a>
+        </div>
       </div>
 
       ${scenes.length === 0 ? `

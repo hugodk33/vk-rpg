@@ -54,7 +54,7 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     queue: 4,
     test: '',
     result: '',
-    description: 'Riven Kael retreated into the steam, dragging the wounded Thorne with him',
+    description: 'Riven Kael retreated into the fog, dragging the wounded Thorne with him',
     dice_roll: '3d6 [ 0 , 0 , 0 ]',
     character_id: characterGalarhornId,
   },
@@ -64,7 +64,7 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
     queue: 5,
     test: '10',
     result: '14',
-    description: 'Elric attempted to pursue but lost them in the maze of pipes and steam vents',
+    description: 'Elric attempted to pursue but lost them in the maze of laundry lines and shadowy alcoves',
     dice_roll: '3d6 [ 6 , 4 , 4 ]',
     character_id: characterGalarhornId,
   }
