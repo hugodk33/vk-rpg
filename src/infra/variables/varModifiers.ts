@@ -1,6 +1,6 @@
 import * as NPCIds from "./MainUUIDIds/uuidNPC"
 import { narration1, narration2, narration3 } from "./MainUUIDIds/uuidNarrations"
-import { characterGalarhornId, characterGarrickId, characterKasumiId } from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId, characterLyraId, characterKaelId } from "./MainUUIDIds/uuidCharacters"
 import { locationId1, locationId2, locationId3 } from "./MainUUIDIds/uuidLocation"
 
 const  modifierFocusId = crypto.randomUUID()
@@ -20,42 +20,52 @@ type SeedModifierNarrationActions= {
 export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
   {
     id: crypto.randomUUID(),
-    narrations_id: narration1,
+    narrations_id: narration3,
     queue: 1,
-    test: '12',
-    result: '17',
-    description: 'Garrick used the defense skill and failed',
-    dice_roll: '3d6 [ 4 , 1 , 5 ]',
-    character_id: characterGarrickId,
-  },
-  {
-    id: crypto.randomUUID(),
-    narrations_id: narration1,
-    queue: 2,
-    test: '',
-    result: '',
-    description: 'Kasumi did nothing',
-    dice_roll: '3d6 [ 0 , 0 , 0 ]',
-    character_id: characterKasumiId,
-  },
-  {
-    id: crypto.randomUUID(),
-    narrations_id: narration1,
-    queue: 3,
-    test: '9',
+    test: '14',
     result: '10',
-    description: 'Mira used the attack skill and succeeded',
-    dice_roll: '3d6 [ 7 , 1 , 4 ]',
+    description: 'Elric parried Thorne\'s strike and counterattacked with his short sword',
+    dice_roll: '3d6 [ 4 , 6 , 0 ]',
     character_id: characterGalarhornId,
   },
   {
     id: crypto.randomUUID(),
-    narrations_id: narration1,
+    narrations_id: narration3,
+    queue: 2,
+    test: '12',
+    result: '9',
+    description: 'Lyra cast a blinding flash at Riven, forcing him to cover his eyes',
+    dice_roll: '3d6 [ 3 , 2 , 4 ]',
+    character_id: characterLyraId,
+  },
+  {
+    id: crypto.randomUUID(),
+    narrations_id: narration3,
+    queue: 3,
+    test: '16',
+    result: '13',
+    description: 'Kael circled around the chaos and landed a precise dagger thrust on Thorne\'s flank',
+    dice_roll: '3d6 [ 5 , 5 , 3 ]',
+    character_id: characterKaelId,
+  },
+  {
+    id: crypto.randomUUID(),
+    narrations_id: narration3,
     queue: 4,
+    test: '',
+    result: '',
+    description: 'Riven Kael retreated into the fog, dragging the wounded Thorne with him',
+    dice_roll: '3d6 [ 0 , 0 , 0 ]',
+    character_id: characterGalarhornId,
+  },
+  {
+    id: crypto.randomUUID(),
+    narrations_id: narration3,
+    queue: 5,
     test: '10',
-    result: '11',
-    description: 'Mira used the attack skill again and succeeded',
-    dice_roll: '3d6 [ 3 , 4 , 2 ]',
+    result: '14',
+    description: 'Elric attempted to pursue but lost them in the maze of laundry lines and shadowy alcoves',
+    dice_roll: '3d6 [ 6 , 4 , 4 ]',
     character_id: characterGalarhornId,
   }
 ]
@@ -71,6 +81,31 @@ export const  modifierNarrationsCharacters: SeedModifierNarrationCharacter[] = [
     id: crypto.randomUUID(),
     character_id: characterGalarhornId,
     narrations_id: narration1
+  },
+  {
+    id: crypto.randomUUID(),
+    character_id: characterLyraId,
+    narrations_id: narration1
+  },
+  {
+    id: crypto.randomUUID(),
+    character_id: characterKaelId,
+    narrations_id: narration1
+  },
+  {
+    id: crypto.randomUUID(),
+    character_id: characterGalarhornId,
+    narrations_id: narration3
+  },
+  {
+    id: crypto.randomUUID(),
+    character_id: characterLyraId,
+    narrations_id: narration3
+  },
+  {
+    id: crypto.randomUUID(),
+    character_id: characterKaelId,
+    narrations_id: narration3
   }
 ]
 
@@ -83,17 +118,17 @@ type SeedModifierNarrationNPCs= {
 export const  modifierNarrationsNPCs: SeedModifierNarrationNPCs[] = [
   {
     id: crypto.randomUUID(),
-    narration_id: narration1,
+    narration_id: narration3,
     npc_id: NPCIds.Npc1Id
   },
   {
     id: crypto.randomUUID(),
-    narration_id: narration1,
+    narration_id: narration3,
     npc_id: NPCIds.Npc2Id
   },
   {
     id: crypto.randomUUID(),
-    narration_id: narration1,
+    narration_id: narration3,
     npc_id: NPCIds.Npc3Id
   }
 ]
@@ -112,12 +147,17 @@ export const  modifierNarrationsLocations: SeedModifierNarrationLocations[] = [
   },
   {
     id: crypto.randomUUID(),
-    location_id: locationId2,
+    location_id: locationId1,
     narrations_id: narration2
+  },
+  {
+    id: crypto.randomUUID(),
+    location_id: locationId1,
+    narrations_id: narration3
   },
   {
     id: crypto.randomUUID(),
     location_id: locationId3,
     narrations_id: narration3
-  }  
+  }
 ]

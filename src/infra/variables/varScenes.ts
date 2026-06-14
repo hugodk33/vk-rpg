@@ -13,28 +13,28 @@ export const  scenes: [SeedScene ,  SeedScene , SeedScene , SeedScene ] = [
   {
     id: crypto.randomUUID(),
     table_id: mainGameTableId,
-    title: 'The Forest',
+    title: 'The Guild Job',
     chapter: 1,
     moment: 0,
   },
   {
     id: crypto.randomUUID(),
     table_id: mainGameTableId,
-    title: 'The Clearing',
+    title: 'Iron Alley Investigation',
     chapter: 1,
     moment: 1,
   },
   {
     id: crypto.randomUUID(),
     table_id: mainGameTableId,
-    title: 'The River',
+    title: 'The Underground Tunnels',
     chapter: 1,
     moment: 2
   },
   {
     id: crypto.randomUUID(),
     table_id: mainGameTableId,
-    title: 'The Mountain Pass',
+    title: 'The Forgotten Temple',
     chapter: 1,
     moment: 3
   }

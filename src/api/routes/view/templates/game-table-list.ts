@@ -33,7 +33,10 @@ export function gameTableList(tables: any[], search: string): string {
             <p class="text-zinc-400 text-sm mb-3">${t.intro ?? ''}</p>
             <div class="flex justify-between items-center text-sm text-zinc-500">
               <span>Narrator: ${t.narrator?.username ?? 'Unknown'}</span>
-              <a href="/view/game_table_scenes/${t.id}" class="text-blue-400 hover:text-blue-300">View Scenes →</a>
+              <div class="flex gap-3">
+                <a href="/view/game_table_characters/${t.id}" class="text-emerald-400 hover:text-emerald-300">Characters →</a>
+                <a href="/view/game_table_scenes/${t.id}" class="text-blue-400 hover:text-blue-300">Scenes →</a>
+              </div>
             </div>
           </div>
         `).join('')}

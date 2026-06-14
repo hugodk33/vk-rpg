@@ -6,12 +6,15 @@ import { FindAllGameTableScenesUseCase } from '../../../application/use-cases/ta
 import { characterViewer } from './templates/character-viewer'
 import { gameTableList } from './templates/game-table-list'
 import { gameTableScenes } from './templates/game-table-scenes'
+import { gameTableCharacters } from './templates/game-table-characters'
+import { FindAllGameTableCharactersUseCase } from '../../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
 
 const router = Router()
 const gameTableRepo = new GameTableRepository()
 const findAllGameTablesUseCase = new FindAllGameTablesUseCase(gameTableRepo)
 const findAllGameTableScenesUseCase = new FindAllGameTableScenesUseCase(gameTableRepo)
 const charRepo = new GameTableRulesRepository()
+const findAllGameTableCharactersUseCase = new FindAllGameTableCharactersUseCase(charRepo)
 
 router.get('/', async (req, res) => {
   try {
@@ -34,6 +37,15 @@ router.get('/view/game_table_scenes/:id', async (req, res) => {
   try {
     const data = await findAllGameTableScenesUseCase.execute(req.params.id)
     res.send(gameTableScenes(data))
+  } catch {
+    res.status(500).send('Internal server error')
+  }
+})
+
+router.get('/view/game_table_characters/:id', async (req, res) => {
+  try {
+    const data = await findAllGameTableCharactersUseCase.execute(req.params.id)
+    res.send(gameTableCharacters(data))
   } catch {
     res.status(500).send('Internal server error')
   }

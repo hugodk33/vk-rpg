@@ -767,7 +767,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       table,
       characters: characters.map(char => ({
         id: char.character_id,
-        name: char.character_name,
+        name: char.sheet_name,
         user: {
           id: char.user_id,
           username: char.username

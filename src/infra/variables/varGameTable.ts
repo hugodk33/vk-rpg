@@ -33,9 +33,9 @@ export const  gameTables: [SeedGameTable, SeedGameTable, SeedGameTable] = [
   {
     id: mainGameTableId,
     narratorId,
-    title: 'Shadows at Fortress City',
+    title: 'Shadows of the Old Kingdom',
     system: 'GURPS',
-    intro: 'A adventure set in a sprawling medieval, where players navigate political intrigue, guilds , and supernatural mysteries to uncover hidden secrets and survive the dangers lurking in the shadows.'
+    intro: 'In the crumbling streets of the kingdom\'s capital, a shadow falls over the city. The ancient noble houses whisper of disappearances in the night, and the party must navigate intrigue, forbidden ruins, and dark magic to uncover the truth before the kingdom falls into chaos.'
   },
   {
     id: crypto.randomUUID(),
