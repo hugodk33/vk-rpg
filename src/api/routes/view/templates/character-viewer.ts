@@ -152,7 +152,19 @@ export function characterViewer(data: any): string {
 
         <div class="p-6">
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Core Attributes</h3>
+              <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4">
+                <span class="text-zinc-400 text-sm font-semibold">ST <span class="text-red-400 text-xl font-bold ml-1">${s?.st ?? '-'}</span></span>
+                <span class="text-zinc-400 text-sm font-semibold">DX <span class="text-emerald-400 text-xl font-bold ml-1">${s?.dx ?? '-'}</span></span>
+                <span class="text-zinc-400 text-sm font-semibold">IQ <span class="text-blue-400 text-xl font-bold ml-1">${s?.iq ?? '-'}</span></span>
+                <span class="text-zinc-400 text-sm font-semibold">HT <span class="text-purple-400 text-xl font-bold ml-1">${s?.ht ?? '-'}</span></span>
+              </div>
+              <div class="flex pl-2">
+                ${s ? radarChart(s.st ?? 10, s.dx ?? 10, s.iq ?? 10, s.ht ?? 10) : ''}
+              </div>
+            </div>
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Vitals</h3>
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4">
@@ -166,14 +178,6 @@ export function characterViewer(data: any): string {
                   <span class="text-emerald-400 font-bold text-lg">${s?.fatigue ?? '-'}</span>
                   <div class="w-24 bg-zinc-700/50 rounded-full h-2"><div class="bg-emerald-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div></div>
                 </div>
-              </div>
-
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Core Attributes</h3>
-              <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4">
-                <span class="text-zinc-400 text-sm font-semibold">ST <span class="text-red-400 text-xl font-bold ml-1">${s?.st ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold">DX <span class="text-emerald-400 text-xl font-bold ml-1">${s?.dx ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold">IQ <span class="text-blue-400 text-xl font-bold ml-1">${s?.iq ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold">HT <span class="text-purple-400 text-xl font-bold ml-1">${s?.ht ?? '-'}</span></span>
               </div>
 
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Movement</h3>
