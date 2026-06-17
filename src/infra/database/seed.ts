@@ -55,14 +55,15 @@ for (const table of gameTables) {
 
 // insert advantages
 const advantageStmt = db.prepare(`
-  INSERT INTO game_table_advantages (id, table_id , cost_points, description)
-  VALUES (?, ?, ?, ?)
+  INSERT INTO game_table_advantages (id, table_id , name , cost_points, description)
+  VALUES (?, ?, ?, ? , ?)
 `)
 
 for (const advantage of advantages) {
   advantageStmt.run(
     advantage.id,
     advantage.table_id,
+    advantage.name,
     advantage.costPoints,
     advantage.description
   )
@@ -71,14 +72,15 @@ for (const advantage of advantages) {
 }
 
 const disadvantageStmt = db.prepare(`
-  INSERT INTO game_table_disadvantages (id, table_id , cost_points, description)
-  VALUES (?, ?, ?, ?)
+  INSERT INTO game_table_disadvantages (id, table_id , name, cost_points, description)
+  VALUES (?, ?, ?, ? , ?)
 `)
 
 for (const disadvantage of disadvantages) {
   disadvantageStmt.run(
     disadvantage.id,
     disadvantage.table_id,
+    disadvantage.name,
     disadvantage.costPoints,
     disadvantage.description
   )

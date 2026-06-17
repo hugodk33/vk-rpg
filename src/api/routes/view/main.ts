@@ -16,6 +16,10 @@ import { formAdvantage } from './templates/form-advantage'
 import { formDisadvantage } from './templates/form-disadvantage'
 import { narratorDashboard } from './templates/narrator-dashboard'
 import { playerDashboard } from './templates/player-dashboard'
+import { tableItems } from './templates/table-items'
+import { tableAdvantages } from './templates/table-advantages'
+import { tableDisadvantages } from './templates/table-disadvantages'
+import { sessionScreen } from './templates/session-screen'
 import { FindAllGameTableCharactersUseCase } from '../../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
 
 const router = Router()
@@ -71,6 +75,37 @@ router.get('/game-table-character-viewer/:id', async (req, res) => {
   } catch {
     res.status(500).send('Internal server error')
   }
+})
+
+router.get('/view/game_table_items/:id', async (req, res) => {
+  try {
+    const data = await charRepo.findAllGameItems(req.params.id)
+    res.send(tableItems(data))
+  } catch { res.status(500).send('Internal server error') }
+})
+
+router.get('/view/game_table_advantages/:id', async (req, res) => {
+  try {
+    const data = await charRepo.findAllGameAdvantages(req.params.id)
+    res.send(tableAdvantages(data))
+  } catch { res.status(500).send('Internal server error') }
+})
+
+router.get('/view/game_table_disadvantages/:id', async (req, res) => {
+  try {
+    const data = await charRepo.findAllGameDisadvantages(req.params.id)
+    res.send(tableDisadvantages(data))
+  } catch { res.status(500).send('Internal server error') }
+})
+
+router.get('/session/:tableId', async (req, res) => {
+  try {
+    const [characters, scenes] = await Promise.all([
+      charRepo.findAllGameCharacters(req.params.tableId),
+      findAllGameTableScenesUseCase.execute(req.params.tableId)
+    ])
+    res.send(sessionScreen({ table: characters?.table || scenes?.table, characters: characters?.characters || [], scenes: scenes?.scenes || [] }))
+  } catch { res.status(500).send('Internal server error') }
 })
 
 router.get('/form/game-table/new', (_req, res) => {
