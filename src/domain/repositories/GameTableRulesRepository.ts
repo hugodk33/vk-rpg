@@ -209,6 +209,28 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     })
   }
 
+  async findAllGameDisadvantages(id: any): Promise<any> {
+    const table = db.prepare(`
+      SELECT
+        id,
+        narrator_id,
+        intro,
+        title
+      FROM game_tables
+      WHERE id = ?
+    `).get(id as string)
+
+    const gameTablesDisadvantages = db.prepare(`
+      SELECT
+      * FROM
+      game_table_disadvantages WHERE table_id = ?
+    `).all(id) as any[]
+    return ({
+      table: table,
+      disadvantages: gameTablesDisadvantages
+    })
+  }
+
   /* =============== */
   /*   PECULIARITES  */
   /* =============== */
