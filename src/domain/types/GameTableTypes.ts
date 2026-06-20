@@ -150,7 +150,6 @@ export type GameTableWithNarrator = {
 type GameTableSceneAction = {
   id: string
   queue: number
-  test: string
   result: string
   description: string
   dice_roll: string

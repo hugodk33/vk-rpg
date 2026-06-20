@@ -141,13 +141,17 @@ CREATE TABLE IF NOT EXISTS narration_actions (
   id TEXT PRIMARY KEY,
   narrations_id TEXT,
   queue NUMERIC,
-  test TEXT,
   result TEXT,
   dice_roll TEXT,
+  modificator TEXT,
+  target TEXT,
+  multitarget BOOLEAN,
   description TEXT,
   character_id TEXT,
+  datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (narrations_id) REFERENCES narrations(id),
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
+  FOREIGN KEY (target) REFERENCES game_table_characters(id)
 );
 
 CREATE TABLE IF NOT EXISTS narration_characters (

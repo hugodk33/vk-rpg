@@ -348,7 +348,6 @@ export class GameTableRepository implements IGameTableRepository {
             actions: Array<{
               id: string
               queue: number
-              test: string
               result: string
               description: string
               dice_roll: string
@@ -432,7 +431,6 @@ export class GameTableRepository implements IGameTableRepository {
         narration.actions.push({
           id: row.action_id,
           queue: row.action_queue,
-          test: row.action_test,
           result: row.action_result,
           description: row.action_description,
           dice_roll: row.action_dice_roll,
@@ -534,5 +532,41 @@ export class GameTableRepository implements IGameTableRepository {
       gameTable.system,
       gameTable.id
     ) 
+  }
+
+  async createScene(data: any): Promise<void> {
+    db.prepare(GameTableDBStrings.SceneCreate as string).run(
+      data.id,
+      data.table_id,
+      data.title,
+      data.chapter,
+      data.moment
+    )
+  }
+
+  async createNarration(data: any): Promise<void> {
+    db.prepare(GameTableDBStrings.NarrationCreate as string).run(
+      data.id,
+      data.table_id,
+      data.scene_id,
+      data.title,
+      data.narration,
+      data.moment ?? 0
+    )
+  }
+
+  async createNarrationAction(data: any): Promise<void> {
+    db.prepare(GameTableDBStrings.NarrationActionCreate as string).run(
+      data.id,
+      data.narrations_id,
+      data.queue ?? 0,
+      data.result ?? null,
+      data.dice_roll ?? null,
+      data.modificator ?? null,
+      data.target ?? null,
+      data.multitarget ? 1 : 0,
+      data.description ?? null,
+      data.character_id ?? null
+    )
   }
 }

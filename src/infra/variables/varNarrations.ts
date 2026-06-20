@@ -1,5 +1,5 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
-import { narration1, narration2, narration3 } from "./MainUUIDIds/uuidNarrations"
+import { narration1, narration2, narration3, narration4, narration5, narration6 } from "./MainUUIDIds/uuidNarrations"
 import { scenes } from "./varScenes"
 
 type SeedNarration= {
@@ -37,7 +37,7 @@ export const  narrations: SeedNarration[] = [
     moment: 1
   },
   {
-    id: crypto.randomUUID(),
+    id: narration4,
     table_id: mainGameTableId,
     scene_id: scenes[2].id,
     title: 'Into the Depths',
@@ -45,7 +45,7 @@ export const  narrations: SeedNarration[] = [
     moment: 0
   },
   {
-    id: crypto.randomUUID(),
+    id: narration5,
     table_id: mainGameTableId,
     scene_id: scenes[2].id,
     title: 'The Subterranean Crossing',
@@ -53,7 +53,7 @@ export const  narrations: SeedNarration[] = [
     moment: 1
   },
   {
-    id: crypto.randomUUID(),
+    id: narration6,
     table_id: mainGameTableId,
     scene_id: scenes[3].id,
     title: 'The Temple Revealed',

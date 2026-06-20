@@ -13,6 +13,9 @@ import { FindGameTableUseCase } from '../../application/use-cases/tables-use-cas
 import { FindAllGameTablesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTablesUseCase'
 import { FindAllGameTableScenesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTableScenesUseCase'
 import { EditGameTableUseCase } from '../../application/use-cases/tables-use-cases/EditGameTableUseCase'
+import { CreateSceneUseCase } from '../../application/use-cases/tables-use-cases/CreateSceneUseCase'
+import { CreateNarrationUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationUseCase'
+import { CreateNarrationActionUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationActionUseCase'
 
 import { FindByStringUserUseCase } from '../../application/use-cases/tables-use-cases/FindByStringGameTableUseCase'
 import { EditUsersUseCase } from '../../application/use-cases/users-use-cases/EditUsersUseCase'
@@ -74,8 +77,11 @@ const findGameTableUseCase = new FindGameTableUseCase(gameTableRepo)
 const findAllGameTablesUseCase = new FindAllGameTablesUseCase(gameTableRepo)
 const findAllGameTableScenesUseCase = new FindAllGameTableScenesUseCase(gameTableRepo)
 const editGameTableUseCase = new EditGameTableUseCase(gameTableRepo)
+const createSceneUseCase = new CreateSceneUseCase(gameTableRepo)
+const createNarrationUseCase = new CreateNarrationUseCase(gameTableRepo)
+const createNarrationActionUseCase = new CreateNarrationActionUseCase(gameTableRepo)
 /* ========== */
-const gameTableController = new GameTableController(createGameTableUseCase, findGameTableUseCase , findAllGameTablesUseCase , findAllGameTableScenesUseCase, editGameTableUseCase)
+const gameTableController = new GameTableController(createGameTableUseCase, findGameTableUseCase , findAllGameTablesUseCase , findAllGameTableScenesUseCase, editGameTableUseCase, createSceneUseCase, createNarrationUseCase, createNarrationActionUseCase)
 
 /* GAME TABLE RULES*/
 const findGameTableSkillsUseCase = new FindGameTableSkillUseCase(gameTableRulesRepo)   
@@ -145,6 +151,9 @@ router.get('/game-tables', (req, res) => gameTableController.findAll(req, res))
 router.get('/game-table/:id', (req, res) => gameTableController.findById(req, res))
 router.get('/game-table-scenes/:id', (req, res) => gameTableController.findByAllScenes(req, res))
 router.put('/game-table/edit/:id', (req, res) => gameTableController.editGameTable(req, res))
+router.post('/game-table-scene', (req, res) => gameTableController.createScene(req, res))
+router.post('/game-table-narration', (req, res) => gameTableController.createNarration(req, res))
+router.post('/game-table-action', (req, res) => gameTableController.createNarrationAction(req, res))
 
 router.get('/game-table-skills/:id', (req, res) => gameTableRulesController.findAllSkills(req, res))
 router.get('/game-table-advantages/:id', (req, res) => gameTableRulesController.findAllAdvantages(req, res))
@@ -153,6 +162,7 @@ router.get('/game-table-items/:id', (req, res) => gameTableRulesController.findA
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 
+router.post('/game-table-npc', (req, res) => gameTableRulesController.createNPC(req, res))
 router.post('/game-table-character', (req, res) => gameTableRulesController.createCharacter(req, res))
 router.put('/game-table-character', (req, res) => gameTableRulesController.editCharacter(req, res))
 router.get('/game-table-character/:id', (req, res) => gameTableRulesController.findCharacter(req, res))

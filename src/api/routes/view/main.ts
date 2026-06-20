@@ -104,7 +104,28 @@ router.get('/session/:tableId', async (req, res) => {
       charRepo.findAllGameCharacters(req.params.tableId),
       findAllGameTableScenesUseCase.execute(req.params.tableId)
     ])
-    res.send(sessionScreen({ table: characters?.table || scenes?.table, characters: characters?.characters || [], scenes: scenes?.scenes || [] }))
+    const isAdmin = req.query.userType !== 'player'
+    res.send(sessionScreen({ table: characters?.table || scenes?.table, characters: characters?.characters || [], scenes: scenes?.scenes || [], isAdmin }))
+  } catch { res.status(500).send('Internal server error') }
+})
+
+router.get('/session/:tableId/admin', async (req, res) => {
+  try {
+    const [characters, scenes] = await Promise.all([
+      charRepo.findAllGameCharacters(req.params.tableId),
+      findAllGameTableScenesUseCase.execute(req.params.tableId)
+    ])
+    res.send(sessionScreen({ table: characters?.table || scenes?.table, characters: characters?.characters || [], scenes: scenes?.scenes || [], isAdmin: true }))
+  } catch { res.status(500).send('Internal server error') }
+})
+
+router.get('/session/:tableId/player', async (req, res) => {
+  try {
+    const [characters, scenes] = await Promise.all([
+      charRepo.findAllGameCharacters(req.params.tableId),
+      findAllGameTableScenesUseCase.execute(req.params.tableId)
+    ])
+    res.send(sessionScreen({ table: characters?.table || scenes?.table, characters: characters?.characters || [], scenes: scenes?.scenes || [], isAdmin: false }))
   } catch { res.status(500).send('Internal server error') }
 })
 

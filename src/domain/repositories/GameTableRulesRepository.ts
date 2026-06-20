@@ -374,15 +374,68 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /*       NPCS      */
   /* =============== */
 
-  async createGameNPC(data: any): Promise<void> {
-    db.prepare(`
-      INSERT INTO game_table_npcs (id, character_id, status)
-      VALUES (?, ?, ?)
-    `).run(
-      crypto.randomUUID(),
-      data.character_id,
-      data.status
-    )
+  async createGameNPC(data: any): Promise<any> {
+    const characterId = data.character_id || crypto.randomUUID()
+    const sheetId = crypto.randomUUID()
+
+    const insertTransaction = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO game_table_characters (id, user_id, table_id)
+        VALUES (?, ?, ?)
+      `).run(characterId, data.user_id || '', data.table_id)
+
+      if (data.sheet) {
+        db.prepare(`
+          INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          sheetId, characterId,
+          data.sheet.name || '',
+          data.sheet.bio || '',
+          data.sheet.backstory || '',
+          data.sheet.points ?? 0,
+          data.sheet.hp ?? 10,
+          data.sheet.st ?? 10,
+          data.sheet.dx ?? 10,
+          data.sheet.iq ?? 10,
+          data.sheet.ht ?? 10,
+          data.sheet.fatigue ?? 10,
+          data.sheet.encumbrance || 'None'
+        )
+      }
+
+      const insertAdvantage = db.prepare(`
+        INSERT INTO game_table_character_advantages (id, advantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const adv of (data.advantages || [])) {
+        insertAdvantage.run(crypto.randomUUID(), adv.advantage_id || null, adv.name, characterId, adv.cost_points, adv.effect || '')
+      }
+
+      const insertDisadvantage = db.prepare(`
+        INSERT INTO game_table_character_disadvantages (id, disadvantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const dis of (data.disadvantages || [])) {
+        insertDisadvantage.run(crypto.randomUUID(), dis.disadvantage_id || null, dis.name, characterId, dis.cost_points, dis.effect || '')
+      }
+
+      const insertSkill = db.prepare(`
+        INSERT INTO game_table_character_skills (id, character_id, skill_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?)
+      `)
+      for (const sk of (data.skills || [])) {
+        insertSkill.run(crypto.randomUUID(), characterId, sk.skill_id, sk.cost_points ?? 0, sk.effect || '')
+      }
+
+      db.prepare(`
+        INSERT INTO game_table_npcs (id, character_id, status)
+        VALUES (?, ?, ?)
+      `).run(crypto.randomUUID(), characterId, data.status || 'active')
+    })
+
+    insertTransaction()
+    return { character_id: characterId, sheet_id: sheetId }
   }
   async editGameNPC(data: any): Promise<void> {
     db.prepare(`
@@ -594,15 +647,87 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /*    CHARACTERS   */
   /* =============== */
 
-  async createGameCharacter(data: any): Promise<void> {
-    db.prepare(`
-      INSERT INTO game_table_characters (id, user_id, table_id)
-      VALUES (?, ?, ?)
-    `).run(
-      crypto.randomUUID(),
-      data.user_id,
-      data.table_id
-    )
+  async createGameCharacter(data: any): Promise<any> {
+    const characterId = data.character_id || crypto.randomUUID()
+    const sheetId = crypto.randomUUID()
+
+    const insertTransaction = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO game_table_characters (id, user_id, table_id)
+        VALUES (?, ?, ?)
+      `).run(characterId, data.user_id, data.table_id)
+
+      if (data.sheet) {
+        db.prepare(`
+          INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          sheetId, characterId,
+          data.sheet.name || '',
+          data.sheet.bio || '',
+          data.sheet.backstory || '',
+          data.sheet.points ?? 0,
+          data.sheet.hp ?? 10,
+          data.sheet.st ?? 10,
+          data.sheet.dx ?? 10,
+          data.sheet.iq ?? 10,
+          data.sheet.ht ?? 10,
+          data.sheet.fatigue ?? 10,
+          data.sheet.encumbrance || 'None'
+        )
+      }
+
+      const insertAdvantage = db.prepare(`
+        INSERT INTO game_table_character_advantages (id, advantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const adv of (data.advantages || [])) {
+        insertAdvantage.run(crypto.randomUUID(), adv.advantage_id || null, adv.name, characterId, adv.cost_points, adv.effect || '')
+      }
+
+      const insertDisadvantage = db.prepare(`
+        INSERT INTO game_table_character_disadvantages (id, disadvantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const dis of (data.disadvantages || [])) {
+        insertDisadvantage.run(crypto.randomUUID(), dis.disadvantage_id || null, dis.name, characterId, dis.cost_points, dis.effect || '')
+      }
+
+      const insertSkill = db.prepare(`
+        INSERT INTO game_table_character_skills (id, character_id, skill_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?)
+      `)
+      for (const sk of (data.skills || [])) {
+        insertSkill.run(crypto.randomUUID(), characterId, sk.skill_id, sk.cost_points ?? 0, sk.effect || '')
+      }
+
+      const insertDamage = db.prepare(`
+        INSERT INTO game_table_damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      for (const dmg of (data.damages || [])) {
+        insertDamage.run(crypto.randomUUID(), dmg.name, dmg.description || '', dmg.type || '', dmg.value || '', dmg.range || '', characterId, dmg.item_id || null, dmg.skill_id || null, dmg.advantage_id || null)
+      }
+
+      const insertArmor = db.prepare(`
+        INSERT INTO game_table_armors (id, name, description, type, value, fit, character_id, item_id, skill_id, advantage_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      for (const arm of (data.armors || [])) {
+        insertArmor.run(crypto.randomUUID(), arm.name, arm.description || '', arm.type || '', arm.value || '', arm.fit || '', characterId, arm.item_id || null, arm.skill_id || null, arm.advantage_id || null)
+      }
+
+      const insertPeculiarity = db.prepare(`
+        INSERT INTO game_table_characters_quirks (id, character_id, name, cost_points, effect, description)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const pec of (data.peculiarities || [])) {
+        insertPeculiarity.run(crypto.randomUUID(), characterId, pec.name, pec.cost_points ?? 0, pec.effect || '', pec.description || '')
+      }
+    })
+
+    insertTransaction()
+    return { character_id: characterId, sheet_id: sheetId }
   }
 
   async editGameCharacter(data: any): Promise<void> {
@@ -616,6 +741,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.id
     )
   }
+
 
   async findGameCharacter(id: any): Promise<any> {
     const characterData = db.prepare(`

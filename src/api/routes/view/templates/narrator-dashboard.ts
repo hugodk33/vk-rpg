@@ -36,7 +36,7 @@ export function narratorDashboard(data: any): string {
                 ` : ''}
                 <div class="flex flex-col gap-2">
                   <div class="flex gap-2">
-                    <a href="/session/${t.id}"
+                    <a href="/session/${t.id}/admin"
                       class="flex-1 text-center bg-amber-700/60 hover:bg-amber-600 text-amber-100 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
                       Session
                     </a>

@@ -27,9 +27,6 @@ function entityBadge(id: string, name: string, subtitle: string): string {
 function actionRow(a: any): string {
   const charId = a.character?.id || ''
   const charName = a.character?.name || a.character?.username || 'Unknown'
-  const statusClass = a.result && a.test
-    ? (Number(a.result) <= Number(a.test) ? 'text-green-400' : 'text-red-400')
-    : 'text-zinc-400'
   return `
     <div class="flex items-start gap-3 py-1.5">
       <span class="text-xs text-zinc-600 w-4 mt-0.5">${a.queue}.</span>
@@ -38,8 +35,7 @@ function actionRow(a: any): string {
           ${charId ? `<a href="/game-table-character-viewer/${charId}" class="text-zinc-200 hover:text-blue-400">${charName}</a>` : charName}
           ${a.description ? `&mdash; ${a.description}` : ''}
         </span>
-        ${a.test ? `<span class="text-xs text-zinc-600 ml-2">TN ${a.test}</span>` : ''}
-        ${a.dice_roll ? `<span class="text-xs ${statusClass} ml-1">${a.dice_roll}${a.result ? ` = ${a.result}` : ''}</span>` : ''}
+        ${a.dice_roll ? `<span class="text-xs text-zinc-400 ml-1">${a.dice_roll}${a.result ? ` = ${a.result}` : ''}</span>` : ''}
       </div>
     </div>
   `

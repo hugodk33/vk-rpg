@@ -37,9 +37,17 @@ export function sessionScreen(data: any): string {
   const table = data.table
   const characters = data.characters ?? []
   const scenes = data.scenes ?? []
+  const isAdmin = data.isAdmin !== false
 
   const players = characters.filter((c: any) => !c.isNpc)
   const npcs = characters.filter((c: any) => c.isNpc)
+
+  const sortedScenes = [...scenes].sort((a: any, b: any) => (b.chapter - a.chapter) || (b.moment - a.moment))
+  const latestScene = sortedScenes[0]
+  const lc = latestScene?.chapter ?? 1
+  const lm = latestScene?.moment ?? 0
+  const lt = latestScene?.title ?? ''
+  const lsid = latestScene?.id ?? ''
 
   return layout(`Session — ${table?.title || 'Game'}`, `
     <div class="max-w-4xl mx-auto p-4 md:p-6">
@@ -49,85 +57,202 @@ export function sessionScreen(data: any): string {
       </div>
 
       <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
-        <button data-tab="scenes" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('scenes')">Narrations &amp; Scenes</button>
-        <button data-tab="action" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('action')">Action</button>
+        <button data-tab="action" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('action')">Book</button>
         <button data-tab="cast" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('cast')">Characters</button>
       </div>
 
-      <div id="tab-scenes" class="tab-content space-y-6">
-        <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
-          <h2 class="text-lg font-bold text-zinc-100 mb-4">Scene</h2>
-          <form id="sceneForm" class="space-y-3">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div class="md:col-span-2">
-                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Title</label>
-                <input type="text" name="title" placeholder="A New Beginning..."
-                  class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
-              </div>
-              <div>
-                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Chapter</label>
-                <input type="number" name="chapter" value="1" min="1"
-                  class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60 transition-colors" />
-              </div>
-              <div>
-                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Moment</label>
-                <input type="number" name="moment" value="0" min="0"
-                  class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60 transition-colors" />
-              </div>
+      ${isAdmin ? `
+      <div id="chapterModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden">
+        <div class="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 w-full max-w-md mx-4">
+          <h3 class="text-lg font-bold text-zinc-100 mb-4">New Chapter</h3>
+          <form id="chapterForm" class="space-y-4" onsubmit="return submitChapter(event)">
+            <div>
+              <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Title</label>
+              <input type="text" name="title" required placeholder="Chapter title..."
+                class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
             </div>
-            <button type="submit"
-              class="bg-amber-700/80 hover:bg-amber-600 text-amber-100 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-              + Create Scene
-            </button>
+            <div class="flex gap-3 justify-end">
+              <button type="button" onclick="closeModal('chapterModal')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-sm px-4 py-2 rounded-lg transition-colors">Cancel</button>
+              <button type="submit" class="bg-amber-700/80 hover:bg-amber-600 text-amber-100 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">Create</button>
+            </div>
           </form>
         </div>
+      </div>
 
-        <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
-          <h2 class="text-lg font-bold text-zinc-100 mb-4">Narration</h2>
-          <form id="narrationForm" class="space-y-3">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div>
-                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Scene</label>
-                <select name="sceneId"
-                  class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60 transition-colors">
-                  <option value="" class="bg-zinc-800">Select scene...</option>
-                  ${scenes.map((s: any) => `
-                    <option value="${s.id}" class="bg-zinc-800">${s.title}</option>
-                  `).join('')}
-                </select>
-              </div>
-              <div class="md:col-span-2">
-                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Title</label>
-                <input type="text" name="title" placeholder="A twist in the tale..."
-                  class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
-              </div>
+      <div id="momentModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden">
+        <div class="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 w-full max-w-md mx-4">
+          <h3 class="text-lg font-bold text-zinc-100 mb-4">New Part</h3>
+          <form id="momentForm" class="space-y-4" onsubmit="return submitMoment(event)">
+            <div>
+              <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Title</label>
+              <input type="text" name="title" required placeholder="Part title..."
+                class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
+            </div>
+            <div class="flex gap-3 justify-end">
+              <button type="button" onclick="closeModal('momentModal')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-sm px-4 py-2 rounded-lg transition-colors">Cancel</button>
+              <button type="submit" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">Create</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="narrationModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden">
+        <div class="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 w-full max-w-md mx-4">
+          <h3 class="text-lg font-bold text-zinc-100 mb-4">New Narration</h3>
+          <form id="narrationForm" class="space-y-4" onsubmit="return submitNarration(event)">
+            <div>
+              <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Title</label>
+              <input type="text" name="title" required placeholder="Narration title..."
+                class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
+            </div>
+            <div>
+              <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Character in Scene</label>
+              <select name="characterId" class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm">
+                <option value="" class="bg-zinc-800">—</option>
+                ${characters.map((c: any) => `
+                  <option value="${c.id}" class="bg-zinc-800">${c.name || c.username || 'Unknown'}</option>
+                `).join('')}
+              </select>
             </div>
             <div>
               <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Narration</label>
               <textarea name="narration" rows="3" placeholder="Describe what happens..."
                 class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors resize-none"></textarea>
             </div>
-            <button type="submit"
-              class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-              + Add to Scene
-            </button>
+            <div class="flex gap-3 justify-end">
+              <button type="button" onclick="closeModal('narrationModal')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-sm px-4 py-2 rounded-lg transition-colors">Cancel</button>
+              <button type="submit" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">Create</button>
+            </div>
           </form>
         </div>
+      </div>
+      ` : ''}
 
+      <div id="tab-action" class="tab-content space-y-6">
+        <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div class="text-sm text-zinc-300">
+              <span class="text-zinc-500 uppercase text-xs tracking-wider">Chapter</span>
+              <span class="text-amber-400 font-bold text-xl ml-1">${lc}</span>
+              <span class="text-zinc-600 mx-2">&middot;</span>
+              <span class="text-zinc-500 uppercase text-xs tracking-wider">Part</span>
+              <span class="text-amber-400 font-bold text-xl ml-1">${scenes.length}</span>
+              <span class="text-zinc-600 mx-2">&middot;</span>
+              <span class="text-zinc-300">${lt}</span>
+            </div>
+            ${isAdmin ? `
+            <div class="flex gap-2 flex-wrap">
+              <button onclick="openModal('chapterModal')" class="bg-amber-700/80 hover:bg-amber-600 text-amber-100 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Chapter</button>
+              <button onclick="openModal('momentModal')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Part</button>
+              <button onclick="openModal('narrationModal')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Narration</button>
+            </div>
+            ` : ''}
+          </div>
+          <h2 class="text-lg font-bold text-zinc-100 mb-4">Roll &amp; Act</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex flex-col items-center justify-center gap-2">
+              <div class="flex items-center gap-3 mb-4">
+                <div>
+                  <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1 text-center">Dice</label>
+                  <select id="diceType" class="bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60">
+                    <option value="4" class="bg-zinc-800">d4</option>
+                    <option value="6" selected class="bg-zinc-800">d6</option>
+                    <option value="8" class="bg-zinc-800">d8</option>
+                    <option value="10" class="bg-zinc-800">d10</option>
+                    <option value="12" class="bg-zinc-800">d12</option>
+                    <option value="20" class="bg-zinc-800">d20</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1 text-center">Count</label>
+                  <div class="flex items-center gap-1">
+                    <button id="decBtn" class="w-8 h-9 bg-zinc-800/60 border border-zinc-700/50 rounded-lg text-zinc-300 hover:bg-zinc-700 transition-colors text-lg leading-none">−</button>
+                    <span id="diceCount" class="w-10 text-center text-lg font-bold text-amber-400 font-mono">3</span>
+                    <button id="incBtn" class="w-8 h-9 bg-zinc-800/60 border border-zinc-700/50 rounded-lg text-zinc-300 hover:bg-zinc-700 transition-colors text-lg leading-none">+</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1 text-center">Mod</label>
+                  <input type="number" id="diceMod" value="0" min="-20" max="20" ${isAdmin ? '' : 'readonly'}
+                    class="w-16 bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-2 py-2 text-zinc-100 text-sm text-center focus:outline-none focus:border-amber-700/60 ${isAdmin ? '' : 'opacity-50 cursor-not-allowed'}" />
+                </div>
+              </div>
+
+              <div id="diceResults" class="flex flex-wrap items-center justify-center gap-2 mb-4 min-h-[4rem]">
+                <div class="w-10 h-10 bg-zinc-800/30 border border-zinc-700/30 rounded-lg flex items-center justify-center text-lg font-mono text-zinc-700 shadow-inner">?</div>
+              </div>
+
+              <div class="flex items-center gap-4 mb-3 text-sm text-zinc-500">
+                <span>Modifier: <span id="modDisplay" class="text-zinc-300 font-semibold">0</span></span>
+                <span class="text-base">Total: <span id="totalDisplay" class="text-amber-400 font-bold text-xl font-mono"></span></span>
+              </div>
+
+              <div class="flex justify-center gap-3">
+                <button id="rollBtn" class="bg-amber-700/80 hover:bg-amber-600 text-amber-100 text-sm font-semibold px-5 py-2 rounded-lg transition-colors flex items-center gap-2"><span>🎲</span> Roll</button>
+                <button id="copyRollBtn" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium px-3 py-2 rounded-lg transition-colors">📋 Copy</button>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <input type="hidden" id="tableId" value="${table?.id || data?.table_id || ''}" />
+              <div>
+                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Skill / Attribute</label>
+                <select id="actSkill" class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60 transition-colors">
+                  <option value="st" class="bg-zinc-800">ST</option>
+                  <option value="dx" class="bg-zinc-800">DX</option>
+                  <option value="iq" class="bg-zinc-800">IQ</option>
+                  <option value="ht" class="bg-zinc-800">HT</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Dice Roll String</label>
+                <input type="text" id="actRoll" placeholder="3d6+2=14"
+                  class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
+              </div>
+              <div>
+                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Target Character</label>
+                <select id="actTarget" class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60 transition-colors">
+                  <option value="" class="bg-zinc-800">—</option>
+                  ${characters.map((c: any) => `
+                    <option value="${c.id}" class="bg-zinc-800">${c.name || c.username || 'Unknown'}</option>
+                  `).join('')}
+                </select>
+              </div>
+              ${isAdmin ? `
+              <div>
+                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Character</label>
+                <select id="actChar" class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60 transition-colors">
+                  <option value="" class="bg-zinc-800">—</option>
+                  ${characters.map((c: any) => `
+                    <option value="${c.id}" data-st="${c.st || c.sheet?.st || 10}" data-dx="${c.dx || c.sheet?.dx || 10}" data-iq="${c.iq || c.sheet?.iq || 10}" data-ht="${c.ht || c.sheet?.ht || 10}" class="bg-zinc-800">${c.name || c.username || 'Unknown'}</option>
+                  `).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Description</label>
+                <input type="text" id="actDesc" placeholder="Attacks the goblin..."
+                  class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
+              </div>
+              <div>
+                <button id="addActionBtn" class="w-full bg-amber-700/80 hover:bg-amber-600 text-amber-100 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Add Action</button>
+              </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+
+        ${scenes.length > 0 ? `
         <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
           <h2 class="text-lg font-bold text-zinc-100 mb-4">Timeline</h2>
-          ${scenes.length === 0 ? `
-            <p class="text-zinc-600 text-sm italic">No scenes yet. Create one above.</p>
-          ` : scenes.map((s: any) => `
+          ${scenes.map((s: any, si: number) => `
             <div class="mb-6 last:mb-0">
               <div class="flex items-baseline gap-2 mb-2">
                 <h3 class="text-base font-semibold text-amber-100">${s.title}</h3>
-                <span class="text-xs text-zinc-600">Ch.${s.chapter} &middot; M.${s.moment}</span>
+                <span class="text-xs text-zinc-600">Ch.${s.chapter} &middot; Pt.${si + 1}</span>
               </div>
-              ${(s.narrations ?? []).map((n: any) => `
+              ${(s.narrations ?? []).map((n: any, ni: number) => `
                 <div class="ml-4 pl-4 border-l-2 border-zinc-700/50 mb-3">
+                  <h4 class="text-xs text-zinc-500 mb-1">Pt.${si + 1}.${ni + 1}${n.title ? ' — ' + n.title : ''}</h4>
                   <p class="text-sm text-zinc-300 leading-relaxed">${n.narration}</p>
-                  ${n.title ? `<p class="text-xs text-zinc-500 mt-1">— ${n.title}</p>` : ''}
                   ${n.actions?.length ? `
                     <div class="mt-2 text-xs text-zinc-500">
                       ${n.actions.map((a: any) => `
@@ -135,7 +260,7 @@ export function sessionScreen(data: any): string {
                           <span class="text-zinc-600">#${a.queue}</span>
                           <span class="text-zinc-300">${a.character?.name || a.character?.username || '?'}</span>
                           <span>${a.description}</span>
-                          ${a.dice_roll ? `<span class="font-mono ${a.result && a.test && Number(a.result) <= Number(a.test) ? 'text-emerald-400' : 'text-red-400'}">${a.dice_roll}${a.result ? `=${a.result}` : ''}</span>` : ''}
+                          ${a.dice_roll ? `<span class="font-mono text-zinc-400">${a.dice_roll}${a.result ? `=${a.result}` : ''}</span>` : ''}
                         </div>
                       `).join('')}
                     </div>
@@ -145,69 +270,7 @@ export function sessionScreen(data: any): string {
             </div>
           `).join('')}
         </div>
-      </div>
-
-      <div id="tab-action" class="tab-content hidden space-y-6">
-        <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
-          <h2 class="text-lg font-bold text-zinc-100 mb-4">Roll &amp; Act</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div  class="flex flex-col items-center justify-center" >
-              <div class="flex items-center justify-center gap-4 mb-4">
-                <div id="d1" class="w-16 h-16 bg-zinc-800 border border-zinc-600/60 rounded-xl flex items-center justify-center text-3xl font-bold text-amber-400 font-mono shadow-inner">1</div>
-                <span class="text-zinc-600 text-xl">+</span>
-                <div id="d2" class="w-16 h-16 bg-zinc-800 border border-zinc-600/60 rounded-xl flex items-center justify-center text-3xl font-bold text-amber-400 font-mono shadow-inner">1</div>
-                <span class="text-zinc-600 text-xl">+</span>
-                <div id="d3" class="w-16 h-16 bg-zinc-800 border border-zinc-600/60 rounded-xl flex items-center justify-center text-3xl font-bold text-amber-400 font-mono shadow-inner">1</div>
-              </div>
-              <div class="flex items-center justify-center gap-3 mb-3">
-                <label class="text-xs text-zinc-500 uppercase tracking-wider">Mod</label>
-                <input type="number" id="diceMod" value="0" min="-20" max="20"
-                  class="w-16 bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-2 py-1.5 text-zinc-100 text-sm text-center focus:outline-none focus:border-amber-700/60 transition-colors" />
-                <span class="text-sm text-zinc-500">Modifier: <span id="modDisplay" class="text-zinc-300 font-semibold">0</span></span>
-                <span class="text-base text-zinc-300 font-semibold">Total: <span id="totalDisplay" class="text-amber-400 font-bold text-xl font-mono">3</span></span>
-              </div>
-              <div class="flex justify-center gap-3">
-                <button id="rollBtn" class="bg-amber-700/80 hover:bg-amber-600 text-amber-100 text-sm font-semibold px-5 py-2 rounded-lg transition-colors flex items-center gap-2"><span>🎲</span> Roll 3d6</button>
-                <button id="copyRollBtn" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-medium px-3 py-2 rounded-lg transition-colors">📋 Copy</button>
-              </div>
-            </div>
-            <div class="space-y-3">
-              <div>
-                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Character</label>
-                <select id="diceChar" class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60 transition-colors">
-                  <option value="" class="bg-zinc-800">—</option>
-                  ${characters.map((c: any) => `
-                    <option value="${c.id}" data-st="${c.st || c.sheet?.st || 10}" data-dx="${c.dx || c.sheet?.dx || 10}" data-iq="${c.iq || c.sheet?.iq || 10}" data-ht="${c.ht || c.sheet?.ht || 10}" class="bg-zinc-800">${c.name || c.username || 'Unknown'}</option>
-                  `).join('')}
-                </select>
-              </div>
-              <div>
-                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Skill / Attribute</label>
-                <select id="diceSkill" class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-700/60 transition-colors">
-                  <option value="st" class="bg-zinc-800">ST</option>
-                  <option value="dx" class="bg-zinc-800">DX</option>
-                  <option value="iq" class="bg-zinc-800">IQ</option>
-                  <option value="ht" class="bg-zinc-800">HT</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Description</label>
-                <input type="text" name="actionDesc" placeholder="Attacks the goblin..."
-                  class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="text-xs text-zinc-500 uppercase tracking-wider block mb-1">Target Number</label>
-                  <input type="number" name="actionTn" placeholder="TN"
-                    class="w-full bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-amber-700/60 transition-colors" />
-                </div>
-                <div class="flex items-end">
-                  <button type="submit" class="w-full bg-amber-700/80 hover:bg-amber-600 text-amber-100 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Add Action</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        ` : ''}
       </div>
 
       <div id="tab-cast" class="tab-content hidden space-y-6">
@@ -225,8 +288,74 @@ export function sessionScreen(data: any): string {
       </div>
     </div>
     <script>
+      window.openModal = function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('hidden');
+      };
+      window.closeModal = function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      };
+
+      window.submitChapter = function(e) {
+        e.preventDefault();
+        var f = e.target;
+        var title = f.querySelector('[name="title"]').value;
+        var tableId = document.getElementById('tableId').value;
+        var lc = ${lc};
+        fetch('/game-table-scene', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table_id: tableId, title: title, chapter: ${lc} + 1, moment: 0 })
+        }).then(function(r) { return r.json(); }).then(function(j) {
+          if (j.success) { location.reload(); }
+          else { alert('Error: ' + (j.error || 'Unknown')); }
+        }).catch(function(err) { alert('Network error: ' + err.message); });
+        return false;
+      };
+
+      window.submitMoment = function(e) {
+        e.preventDefault();
+        var f = e.target;
+        var title = f.querySelector('[name="title"]').value;
+        var tableId = document.getElementById('tableId').value;
+        fetch('/game-table-scene', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table_id: tableId, title: title, chapter: ${lc}, moment: ${lm + 1} })
+        }).then(function(r) { return r.json(); }).then(function(j) {
+          if (j.success) { location.reload(); }
+          else { alert('Error: ' + (j.error || 'Unknown')); }
+        }).catch(function(err) { alert('Network error: ' + err.message); });
+        return false;
+      };
+
+      window.submitNarration = function(e) {
+        e.preventDefault();
+        var f = e.target;
+        var title = f.querySelector('[name="title"]').value;
+        var charId = f.querySelector('[name="characterId"]').value;
+        var narration = f.querySelector('[name="narration"]').value;
+        var tableId = document.getElementById('tableId').value;
+        var sceneId = '${lsid}';
+        var prefix = '';
+        if (charId) {
+          var opt = f.querySelector('[name="characterId"] option[value="' + charId + '"]');
+          if (opt) prefix = '**' + opt.textContent + '**: ';
+        }
+        fetch('/game-table-narration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table_id: tableId, scene_id: sceneId, title: title, narration: prefix + narration, moment: ${lm} })
+        }).then(function(r) { return r.json(); }).then(function(j) {
+          if (j.success) { closeModal('narrationModal'); location.reload(); }
+          else { alert('Error: ' + (j.error || 'Unknown')); }
+        }).catch(function(err) { alert('Network error: ' + err.message); });
+        return false;
+      };
+
     (function() {
-      var activeTab = 'scenes';
+      var activeTab = 'action';
 
       window.switchTab = function(name) {
         document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.add('hidden'); });
@@ -244,26 +373,30 @@ export function sessionScreen(data: any): string {
         activeTab = name;
       };
 
-      switchTab('scenes');
+      switchTab(activeTab);
 
       var rollBtn = document.getElementById('rollBtn');
       var copyBtn = document.getElementById('copyRollBtn');
-      var d1 = document.getElementById('d1');
-      var d2 = document.getElementById('d2');
-      var d3 = document.getElementById('d3');
       var modDisplay = document.getElementById('modDisplay');
       var totalDisplay = document.getElementById('totalDisplay');
-      var diceChar = document.getElementById('diceChar');
-      var diceSkill = document.getElementById('diceSkill');
+      var diceResults = document.getElementById('diceResults');
+      var actChar = document.getElementById('actChar');
+      var actSkill = document.getElementById('actSkill');
       var diceMod = document.getElementById('diceMod');
+      var diceType = document.getElementById('diceType');
+      var diceCount = document.getElementById('diceCount');
+      var decBtn = document.getElementById('decBtn');
+      var incBtn = document.getElementById('incBtn');
+
+      var lastRolls = [];
 
       function getAttrib(opt, attr) {
         return parseInt((opt && opt.getAttribute(attr)) || '10', 10);
       }
 
       function updateMod() {
-        var sel = diceChar && diceChar.options[diceChar.selectedIndex];
-        var skill = diceSkill ? diceSkill.value : 'dx';
+        var sel = actChar && actChar.options[actChar.selectedIndex];
+        var skill = actSkill ? actSkill.value : 'dx';
         var attrib = getAttrib(sel, 'data-' + skill);
         var mod = parseInt((diceMod && diceMod.value) || '0', 10);
         var totalMod = Math.floor((attrib - 10) / 2) + mod;
@@ -272,30 +405,92 @@ export function sessionScreen(data: any): string {
       }
 
       function rollAll() {
-        var r1 = Math.floor(Math.random() * 6) + 1;
-        var r2 = Math.floor(Math.random() * 6) + 1;
-        var r3 = Math.floor(Math.random() * 6) + 1;
-        if (d1) d1.textContent = r1;
-        if (d2) d2.textContent = r2;
-        if (d3) d3.textContent = r3;
+        var die = parseInt((diceType && diceType.value) || '6', 10);
+        var count = parseInt((diceCount && diceCount.textContent) || '3', 10);
         var mod = updateMod();
-        var sum = r1 + r2 + r3 + mod;
-        if (totalDisplay) totalDisplay.textContent = sum;
+        lastRolls = [];
+        var sum = 0;
+        var html = '';
+        for (var i = 0; i < count; i++) {
+          var r = Math.floor(Math.random() * die) + 1;
+          lastRolls.push(r);
+          sum += r;
+          var color = r >= die ? 'text-emerald-400' : (r <= die * 0.25 ? 'text-red-400' : 'text-amber-400');
+          html += '<div class="w-10 h-10 bg-zinc-800 border border-zinc-600/50 rounded-lg flex items-center justify-center text-lg font-bold ' + color + ' font-mono shadow-inner">' + r + '</div>';
+          if (i < count - 1) html += '<span class="text-zinc-600 text-sm">+</span>';
+        }
+        if (diceResults) diceResults.innerHTML = html;
+        var total = sum + mod;
+        if (totalDisplay) totalDisplay.textContent = total;
       }
 
-      if (diceChar) diceChar.addEventListener('change', updateMod);
-      if (diceSkill) diceSkill.addEventListener('change', updateMod);
+      if (actChar) actChar.addEventListener('change', updateMod);
+      if (actSkill) actSkill.addEventListener('change', updateMod);
       if (diceMod) diceMod.addEventListener('input', updateMod);
       updateMod();
 
-      if (rollBtn) rollBtn.addEventListener('click', function(e) { e.preventDefault(); rollAll(); });
+      if (decBtn) decBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var c = parseInt((diceCount && diceCount.textContent) || '3', 10);
+        if (c > 1) { c--; if (diceCount) diceCount.textContent = c; }
+      });
+      if (incBtn) incBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var c = parseInt((diceCount && diceCount.textContent) || '3', 10);
+        if (c < 20) { c++; if (diceCount) diceCount.textContent = c; }
+      });
+
+      if (rollBtn) rollBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        rollAll();
+        var count = parseInt((diceCount && diceCount.textContent) || '3', 10);
+        if (lastRolls.length === 0) lastRolls = new Array(count).fill(0);
+        var total = (totalDisplay && totalDisplay.textContent) || '0';
+        var die = (diceType && diceType.value) || '6';
+        var text = count + 'd' + die + ' [ ' + lastRolls.join(' , ') + ' ]';
+        var rollInput = document.getElementById('actRoll');
+        if (rollInput) rollInput.value = text;
+      });
       if (copyBtn) copyBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        var r1 = (d1 && d1.textContent) || '0';
-        var r2 = (d2 && d2.textContent) || '0';
-        var r3 = (d3 && d3.textContent) || '0';
-        var total = (totalDisplay && totalDisplay.textContent) || '0';
-        navigator.clipboard.writeText(r1 + '+' + r2 + '+' + r3 + '=' + total).catch(function() {});
+        var count = parseInt((diceCount && diceCount.textContent) || '3', 10);
+        if (lastRolls.length === 0) lastRolls = new Array(count).fill(0);
+        var text = lastRolls.join('+') + '=' + (totalDisplay && totalDisplay.textContent) || '0';
+        navigator.clipboard.writeText(text).catch(function() {});
+      });
+
+      var addBtn = document.getElementById('addActionBtn');
+      if (addBtn) addBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var ch = document.getElementById('actChar');
+        var desc = document.getElementById('actDesc');
+        var roll = document.getElementById('actRoll');
+        var target = document.getElementById('actTarget');
+        if (!ch || !ch.value) { alert('Select a character'); return; }
+        if (!desc || !desc.value) { alert('Enter a description'); return; }
+        var payload = {
+          narrations_id: null,
+          character_id: ch.value,
+          description: desc.value,
+          dice_roll: roll ? roll.value || null : null,
+          queue: 1,
+          target: target ? target.value || null : null,
+          multitarget: false
+        };
+        fetch('/game-table-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(function(r) { return r.json(); }).then(function(j) {
+          if (j.success) {
+            desc.value = '';
+            roll.value = '';
+            if (target) target.value = '';
+            ch.value = '';
+          } else {
+            alert('Error: ' + (j.error || 'Unknown'));
+          }
+        }).catch(function(err) { alert('Network error: ' + err.message); });
       });
     })();
     </script>

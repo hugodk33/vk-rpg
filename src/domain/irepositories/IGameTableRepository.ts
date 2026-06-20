@@ -9,6 +9,8 @@ export interface IGameTableRepository {
   edit(gameTable: GameTable): Promise<void>
   findById(id: string): Promise<GameTableWithNarrator | null>
   findAll(): Promise<GameTableWithNarrator[]>
-  // findBySceneId(sceneId: string): Promise<GameTableScene >
   findByAllScenes(tableId: string): Promise<GameTableWithScenes>
+  createScene(data: any): Promise<void>
+  createNarration(data: any): Promise<void>
+  createNarrationAction(data: any): Promise<void>
 }
