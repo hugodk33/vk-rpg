@@ -44,10 +44,14 @@ export function sessionScreen(data: any): string {
 
   const sortedScenes = [...scenes].sort((a: any, b: any) => (b.chapter - a.chapter) || (b.moment - a.moment))
   const latestScene = sortedScenes[0]
+  const latestNarrations = latestScene?.narrations ?? []
+  const latestNarration = latestNarrations[latestNarrations.length - 1]
   const lc = latestScene?.chapter ?? 1
   const lm = latestScene?.moment ?? 0
-  const lt = latestScene?.title ?? ''
+  const lt = latestNarration?.title ?? latestScene?.title ?? ''
+  const ln = latestNarration?.narration ?? ''
   const lsid = latestScene?.id ?? ''
+  const lp = latestScene ? `${latestScene.moment + 1}.${latestNarrations.length}` : '1'
 
   return layout(`Session — ${table?.title || 'Game'}`, `
     <div class="max-w-4xl mx-auto p-4 md:p-6">
@@ -57,8 +61,9 @@ export function sessionScreen(data: any): string {
       </div>
 
       <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
-        <button data-tab="action" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('action')">Book</button>
-        <button data-tab="cast" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('cast')">Characters</button>
+        <button data-tab="act" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('act')">Act</button>
+        <button data-tab="timeline" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('timeline')">Timeline</button>
+        <button data-tab="table" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('table')">Table</button>
       </div>
 
       ${isAdmin ? `
@@ -128,26 +133,30 @@ export function sessionScreen(data: any): string {
       </div>
       ` : ''}
 
-      <div id="tab-action" class="tab-content space-y-6">
+      <div id="tab-act" class="tab-content space-y-6">
         <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
-          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <div class="flex items-center justify-between flex-wrap gap-3">
             <div class="text-sm text-zinc-300">
               <span class="text-zinc-500 uppercase text-xs tracking-wider">Chapter</span>
               <span class="text-amber-400 font-bold text-xl ml-1">${lc}</span>
               <span class="text-zinc-600 mx-2">&middot;</span>
               <span class="text-zinc-500 uppercase text-xs tracking-wider">Part</span>
-              <span class="text-amber-400 font-bold text-xl ml-1">${scenes.length}</span>
+              <span class="text-amber-400 font-bold text-xl ml-1">${lp}</span>
               <span class="text-zinc-600 mx-2">&middot;</span>
               <span class="text-zinc-300">${lt}</span>
             </div>
             ${isAdmin ? `
             <div class="flex gap-2 flex-wrap">
-              <button onclick="openModal('chapterModal')" class="bg-amber-700/80 hover:bg-amber-600 text-amber-100 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Chapter</button>
-              <button onclick="openModal('momentModal')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Part</button>
-              <button onclick="openModal('narrationModal')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Narration</button>
+              <button onclick="openModal('chapterModal')" class="bg-transparent border border-amber-700 text-amber-400 hover:bg-amber-700/10 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Chapter</button>
+              <button onclick="openModal('momentModal')" class="bg-transparent border border-zinc-600 text-zinc-300 hover:bg-zinc-700/10 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Part</button>
+              <button onclick="openModal('narrationModal')" class="bg-transparent border border-zinc-600 text-zinc-300 hover:bg-zinc-700/10 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">+ Next Narration</button>
             </div>
             ` : ''}
           </div>
+          ${ln ? `<p class="text-sm text-zinc-400 leading-relaxed italic border-l-2 border-zinc-700/50 pl-3 mt-3">${ln}</p>` : ''}
+        </div>
+
+        <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
           <h2 class="text-lg font-bold text-zinc-100 mb-4">Roll &amp; Act</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="flex flex-col items-center justify-center gap-2">
@@ -239,43 +248,70 @@ export function sessionScreen(data: any): string {
             </div>
           </div>
         </div>
+      </div>
 
-        ${scenes.length > 0 ? `
+      ${scenes.length > 0 ? (() => {
+        const chapters = new Map<number, any[]>()
+        for (const scene of scenes) {
+          const ch = scene.chapter || 1
+          if (!chapters.has(ch)) chapters.set(ch, [])
+          chapters.get(ch)!.push(scene)
+        }
+        const chapterEntries = [...chapters.entries()]
+        return `
+      <div id="tab-timeline" class="tab-content hidden space-y-6">
         <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
           <h2 class="text-lg font-bold text-zinc-100 mb-4">Timeline</h2>
-          ${scenes.map((s: any, si: number) => `
-            <div class="mb-6 last:mb-0">
-              <div class="flex items-baseline gap-2 mb-2">
-                <h3 class="text-base font-semibold text-amber-100">${s.title}</h3>
-                <span class="text-xs text-zinc-600">Ch.${s.chapter} &middot; Pt.${si + 1}</span>
-              </div>
-              ${(s.narrations ?? []).map((n: any, ni: number) => `
-                <div class="ml-4 pl-4 border-l-2 border-zinc-700/50 mb-3">
-                  <h4 class="text-xs text-zinc-500 mb-1">Pt.${si + 1}.${ni + 1}${n.title ? ' — ' + n.title : ''}</h4>
-                  <p class="text-sm text-zinc-300 leading-relaxed">${n.narration}</p>
-                  ${n.actions?.length ? `
-                    <div class="mt-2 text-xs text-zinc-500">
-                      ${n.actions.map((a: any) => `
-                        <div class="flex items-center gap-2 py-0.5">
-                          <span class="text-zinc-600">#${a.queue}</span>
-                          <span class="text-zinc-300">${a.character?.name || a.character?.username || '?'}</span>
-                          <span>${a.description}</span>
-                          ${a.dice_roll ? `<span class="font-mono text-zinc-400">${a.dice_roll}${a.result ? `=${a.result}` : ''}</span>` : ''}
+          ${chapterEntries.map(([chapter, chapterScenes]) => `
+            <div class="mb-10 last:mb-0">
+              <h3 class="text-lg font-semibold text-amber-100 mb-4">Chapter ${chapter}</h3>
+              ${chapterScenes.map((scene: any) => `
+                ${(() => {
+                  const narrations = scene.narrations ?? []
+                  if (narrations.length === 0) return '<p class="text-sm text-zinc-500 italic">No narrations.</p>'
+                  return narrations.map((n: any, ni: number) => `
+                    <div class="mb-5 pl-6 border-l-2 border-zinc-700/50">
+                      <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-xs text-zinc-500 font-mono">Pt.${(scene.moment as number) + 1}.${ni + 1}</span>
+                        ${n.title ? `<span class="text-sm font-medium text-zinc-300">${n.title}</span>` : ''}
+                      </div>
+                      <p class="text-sm text-zinc-300 leading-relaxed">${n.narration}</p>
+                      ${(() => {
+                        const participants: string[] = []
+                        for (const ch of (n.characters ?? [])) {
+                          participants.push(`<a href="/game-table-character-viewer/${ch.id}" class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 rounded px-2.5 py-1 text-xs transition-colors"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${ch.name || ch.username || 'Unknown'}</a>`)
+                        }
+                        for (const npc of (n.npcs ?? [])) {
+                          participants.push(`<a href="/game-table-character-viewer/${npc.characterId}" class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 rounded px-2.5 py-1 text-xs transition-colors"><span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>${npc.name || 'Unknown'}</a>`)
+                        }
+                        return participants.length ? `<div class="flex flex-wrap gap-2 mt-3">${participants.join('')}</div>` : ''
+                      })()}
+                      ${n.actions?.length ? `
+                        <div class="mt-3 pt-3 border-t border-zinc-700/30">
+                          ${[...n.actions].sort((a: any, b: any) => (a.queue ?? 0) - (b.queue ?? 0)).map((a: any) => `
+                            <div class="flex items-start gap-3 py-1">
+                              <span class="text-xs text-zinc-600 w-4 mt-0.5">${a.queue}.</span>
+                              <div class="flex-1 text-xs text-zinc-400">
+                                <span class="text-zinc-300">${a.character?.name || a.character?.username || '?'}</span>
+                                ${a.description ? `&mdash; ${a.description}` : ''}
+                                ${a.dice_roll ? `<span class="text-zinc-500 ml-1">${a.dice_roll}${a.result ? ` = ${a.result}` : ''}</span>` : ''}
+                              </div>
+                            </div>
+                          `).join('')}
                         </div>
-                      `).join('')}
+                      ` : ''}
                     </div>
-                  ` : ''}
-                </div>
+                  `).join('')
+                })()}
               `).join('')}
             </div>
           `).join('')}
         </div>
-        ` : ''}
       </div>
-
-      <div id="tab-cast" class="tab-content hidden space-y-6">
+      ` })() : ''}
+      <div id="tab-table" class="tab-content hidden space-y-6">
         <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
-          <h2 class="text-lg font-bold text-zinc-100 mb-4">Cast</h2>
+          <h2 class="text-lg font-bold text-zinc-100 mb-4">Table</h2>
           ${players.length === 0 && npcs.length === 0 ? `
             <p class="text-zinc-600 text-sm italic">No characters yet.</p>
           ` : `
@@ -355,7 +391,7 @@ export function sessionScreen(data: any): string {
       };
 
     (function() {
-      var activeTab = 'action';
+      var activeTab = 'act';
 
       window.switchTab = function(name) {
         document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.add('hidden'); });
