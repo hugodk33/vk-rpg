@@ -38,8 +38,10 @@ export function narratorDashboard(data: any): string {
                   <div class="flex gap-2">
                     <a href="/session/${t.id}/admin"
                       class="flex-1 text-center bg-amber-700/60 hover:bg-amber-600 text-amber-100 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
-                      Session
+                      Session (Admin)
                     </a>
+                  </div>
+                  <div class="flex gap-2">
                     <a href="/view/game_table_scenes/${t.id}"
                       class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
                       Scenes

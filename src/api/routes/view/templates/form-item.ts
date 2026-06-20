@@ -79,7 +79,7 @@ export function formItem(data?: any): string {
               class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors">
               ${isEdit ? 'Salvar Alterações' : 'Criar Item'}
             </button>
-            <a href="/" class="text-zinc-400 hover:text-zinc-300 text-sm transition-colors">Cancelar</a>
+            <a href="/" class="text-zinc-400 hover:text-zinc-300 text-sm transition-colors">Cancel</a>
           </div>
         </form>
       </div>
