@@ -56,7 +56,7 @@ export function playerSession(data: any): string {
   return layout(`Session — ${table?.title || 'Game'}`, `
     <div class="max-w-4xl mx-auto p-4 md:p-6">
       <div class="mb-4">
-        <a href="/dashboard/player/0" class="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">&larr; Back to dashboard</a>
+        <br />
         <h1 class="text-2xl font-bold text-amber-100 mt-1">${table?.title || 'Session'}</h1>
       </div>
 
