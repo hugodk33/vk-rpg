@@ -41,8 +41,8 @@ export function layout(title: string, content: string): string {
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div class="absolute right-0 mt-1 w-44 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
-              <a href="/dashboard/narrator/1" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Narrator</a>
-              <a href="/dashboard/player/1" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Player</a>
+              <a href="/dashboard/narrator/0" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Narrator</a>
+              <a href="/dashboard/player/0" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Player</a>
             </div>
           </details>
         </nav>
@@ -60,8 +60,8 @@ export function layout(title: string, content: string): string {
         <a href="/form/advantage/new" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Advantage</a>
         <a href="/form/disadvantage/new" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Disadvantage</a>
         <div class="text-zinc-500 text-xs uppercase tracking-wider px-3 pt-3 pb-1">Dashboards</div>
-        <a href="/dashboard/narrator/1" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Narrator</a>
-        <a href="/dashboard/player/1" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Player</a>
+        <a href="/dashboard/narrator/0" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Narrator</a>
+        <a href="/dashboard/player/0" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Player</a>
       </div>
     </div>
   </header>

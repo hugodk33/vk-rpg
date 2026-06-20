@@ -4,6 +4,9 @@ import { FindGameTableUseCase } from '../../application/use-cases/tables-use-cas
 import { FindAllGameTablesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTablesUseCase'
 import { FindAllGameTableScenesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTableScenesUseCase'
 import { EditGameTableUseCase } from '../../application/use-cases/tables-use-cases/EditGameTableUseCase'
+import { CreateSceneUseCase } from '../../application/use-cases/tables-use-cases/CreateSceneUseCase'
+import { CreateNarrationUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationUseCase'
+import { CreateNarrationActionUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationActionUseCase'
 
 export class GameTableController {
   constructor(
@@ -11,7 +14,10 @@ export class GameTableController {
     private findGameTableUseCase: FindGameTableUseCase,
     private findAllGameTablesUseCase: FindAllGameTablesUseCase,
     private findAllGameTableScenesUseCase: FindAllGameTableScenesUseCase,
-    private editGameTableUseCase: EditGameTableUseCase
+    private editGameTableUseCase: EditGameTableUseCase,
+    private createSceneUseCase: CreateSceneUseCase,
+    private createNarrationUseCase: CreateNarrationUseCase,
+    private createNarrationActionUseCase: CreateNarrationActionUseCase
   ) {}
 
   async create(req: Request, res: Response) {
@@ -39,5 +45,31 @@ export class GameTableController {
     const gameTable = await this.editGameTableUseCase.execute({ ...req.body, id })
     return res.json(gameTable)
   }
-  
+
+  async createScene(req: Request, res: Response) {
+    try {
+      const scene = await this.createSceneUseCase.execute(req.body)
+      return res.json({ success: true, scene })
+    } catch (e: any) {
+      return res.status(500).json({ success: false, error: e.message })
+    }
+  }
+
+  async createNarration(req: Request, res: Response) {
+    try {
+      const narration = await this.createNarrationUseCase.execute(req.body)
+      return res.json({ success: true, narration })
+    } catch (e: any) {
+      return res.status(500).json({ success: false, error: e.message })
+    }
+  }
+
+  async createNarrationAction(req: Request, res: Response) {
+    try {
+      const action = await this.createNarrationActionUseCase.execute(req.body)
+      return res.json({ success: true, action })
+    } catch (e: any) {
+      return res.status(500).json({ success: false, error: e.message })
+    }
+  }
 }

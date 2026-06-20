@@ -24,7 +24,6 @@ import { CreateGameTableCharacterUseCase } from '../../application/use-cases/tab
 import { EditGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableCharacterUseCase'
 import { FindGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterUseCase'
 import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
-
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -164,8 +163,12 @@ export class GameTableRulesController {
   }
 
   async createCharacter(req: Request, res: Response) {
-    await this.createGameTableCharacterUseCase!.execute(req.body)
-    return res.json({ success: true })
+    try {
+      const result = await this.createGameTableCharacterUseCase!.execute(req.body)
+      return res.json({ success: true, ...result })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message })
+    }
   }
 
   async editCharacter(req: Request, res: Response) {

@@ -64,12 +64,16 @@ export function playerDashboard(data: any): string {
                 <div class="flex gap-2">
                   <a href="/game-table-character-viewer/${ch.id}"
                     class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
-                    Ficha
+                    Sheet
                   </a>
                   ${table ? `
+                    <a href="/session/${table.id}/player"
+                      class="flex-1 text-center bg-emerald-700/60 hover:bg-emerald-600 text-emerald-100 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                      Session
+                    </a>
                     <a href="/view/game_table_scenes/${table.id}"
                       class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
-                      Mesa
+                      Scenes
                     </a>
                   ` : ''}
                 </div>

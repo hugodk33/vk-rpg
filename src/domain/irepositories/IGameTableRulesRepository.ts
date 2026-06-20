@@ -19,12 +19,12 @@ export interface IGameTableRulesRepository {
   findGameItems(id: any): Promise<void>
   findAllGameItems(id: any): Promise<any[] | void>
 
-  createGameCharacter(id: any): Promise<void>
+  createGameCharacter(data: any): Promise<any>
   editGameCharacter(id: any): Promise<void>
   findGameCharacter(id: any): Promise<void>
   findAllGameCharacters(id: any): Promise<any[] | void>
 
-  createGameNPC(id: any): Promise<void>
+  createGameNPC(data: any): Promise<any>
   editGameNPC(id: any): Promise<void>
   findGameNPC(id: any): Promise<void>
   findAllGameNPCS(id: any): Promise<any[] | void>

@@ -20,7 +20,6 @@ export const GameTableDBStrings:any = {
       na.id AS action_id,
       na.test AS action_test,
       na.queue AS action_queue,
-      na.result AS action_result,
       na.character_id AS action_character_id,
       na.description AS action_description,
       na.dice_roll AS action_dice_roll,
@@ -281,7 +280,6 @@ export const GameTableDBStrings:any = {
         n.moment AS narration_moment,
         a.id AS action_id,
         a.queue AS action_queue,
-        a.test AS action_test,
         a.result AS action_result,
         a.description AS action_description,
         a.dice_roll AS action_dice_roll,
@@ -312,5 +310,17 @@ export const GameTableDBStrings:any = {
       UPDATE game_tables
       SET title = ?, intro = ?, system = ?
       WHERE id = ?
+    `,
+    SceneCreate:`
+      INSERT INTO scenes (id, table_id, title, chapter, moment)
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    NarrationCreate:`
+      INSERT INTO narrations (id, table_id, scene_id, title, narration, moment)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `,
+    NarrationActionCreate:`
+      INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 }

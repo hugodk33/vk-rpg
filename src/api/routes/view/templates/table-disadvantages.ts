@@ -7,7 +7,7 @@ export function tableDisadvantages(data: any): string {
   return layout(`${table?.title || 'Disadvantages'} — Disadvantages`, `
     <div class="max-w-4xl mx-auto p-6">
       <div class="mb-6">
-        <a href="/dashboard/narrator/${table?.narrator_id || '0'}" class="text-zinc-500 hover:text-zinc-300 text-sm">&larr; Back to dashboard</a>
+        <a href="/" class="text-zinc-500 hover:text-zinc-300 text-sm">&larr; Back to tables</a>
         <h1 class="text-2xl font-bold text-amber-100 mt-2">${table?.title || 'Table'} — Disadvantages</h1>
       </div>
 
