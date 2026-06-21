@@ -1,4 +1,5 @@
 import { layout } from './layout'
+import { tabBar } from './tab-bar'
 
 function locationCard(loc: any): string {
   if (!loc) return ''
@@ -44,6 +45,8 @@ function actionRow(a: any): string {
 export function gameTableScenes(data: any): string {
   const table = data.table
   const scenes = data.scenes ?? []
+  const actUrl = data.actUrl ?? `/session/${table?.id}`
+  const isPlayer = data.isPlayer ?? false
 
   const chapters = new Map<number, any[]>()
   for (const scene of scenes) {
@@ -55,14 +58,9 @@ export function gameTableScenes(data: any): string {
 
   return layout(`${table?.title || 'Scenes'} &mdash; Scenes`, `
     <div class="max-w-4xl mx-auto p-6">
-      <div class="mb-8">
-        <a href="/" class="text-zinc-500 hover:text-zinc-300 text-sm">&larr; Back to tables</a>
-        <h1 class="text-3xl font-bold mt-2 text-amber-100">${table?.title || 'Scenes'}</h1>
-        ${table?.intro ? `<p class="text-zinc-400 mt-1">${table.intro}</p>` : ''}
-        <div class="flex gap-3 mt-3">
-          <a href="/view/game_table_characters/${table?.id}" class="text-emerald-400 hover:text-emerald-300 text-sm">View Characters &rarr;</a>
-        </div>
-      </div>
+      ${tabBar(table?.id, 'timeline', actUrl, undefined, isPlayer)}
+      <h1 class="text-3xl font-bold text-amber-100">${table?.title || 'Scenes'}</h1>
+      ${table?.intro ? `<p class="text-zinc-400 mt-1 mb-6">${table.intro}</p>` : '<br />'}
 
       ${scenes.length === 0 ? `
         <p class="text-zinc-500 italic">No scenes yet.</p>

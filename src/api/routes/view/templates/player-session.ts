@@ -1,4 +1,5 @@
 import { layout } from './layout'
+import { tabBar } from './tab-bar'
 
 function charCard(ch: any, isNpc: boolean): string {
   const id = isNpc ? ch.characterId : ch.id
@@ -61,14 +62,9 @@ export function playerSession(data: any): string {
         <h1 class="text-2xl font-bold text-amber-100 mt-1">${table?.title || 'Session'}</h1>
       </div>
 
-      <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
-        <button data-tab="act" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('act')">Act</button>
-        <button data-tab="timeline" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('timeline')">Timeline</button>
-        <button data-tab="table" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('table')">Table</button>
-        ${playerChar ? `<a href="/game-table-character-viewer/${playerChar.id}" class="px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Character</a>` : ''}
-      </div>
+      ${tabBar(table?.id, 'act', `/table/${table?.id}`, playerChar ? `/game-table-character-viewer/${playerChar.id}` : undefined, true)}
 
-      <div id="tab-act" class="tab-content space-y-6">
+      <div id="tab-act" class="space-y-6">
         <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
           <div class="flex items-center justify-between flex-wrap gap-3">
             <div class="text-sm text-zinc-300">
@@ -159,101 +155,10 @@ export function playerSession(data: any): string {
         </div>
       </div>
 
-      ${scenes.length > 0 ? (() => {
-        const chapters = new Map<number, any[]>()
-        for (const scene of scenes) {
-          const ch = scene.chapter || 1
-          if (!chapters.has(ch)) chapters.set(ch, [])
-          chapters.get(ch)!.push(scene)
-        }
-        const chapterEntries = [...chapters.entries()]
-        return `
-      <div id="tab-timeline" class="tab-content hidden space-y-6">
-        <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
-          <h2 class="text-lg font-bold text-zinc-100 mb-4">Timeline</h2>
-          ${chapterEntries.map(([chapter, chapterScenes]) => `
-            <div class="mb-10 last:mb-0">
-              <h3 class="text-lg font-semibold text-amber-100 mb-4">Chapter ${chapter}</h3>
-              ${chapterScenes.map((scene: any) => `
-                ${(() => {
-                  const narrations = scene.narrations ?? []
-                  if (narrations.length === 0) return '<p class="text-sm text-zinc-500 italic">No narrations.</p>'
-                  return narrations.map((n: any, ni: number) => `
-                    <div class="mb-5 pl-6 border-l-2 border-zinc-700/50">
-                      <div class="flex items-baseline gap-2 mb-1">
-                        <span class="text-xs text-zinc-500 font-mono">Pt.${(scene.moment as number) + 1}.${ni + 1}</span>
-                        ${n.title ? `<span class="text-sm font-medium text-zinc-300">${n.title}</span>` : ''}
-                      </div>
-                      <p class="text-sm text-zinc-300 leading-relaxed">${n.narration}</p>
-                      ${(() => {
-                        const participants: string[] = []
-                        for (const ch of (n.characters ?? [])) {
-                          participants.push(`<a href="/game-table-character-viewer/${ch.id}" class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 rounded px-2.5 py-1 text-xs transition-colors"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${ch.name || ch.username || 'Unknown'}</a>`)
-                        }
-                        for (const npc of (n.npcs ?? [])) {
-                          participants.push(`<a href="/game-table-character-viewer/${npc.characterId}" class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 rounded px-2.5 py-1 text-xs transition-colors"><span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>${npc.name || 'Unknown'}</a>`)
-                        }
-                        return participants.length ? `<div class="flex flex-wrap gap-2 mt-3">${participants.join('')}</div>` : ''
-                      })()}
-                      ${n.actions?.length ? `
-                        <div class="mt-3 pt-3 border-t border-zinc-700/30">
-                          ${[...n.actions].sort((a: any, b: any) => (a.queue ?? 0) - (b.queue ?? 0)).map((a: any) => `
-                            <div class="flex items-start gap-3 py-1">
-                              <span class="text-xs text-zinc-600 w-4 mt-0.5">${a.queue}.</span>
-                              <div class="flex-1 text-xs text-zinc-400">
-                                <span class="text-zinc-300">${a.character?.name || a.character?.username || '?'}</span>
-                                ${a.description ? `&mdash; ${a.description}` : ''}
-                                ${a.dice_roll ? `<span class="text-zinc-500 ml-1">${a.dice_roll}${a.result ? ` = ${a.result}` : ''}</span>` : ''}
-                              </div>
-                            </div>
-                          `).join('')}
-                        </div>
-                      ` : ''}
-                    </div>
-                  `).join('')
-                })()}
-              `).join('')}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-      ` })() : ''}
-      <div id="tab-table" class="tab-content hidden space-y-6">
-        <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">
-          <h2 class="text-lg font-bold text-zinc-100 mb-4">Table</h2>
-          ${players.length === 0 && npcs.length === 0 ? `
-            <p class="text-zinc-600 text-sm italic">No characters yet.</p>
-          ` : `
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              ${players.map((ch: any) => charCard(ch, false)).join('')}
-              ${npcs.map((n: any) => charCard(n, true)).join('')}
-            </div>
-          `}
-        </div>
-      </div>
+
     </div>
     <script>
       (function() {
-        var activeTab = 'act';
-
-        window.switchTab = function(name) {
-          document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.add('hidden'); });
-          document.querySelectorAll('.tab-btn').forEach(function(el) {
-            el.classList.remove('text-zinc-200', 'border-amber-500');
-            el.classList.add('text-zinc-400', 'border-transparent');
-          });
-          var content = document.getElementById('tab-' + name);
-          if (content) content.classList.remove('hidden');
-          var btn = document.querySelector('[data-tab="' + name + '"]');
-          if (btn) {
-            btn.classList.remove('text-zinc-400', 'border-transparent');
-            btn.classList.add('text-zinc-200', 'border-amber-500');
-          }
-          activeTab = name;
-        };
-
-        switchTab(activeTab);
-
         var rollBtn = document.getElementById('rollBtn');
         var copyBtn = document.getElementById('copyRollBtn');
         var modDisplay = document.getElementById('modDisplay');

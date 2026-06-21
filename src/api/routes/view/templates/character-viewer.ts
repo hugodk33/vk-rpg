@@ -1,10 +1,16 @@
 import { layout } from './layout'
+import { tabBar } from './tab-bar'
 
 function radarChart(st: number, dx: number, iq: number, ht: number, size = 165): string {
   const cx = size / 2, cy = size / 2, r = size * 0.4
   const angles = [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2]
   const max = 20
-  const labels = ['ST', 'DX', 'IQ', 'HT']
+  const icons = [
+    { path: 'M13 10V3L4 14h7v7l9-11h-7z', color: '#f87171' },
+    { path: 'M13 5l7 7-7 7M5 5l7 7-7 7', color: '#34d399' },
+    { path: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z', color: '#60a5fa' },
+    { path: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', color: '#c084fc' },
+  ]
   const vals = [st, dx, iq, ht]
   const pts = vals.map((v, i) => {
     const pct = Math.min(1, (v ?? 10) / max)
@@ -17,27 +23,45 @@ function radarChart(st: number, dx: number, iq: number, ht: number, size = 165):
       return `${cx + r * pct * Math.cos(angle)},${cy + r * pct * Math.sin(angle)}`
     }).join(' ')
   )
+  const badges = [
+    { style: 'top: -28px; left: 50%; transform: translateX(-50%);' },
+    { style: 'top: 50%; right: -28px; transform: translateY(-50%);' },
+    { style: 'bottom: -28px; left: 50%; transform: translateX(-50%);' },
+    { style: 'top: 50%; left: -28px; transform: translateY(-50%);' },
+  ]
+  const labels = ['ST', 'DX', 'IQ', 'HT']
   return `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="shrink-0">
-      ${grid.map(g => `<polygon points="${g}" fill="none" stroke="#3f3f46" stroke-width="0.8"/>`).join('')}
-      <polygon points="${pts}" fill="rgba(251,191,36,0.12)" stroke="#f59e0b" stroke-width="1.5"/>
-      ${angles.map((a, i) => {
+    <div class="relative inline-flex" style="width: ${size}px; height: ${size}px;">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="shrink-0">
+        ${grid.map(g => `<polygon points="${g}" fill="none" stroke="#3f3f46" stroke-width="0.8"/>`).join('')}
+        <polygon points="${pts}" fill="rgba(251,191,36,0.12)" stroke="#f59e0b" stroke-width="1.5"/>
+        ${angles.map((a, i) => {
+          const v = vals[i] ?? 10
+          const pct = Math.min(1, v / max)
+          const angle = a - Math.PI / 2
+          const px = cx + r * pct * Math.cos(angle)
+          const py = cy + r * pct * Math.sin(angle)
+          const lx = cx + r * Math.cos(angle)
+          const ly = cy + r * Math.sin(angle)
+          return `
+            <line x1="${cx}" y1="${cy}" x2="${lx}" y2="${ly}" stroke="#3f3f46" stroke-width="0.8"/>
+            <circle cx="${px}" cy="${py}" r="3" fill="#f59e0b"/>
+          `
+        }).join('')}
+      </svg>
+      ${badges.map((b, i) => {
+        const ic = icons[i]!
         const v = vals[i] ?? 10
-        const pct = Math.min(1, v / max)
-        const angle = a - Math.PI / 2
-        const px = cx + r * pct * Math.cos(angle)
-        const py = cy + r * pct * Math.sin(angle)
-        const lx = cx + r * Math.cos(angle)
-        const ly = cy + r * Math.sin(angle)
-        const lpx = cx + (r + 20) * Math.cos(angle)
-        const lpy = cy + (r + 20) * Math.sin(angle)
         return `
-          <line x1="${cx}" y1="${cy}" x2="${lx}" y2="${ly}" stroke="#3f3f46" stroke-width="0.8"/>
-          <circle cx="${px}" cy="${py}" r="3" fill="#f59e0b"/>
-          <text x="${lpx}" y="${lpy + 3}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="600">${labels[i]} ${v}</text>
+          <div class="absolute flex flex-col items-center" style="${b.style}">
+            <svg class="w-4 h-4" fill="none" stroke="${ic.color}" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="${ic.path}"/>
+            </svg>
+            <span class="text-xs font-bold leading-none mt-0.5" style="color:${ic.color}">${v}</span>
+          </div>
         `
       }).join('')}
-    </svg>
+    </div>
   `
 }
 
@@ -127,19 +151,13 @@ export function characterViewer(data: any): string {
   const table = data.table
   const name = s?.name || ch.name || 'Character'
 
+  const actUrl = data.actUrl ?? `/session/${table?.id}`
+  const isPlayer = data.isPlayer ?? false
+
   return layout(name, `
     <div class="max-w-6xl mx-auto p-4 md:p-6">
-      ${table?.id ? `
-        <div class="mb-3 flex items-center justify-between">
-          <a href="/view/game_table_scenes/${table.id}" class="text-zinc-500 hover:text-amber-400 text-sm transition-colors">&larr; Back to table</a>
-        </div>
-        <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
-          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Act</a>
-          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Timeline</a>
-          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Table</a>
-          <a href="/game-table-character-viewer/${ch.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-200 border-b-2 border-amber-500 transition-colors">Character</a>
-        </div>
-      ` : ''}
+      ${table?.id ? tabBar(table.id, 'character', actUrl, `/game-table-character-viewer/${ch.id}`, isPlayer) : ''}
+      <br />
       <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">
 
         <div class="bg-gradient-to-r from-zinc-800 to-zinc-900 border-b border-zinc-700/60 px-6 py-5">
@@ -161,13 +179,30 @@ export function characterViewer(data: any): string {
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Core Attributes</h3>
-              <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4">
-                <span class="text-zinc-400 text-sm font-semibold"><svg class="w-4 h-4 inline align-text-bottom text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg> ST <span class="text-red-400 text-xl font-bold ml-1">${s?.st ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold"><svg class="w-4 h-4 inline align-text-bottom text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> DX <span class="text-emerald-400 text-xl font-bold ml-1">${s?.dx ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold"><svg class="w-4 h-4 inline align-text-bottom text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg> IQ <span class="text-blue-400 text-xl font-bold ml-1">${s?.iq ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold"><svg class="w-4 h-4 inline align-text-bottom text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg> HT <span class="text-purple-400 text-xl font-bold ml-1">${s?.ht ?? '-'}</span></span>
+              <div class="flex justify-center flex-wrap gap-3 mb-4">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  <span class="text-red-400 text-xl font-bold">${s?.st ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">ST</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                  <span class="text-emerald-400 text-xl font-bold">${s?.dx ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">DX</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                  <span class="text-blue-400 text-xl font-bold">${s?.iq ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">IQ</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                  <span class="text-purple-400 text-xl font-bold">${s?.ht ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">HT</span>
+                </div>
               </div>
-              <div class="flex pl-2">
+              <br /><br />
+              <div class="flex justify-center pb-10">
                 ${s ? radarChart(s.st ?? 10, s.dx ?? 10, s.iq ?? 10, s.ht ?? 10) : ''}
               </div>
             </div>
@@ -187,15 +222,36 @@ export function characterViewer(data: any): string {
               </div>
 
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Movement</h3>
-              <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-                <span class="text-zinc-400 text-sm font-semibold">Spd <span class="text-cyan-400 text-lg font-bold ml-1">${s?.basic_speed ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold">Move <span class="text-cyan-400 text-lg font-bold ml-1">${s?.move ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold">Enc <span class="text-cyan-400 text-lg font-bold ml-1">${s?.encumbrance ?? '-'}</span></span>
+              <div class="flex justify-center flex-wrap gap-3">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                  <span class="text-cyan-400 text-xl font-bold">${s?.basic_speed ?? '-'}${s.move? ' km/h' : ''}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">Spd</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  <span class="text-cyan-400 text-xl font-bold">${s?.move ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">Move</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                  <span class="text-cyan-400 text-xl font-bold">${s?.encumbrance ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">Enc</span>
+                </div>
               </div>
             </div>
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Body</h3>
+              ${armorDiagram(ch.armors)}
+              <div class="space-y-1 mt-4 border-t border-zinc-700/40 pt-4">
+                ${(ch.armors ?? []).map((a: any) => `
+                  <div class="flex justify-between text-xs">
+                    <span class="text-zinc-300">${a.name}</span>
+                    <span class="text-amber-400/80">${(a.value ?? '').replace('DR ', '')} ${a.fit || ''}</span>
+                  </div>
+                `).join('')}
+            </div>
           </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div>
               ${section('Advantages',
                 !ch.advantages || ch.advantages.length === 0
@@ -238,9 +294,6 @@ export function characterViewer(data: any): string {
                 '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>'
               )}
             </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
               ${section('Attacks & Damage',
                 !ch.damages || ch.damages.length === 0
@@ -289,25 +342,6 @@ export function characterViewer(data: any): string {
                 '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
               )}
             </div>
-            <div>
-              ${section('Armor',
-                !ch.armors || ch.armors.length === 0
-                  ? '<p class="text-zinc-600 text-sm italic">None</p>'
-                  : `
-                    ${armorDiagram(ch.armors)}
-                    <div class="space-y-1 mt-4 border-t border-zinc-700/40 pt-4">
-                      ${(ch.armors ?? []).map((a: any) => `
-                        <div class="flex justify-between text-xs">
-                          <span class="text-zinc-300">${a.name}</span>
-                          <span class="text-amber-400/80">${(a.value ?? '').replace('DR ', '')} ${a.fit || ''}</span>
-                        </div>
-                      `).join('')}
-                    </div>
-                  `,
-                '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>'
-              )}
-            </div>
-          </div>
 
           <div class="flex items-center justify-between pt-4 border-t border-zinc-700/40">
             <a href="/" class="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">&larr; Back</a>
