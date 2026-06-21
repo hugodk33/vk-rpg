@@ -9,13 +9,13 @@ export function gameTableList(tables: any[], search: string): string {
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-        <a href="/dashboard/narrator/0"
+        <a href="/tables"
            class="block bg-zinc-800/60 border border-zinc-700/50 rounded-xl p-6 hover:border-amber-700/50 transition-colors group">
           <div class="text-3xl mb-2">🎲</div>
           <h2 class="text-xl font-bold text-zinc-100 group-hover:text-amber-400 transition-colors">Narrator</h2>
           <p class="text-zinc-500 text-sm mt-1">Manage your tables, scenes, and characters. Guide the story.</p>
         </a>
-        <a href="/dashboard/player/0"
+        <a href="/table"
            class="block bg-zinc-800/60 border border-zinc-700/50 rounded-xl p-6 hover:border-emerald-700/50 transition-colors group">
           <div class="text-3xl mb-2">⚔️</div>
           <h2 class="text-xl font-bold text-zinc-100 group-hover:text-emerald-400 transition-colors">Player</h2>

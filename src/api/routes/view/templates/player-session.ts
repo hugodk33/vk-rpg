@@ -41,6 +41,7 @@ export function playerSession(data: any): string {
 
   const players = characters.filter((c: any) => !c.isNpc)
   const npcs = characters.filter((c: any) => c.isNpc)
+  const playerChar = players[0]
 
   const sortedScenes = [...scenes].sort((a: any, b: any) => (b.chapter - a.chapter) || (b.moment - a.moment))
   const latestScene = sortedScenes[0]
@@ -64,6 +65,7 @@ export function playerSession(data: any): string {
         <button data-tab="act" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('act')">Act</button>
         <button data-tab="timeline" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('timeline')">Timeline</button>
         <button data-tab="table" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors" onclick="switchTab('table')">Table</button>
+        ${playerChar ? `<a href="/game-table-character-viewer/${playerChar.id}" class="px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Character</a>` : ''}
       </div>
 
       <div id="tab-act" class="tab-content space-y-6">

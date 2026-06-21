@@ -130,8 +130,14 @@ export function characterViewer(data: any): string {
   return layout(name, `
     <div class="max-w-6xl mx-auto p-4 md:p-6">
       ${table?.id ? `
-        <div class="mb-3">
+        <div class="mb-3 flex items-center justify-between">
           <a href="/view/game_table_scenes/${table.id}" class="text-zinc-500 hover:text-amber-400 text-sm transition-colors">&larr; Back to table</a>
+        </div>
+        <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
+          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Act</a>
+          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Timeline</a>
+          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Table</a>
+          <a href="/game-table-character-viewer/${ch.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-200 border-b-2 border-amber-500 transition-colors">Character</a>
         </div>
       ` : ''}
       <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">

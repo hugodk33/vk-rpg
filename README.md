@@ -53,8 +53,8 @@ npm run seed
 | GET | `/form/advantage/:id` | Edit an advantage |
 | GET | `/form/disadvantage/new` | Create a disadvantage |
 | GET | `/form/disadvantage/:id` | Edit a disadvantage |
-| GET | `/dashboard/narrator/:narratorId` | Narrator dashboard |
-| GET | `/dashboard/player/:userId` | Player dashboard |
+| GET | `/tables/:narratorId` | Narrator dashboard |
+| GET | `/table/:userId` | Player dashboard |
 
 ### API Routes (JSON)
 
