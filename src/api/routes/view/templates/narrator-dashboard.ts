@@ -36,36 +36,36 @@ export function narratorDashboard(data: any): string {
                 ` : ''}
                 <div class="flex flex-col gap-2">
                   <div class="flex gap-2">
-                    <a href="/session/${t.id}/admin"
-                      class="flex-1 text-center bg-amber-700/60 hover:bg-amber-600 text-amber-100 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
-                      Session (Admin)
+                    <a href="/session/${t.id}"
+                      class="flex-1 text-center bg-amber-700/60 hover:bg-amber-600 text-amber-100 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
+                      Session
                     </a>
                   </div>
                   <div class="flex gap-2">
                     <a href="/view/game_table_scenes/${t.id}"
-                      class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                      class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
                       Scenes
                     </a>
                     <a href="/view/game_table_characters/${t.id}"
-                      class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                      class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
                       Characters
                     </a>
                     <a href="/form/game-table/${t.id}"
-                      class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                      class="flex-1 text-center bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
                       Edit
                     </a>
                   </div>
                   <div class="flex gap-2">
                     <a href="/view/game_table_items/${t.id}"
-                      class="flex-1 text-center bg-zinc-700/50 hover:bg-zinc-600 text-zinc-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                      class="flex-1 text-center bg-zinc-700/50 hover:bg-zinc-600 text-zinc-300 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
                       Items
                     </a>
                     <a href="/view/game_table_advantages/${t.id}"
-                      class="flex-1 text-center bg-zinc-700/50 hover:bg-zinc-600 text-zinc-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                      class="flex-1 text-center bg-zinc-700/50 hover:bg-zinc-600 text-zinc-300 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
                       Advantages
                     </a>
                     <a href="/view/game_table_disadvantages/${t.id}"
-                      class="flex-1 text-center bg-zinc-700/50 hover:bg-zinc-600 text-zinc-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                      class="flex-1 text-center bg-zinc-700/50 hover:bg-zinc-600 text-zinc-300 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
                       Disadvantages
                     </a>
                   </div>

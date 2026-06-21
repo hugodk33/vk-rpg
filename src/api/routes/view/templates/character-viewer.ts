@@ -130,8 +130,14 @@ export function characterViewer(data: any): string {
   return layout(name, `
     <div class="max-w-6xl mx-auto p-4 md:p-6">
       ${table?.id ? `
-        <div class="mb-3">
+        <div class="mb-3 flex items-center justify-between">
           <a href="/view/game_table_scenes/${table.id}" class="text-zinc-500 hover:text-amber-400 text-sm transition-colors">&larr; Back to table</a>
+        </div>
+        <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
+          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Act</a>
+          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Timeline</a>
+          <a href="/table/${table.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Table</a>
+          <a href="/game-table-character-viewer/${ch.id}" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-200 border-b-2 border-amber-500 transition-colors">Character</a>
         </div>
       ` : ''}
       <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">
@@ -156,10 +162,10 @@ export function characterViewer(data: any): string {
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Core Attributes</h3>
               <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4">
-                <span class="text-zinc-400 text-sm font-semibold">ST <span class="text-red-400 text-xl font-bold ml-1">${s?.st ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold">DX <span class="text-emerald-400 text-xl font-bold ml-1">${s?.dx ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold">IQ <span class="text-blue-400 text-xl font-bold ml-1">${s?.iq ?? '-'}</span></span>
-                <span class="text-zinc-400 text-sm font-semibold">HT <span class="text-purple-400 text-xl font-bold ml-1">${s?.ht ?? '-'}</span></span>
+                <span class="text-zinc-400 text-sm font-semibold"><svg class="w-4 h-4 inline align-text-bottom text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg> ST <span class="text-red-400 text-xl font-bold ml-1">${s?.st ?? '-'}</span></span>
+                <span class="text-zinc-400 text-sm font-semibold"><svg class="w-4 h-4 inline align-text-bottom text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> DX <span class="text-emerald-400 text-xl font-bold ml-1">${s?.dx ?? '-'}</span></span>
+                <span class="text-zinc-400 text-sm font-semibold"><svg class="w-4 h-4 inline align-text-bottom text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg> IQ <span class="text-blue-400 text-xl font-bold ml-1">${s?.iq ?? '-'}</span></span>
+                <span class="text-zinc-400 text-sm font-semibold"><svg class="w-4 h-4 inline align-text-bottom text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg> HT <span class="text-purple-400 text-xl font-bold ml-1">${s?.ht ?? '-'}</span></span>
               </div>
               <div class="flex pl-2">
                 ${s ? radarChart(s.st ?? 10, s.dx ?? 10, s.iq ?? 10, s.ht ?? 10) : ''}

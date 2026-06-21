@@ -213,7 +213,7 @@ router.get('/form/disadvantage/:id', async (req, res) => {
   } catch { res.status(500).send('Internal server error') }
 })
 
-router.get('/dashboard/narrator/:narratorId', async (req, res) => {
+router.get('/tables', async (req, res) => {
   try {
     const tables = await findAllGameTablesUseCase.execute()
     res.send(narratorDashboard({
@@ -223,7 +223,30 @@ router.get('/dashboard/narrator/:narratorId', async (req, res) => {
   } catch { res.status(500).send('Internal server error') }
 })
 
-router.get('/dashboard/player/:tableId', async (req, res) => {
+router.get('/table', async (req, res) => {
+  try {
+    const tables = await findAllGameTablesUseCase.execute()
+    const characterName = 'Elric Galrhorn Denmark'
+    let foundTableId = ''
+
+    for (const t of tables) {
+      const chars = await charRepo.findAllGameCharacters(t.id)
+      const match = (chars?.characters ?? []).find((c: any) => c.name === characterName)
+      if (match) {
+        foundTableId = t.id
+        break
+      }
+    }
+
+    if (foundTableId) {
+      res.redirect('/table/' + foundTableId)
+    } else {
+      res.send(playerSession({ table: null, characters: [], scenes: [] }))
+    }
+  } catch { res.status(500).send('Internal server error') }
+})
+
+router.get('/table/:tableId', async (req, res) => {
   try {
     const [characters, scenes] = await Promise.all([
       charRepo.findAllGameCharacters(req.params.tableId),
