@@ -21,7 +21,10 @@ import { tableAdvantages } from './templates/table-advantages'
 import { tableDisadvantages } from './templates/table-disadvantages'
 import { sessionScreen } from './templates/session-screen'
 import { playerSession } from './templates/player-session'
+import { tableSkills } from './templates/table-skills'
+import { tableLocations } from './templates/table-locations'
 import { FindAllGameTableCharactersUseCase } from '../../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
+import { FindGameTableSkillsUseCase } from '../../../application/use-cases/table-game-rules-use-case/FindAllGameTableSkillsUseCase'
 
 const router = Router()
 const gameTableRepo = new GameTableRepository()
@@ -30,6 +33,7 @@ const findAllGameTableScenesUseCase = new FindAllGameTableScenesUseCase(gameTabl
 const findGameTableUseCase = new FindGameTableUseCase(gameTableRepo)
 const charRepo = new GameTableRulesRepository()
 const findAllGameTableCharactersUseCase = new FindAllGameTableCharactersUseCase(charRepo)
+const findAllGameTableSkillsUseCase = new FindGameTableSkillsUseCase(charRepo)
 
 router.get('/', async (req, res) => {
   try {
@@ -51,7 +55,9 @@ router.get('/', async (req, res) => {
 router.get('/view/game_table_scenes/:id', async (req, res) => {
   try {
     const data = await findAllGameTableScenesUseCase.execute(req.params.id)
-    res.send(gameTableScenes(data))
+    const isPlayer = !!req.query.player
+    const actUrl = isPlayer ? `/table/${req.params.id}` : `/session/${req.params.id}`
+    res.send(gameTableScenes({ ...data, actUrl, isPlayer }))
   } catch {
     res.status(500).send('Internal server error')
   }
@@ -60,7 +66,9 @@ router.get('/view/game_table_scenes/:id', async (req, res) => {
 router.get('/view/game_table_characters/:id', async (req, res) => {
   try {
     const data = await findAllGameTableCharactersUseCase.execute(req.params.id)
-    res.send(gameTableCharacters(data))
+    const isPlayer = !!req.query.player
+    const actUrl = isPlayer ? `/table/${req.params.id}` : `/session/${req.params.id}`
+    res.send(gameTableCharacters({ ...data, actUrl, isPlayer }))
   } catch {
     res.status(500).send('Internal server error')
   }
@@ -72,7 +80,10 @@ router.get('/game-table-character-viewer/:id', async (req, res) => {
     if (!character) {
       return res.status(404).send('Character not found')
     }
-    res.send(characterViewer(character))
+    const tableId = character.table?.id
+    const isPlayer = !!req.query.player
+    const actUrl = isPlayer ? `/table/${tableId}` : `/session/${tableId}`
+    res.send(characterViewer({ ...character, actUrl, isPlayer }))
   } catch {
     res.status(500).send('Internal server error')
   }
@@ -81,21 +92,56 @@ router.get('/game-table-character-viewer/:id', async (req, res) => {
 router.get('/view/game_table_items/:id', async (req, res) => {
   try {
     const data = await charRepo.findAllGameItems(req.params.id)
-    res.send(tableItems(data))
+    const isPlayer = !!req.query.player
+    const actUrl = isPlayer ? `/table/${req.params.id}` : `/session/${req.params.id}`
+    res.send(tableItems({ ...data, actUrl, isPlayer }))
   } catch { res.status(500).send('Internal server error') }
 })
 
 router.get('/view/game_table_advantages/:id', async (req, res) => {
   try {
     const data = await charRepo.findAllGameAdvantages(req.params.id)
-    res.send(tableAdvantages(data))
+    const isPlayer = !!req.query.player
+    const actUrl = isPlayer ? `/table/${req.params.id}` : `/session/${req.params.id}`
+    res.send(tableAdvantages({ ...data, actUrl, isPlayer }))
   } catch { res.status(500).send('Internal server error') }
 })
 
 router.get('/view/game_table_disadvantages/:id', async (req, res) => {
   try {
     const data = await charRepo.findAllGameDisadvantages(req.params.id)
-    res.send(tableDisadvantages(data))
+    const isPlayer = !!req.query.player
+    const actUrl = isPlayer ? `/table/${req.params.id}` : `/session/${req.params.id}`
+    res.send(tableDisadvantages({ ...data, actUrl, isPlayer }))
+  } catch { res.status(500).send('Internal server error') }
+})
+
+router.get('/view/game_table_skills/:id', async (req, res) => {
+  try {
+    const data = await charRepo.findAllGameTableSkills(req.params.id)
+    const isPlayer = !!req.query.player
+    const actUrl = isPlayer ? `/table/${req.params.id}` : `/session/${req.params.id}`
+    res.send(tableSkills({ ...data, actUrl, isPlayer }))
+  } catch { res.status(500).send('Internal server error') }
+})
+
+router.get('/view/game_table_locations/:id', async (req, res) => {
+  try {
+    const scenes = await findAllGameTableScenesUseCase.execute(req.params.id)
+    const locations: any[] = []
+    const seen = new Set()
+    for (const scene of (scenes?.scenes ?? [])) {
+      for (const n of (scene.narrations ?? [])) {
+        const loc = (n as any).location
+        if (loc && loc.name && !seen.has(loc.name)) {
+          seen.add(loc.name)
+          locations.push(loc)
+        }
+      }
+    }
+    const isPlayer = !!req.query.player
+    const actUrl = isPlayer ? `/table/${req.params.id}` : `/session/${req.params.id}`
+    res.send(tableLocations({ table: scenes?.table, locations, actUrl, isPlayer }))
   } catch { res.status(500).send('Internal server error') }
 })
 

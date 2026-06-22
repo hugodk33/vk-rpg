@@ -1,4 +1,5 @@
 import { layout } from './layout'
+import { tabBar } from './tab-bar'
 
 function radarChart(st: number, dx: number, iq: number, ht: number, size = 64): string {
   const cx = size / 2, cy = size / 2, r = size * 0.4
@@ -37,14 +38,14 @@ function radarChart(st: number, dx: number, iq: number, ht: number, size = 64): 
 export function gameTableCharacters(data: any): string {
   const table = data.table
   const characters = data.characters ?? []
+  const actUrl = data.actUrl ?? `/session/${table?.id}`
+  const isPlayer = data.isPlayer ?? false
 
   return layout(`${table?.title || 'Characters'} — Characters`, `
     <div class="max-w-5xl mx-auto p-4 md:p-6">
-      <div class="mb-6">
-        <a href="/" class="text-amber-400 hover:text-amber-300 text-sm">&larr; Back</a>
-        <h1 class="text-2xl font-bold mt-2">${table?.title || 'Characters'}</h1>
-        ${table?.intro ? `<p class="text-zinc-400 text-sm mt-1">${table.intro}</p>` : ''}
-      </div>
+      ${tabBar(table?.id, '', actUrl, undefined, isPlayer)}
+      <h1 class="text-2xl font-bold mb-1">${table?.title || 'Characters'}</h1>
+      ${table?.intro ? `<p class="text-zinc-400 text-sm mb-6">${table.intro}</p>` : ''}
 
       ${characters.length === 0 ? `
         <div class="bg-zinc-800 rounded p-6 text-center text-zinc-400">No characters in this table.</div>
