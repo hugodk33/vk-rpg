@@ -24,10 +24,10 @@ function radarChart(st: number, dx: number, iq: number, ht: number, size = 165):
     }).join(' ')
   )
   const badges = [
-    { style: 'top: -28px; left: 50%; transform: translateX(-50%);' },
-    { style: 'top: 50%; right: -28px; transform: translateY(-50%);' },
-    { style: 'bottom: -28px; left: 50%; transform: translateX(-50%);' },
-    { style: 'top: 50%; left: -28px; transform: translateY(-50%);' },
+    { style: 'top: -17px; left: 50%; transform: translateX(-50%);' },
+    { style: 'top: 50%; right: -7px; transform: translateY(-50%);' },
+    { style: 'bottom: -17px; left: 50%; transform: translateX(-50%);' },
+    { style: 'top: 50%; left: -7px; transform: translateY(-50%);' },
   ]
   const labels = ['ST', 'DX', 'IQ', 'HT']
   return `
@@ -78,9 +78,9 @@ function drFor(armors: any[], ...fits: string[]): number {
 
 function hitLocationBadge(label: string, dr: number, style: string): string {
   return `
-    <div class="absolute flex flex-col items-center justify-center p-1 rounded border border-amber-700/60" style="${style}; width: 52px; height: 44px;">
+    <div class="absolute flex flex-col items-center justify-center p-1 rounded border border-cyan-400/60" style="${style}; width: 52px; height: 44px;">
       <span class="text-zinc-400 uppercase" style="font-size: 7px; line-height: 1; letter-spacing: 0.3px;">${label}</span>
-      <span class="text-amber-400 font-bold text-sm leading-none mt-0.5">${dr}</span>
+      <span class="text-cyan-400 font-bold text-sm leading-none mt-0.5">${dr}</span>
     </div>
   `
 }
@@ -160,7 +160,7 @@ export function characterViewer(data: any): string {
       <br />
       <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">
 
-        <div class="bg-gradient-to-r from-zinc-800 to-zinc-900 border-b border-zinc-700/60 px-6 py-5">
+        <div class="border-b py-4 pl-4">
           <div class="flex items-start justify-between">
             <div>
               <h1 class="text-3xl font-bold text-amber-100 tracking-tight">${name}</h1>
@@ -202,7 +202,7 @@ export function characterViewer(data: any): string {
                 </div>
               </div>
               <br />
-              <div class="flex justify-center pb-10 mt-2">
+              <div class="flex justify-center pb-10">
                 ${s ? radarChart(s.st ?? 10, s.dx ?? 10, s.iq ?? 10, s.ht ?? 10) : ''}
               </div>
             </div>
@@ -215,7 +215,7 @@ export function characterViewer(data: any): string {
                       <span class="text-zinc-500 text-xs font-semibold uppercase">HP </span>
                       <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}</span>
                     </span>
-                    <div class="w-full bg-zinc-700/50 rounded-full h-2">
+                    <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
                       <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%">
                       </div>
                     </div>
@@ -225,10 +225,10 @@ export function characterViewer(data: any): string {
                   <div class="flex w-full items-center">
                     <span class="flex justify-between items-center pr-2 w-1/5">
                       <span class="text-zinc-500 text-xs font-semibold uppercase">FP </span>
-                      <span class="text-emerald-400 font-bold text-lg ml-1">${s?.fatigue ?? '-'}</span>
+                      <span class="text-blue-400 font-bold text-lg ml-1">${s?.fatigue ?? '-'}</span>
                     </span>
-                    <div class="w-full bg-zinc-700/50 rounded-full h-2">
-                      <div class="bg-emerald-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div>
+                    <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
+                      <div class="bg-blue-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div>
                     </div>
                   </div>
                 </div>
@@ -238,17 +238,17 @@ export function characterViewer(data: any): string {
               <div class="flex justify-center flex-wrap gap-1">
                 <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
                   <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
-                  <span class="text-cyan-400 text-xl font-bold">${s?.basic_speed ?? '-'}${s.move? ' km/h' : ''}</span>
-                  <span class="text-zinc-500 text-xs font-semibold uppercase">Spd</span>
+                  <span class="text-cyan-400 text-sm font-bold">${s?.basic_speed ?? '-'}<span class="font-light">${s.move? ' km/h' : ''}</span></span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">Basic Speed</span>
                 </div>
                 <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
                   <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
-                  <span class="text-cyan-400 text-xl font-bold">${s?.move ?? '-'}</span>
+                  <span class="text-cyan-400 text-sm font-bold">${s?.move ?? '-'}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">Move</span>
                 </div>
                 <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
                   <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-                  <span class="text-cyan-400 text-xl font-bold">${s?.encumbrance ?? '-'}</span>
+                  <span class="text-cyan-400 text-sm font-bold">${s?.encumbrance ?? '-'}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">Enc</span>
                 </div>
               </div>

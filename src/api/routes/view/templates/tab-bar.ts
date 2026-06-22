@@ -20,7 +20,7 @@ export function tabBar(tableId: string, active: string, actUrl: string, characte
           <a href="/view/game_table_locations/${tableId}${qs}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Locations</a>
         </div>
       </details>
-      ${characterUrl ? `<a href="${characterUrl}${qs}" class="px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent transition-colors">Character</a>` : ''}
+      ${characterUrl ? `<a href="${characterUrl}${qs}" class="px-4 py-2.5 text-sm font-medium transition-colors ${active === 'character' ? 'text-zinc-200 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent'}">Character</a>` : ''}
     </div>
   `
 }

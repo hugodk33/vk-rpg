@@ -66,10 +66,16 @@ export function gameTableScenes(data: any): string {
         <p class="text-zinc-500 italic">No scenes yet.</p>
       ` : chapterEntries.map(([chapter, chapterScenes]) => `
         <div class="mb-12">
-          <h2 class="text-2xl font-bold text-amber-100 mb-6">Chapter ${chapter}</h2>
+          <div class="flex items-center gap-3 mb-6">
+            <h2 class="text-2xl font-bold text-amber-100">Chapter ${chapter}</h2>
+            ${isPlayer ? '' : '<button class="px-3 py-1 text-xs font-medium text-amber-400 bg-transparent border border-amber-700/50 rounded-lg hover:bg-amber-900/20 transition-colors">Edit Chapter</button>'}
+          </div>
           ${chapterScenes.map((scene: any) => `
             <div class="mb-10">
-              <h3 class="text-lg font-semibold text-zinc-200 mb-4">${scene.title}</h3>
+              <div class="flex items-center gap-3 mb-4">
+                <h3 class="text-lg font-semibold text-zinc-200">${scene.title}</h3>
+                ${isPlayer ? '' : '<button class="px-3 py-1 text-xs font-medium text-amber-400 bg-transparent border border-amber-700/50 rounded-lg hover:bg-amber-900/20 transition-colors">Edit Scene</button>'}
+              </div>
               ${(() => {
                 const narrations = scene.narrations ?? []
                 if (narrations.length === 0) return '<p class="text-sm text-zinc-500 italic">No narrations.</p>'
@@ -80,6 +86,7 @@ export function gameTableScenes(data: any): string {
                       ${n.title ? `<span class="text-sm font-medium text-zinc-300">${n.title}</span>` : ''}
                     </div>
                     <p class="text-base text-zinc-300 leading-relaxed">${n.narration}</p>
+                    ${isPlayer ? '' : '<button class="mt-2 px-2.5 py-1 text-[11px] font-medium text-amber-400/70 bg-transparent border border-amber-800/40 rounded hover:bg-amber-900/15 transition-colors">Edit Narration</button>'}
                     ${n.location ? locationCard(n.location) : ''}
                     ${(() => {
                       const participants = [
