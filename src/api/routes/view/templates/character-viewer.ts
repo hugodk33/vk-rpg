@@ -78,7 +78,7 @@ function drFor(armors: any[], ...fits: string[]): number {
 
 function hitLocationBadge(label: string, dr: number, style: string): string {
   return `
-    <div class="absolute flex flex-col items-center justify-center p-1 bg-zinc-700/90 rounded border border-amber-700/60" style="${style}; width: 52px; height: 44px;">
+    <div class="absolute flex flex-col items-center justify-center p-1 rounded border border-amber-700/60" style="${style}; width: 52px; height: 44px;">
       <span class="text-zinc-400 uppercase" style="font-size: 7px; line-height: 1; letter-spacing: 0.3px;">${label}</span>
       <span class="text-amber-400 font-bold text-sm leading-none mt-0.5">${dr}</span>
     </div>
@@ -104,7 +104,7 @@ function armorDiagram(armors: any[]): string {
           ${hitLocationBadge('head', head, 'top: -54px; left: 50%; transform: translateX(-50%);')}
           ${hitLocationBadge('a.rig', armR, 'top: -32px; right: -50px;')}
           ${hitLocationBadge('a.lef', armL, 'top: -32px; left: -50px;')}
-          ${hitLocationBadge('torso', torso, 'top: 100px; left: 50%; transform: translateX(-50%);')}
+          ${hitLocationBadge('torso', torso, 'top: 23px; width: 50px; left: -45px; height: 50px;')}
           ${hitLocationBadge('l.rig', legR, 'top: 85px; right: -50px;')}
           ${hitLocationBadge('l.lef', legL, 'top: 85px; left: -50px;')}
         </div>
@@ -155,7 +155,7 @@ export function characterViewer(data: any): string {
   const isPlayer = data.isPlayer ?? false
 
   return layout(name, `
-    <div class="max-w-6xl mx-auto p-4 md:p-6">
+    <div class="max-w-4xl mx-auto p-6">
       ${table?.id ? tabBar(table.id, 'character', actUrl, `/game-table-character-viewer/${ch.id}`, isPlayer) : ''}
       <br />
       <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">
@@ -165,64 +165,77 @@ export function characterViewer(data: any): string {
             <div>
               <h1 class="text-3xl font-bold text-amber-100 tracking-tight">${name}</h1>
             </div>
-            <div class="text-right">
-              <span class="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Points</span>
-              <p class="text-amber-400 font-bold text-xl">${s?.points || ch.points || '0'}</p>
-            </div>
           </div>
           ${s?.bio ? `<p class="text-xl text-zinc-400 mt-1">${s.bio}</p>` : ''}
           ${s?.backstory ? `<p class="text-zinc-500 text-sm mt-1">${s.backstory}</p>` : ''}
+          <div class="flex h-30 mt-3 gap-1 items-center">
+            <span class="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Points</span>
+            <p class="text-amber-400 font-bold text-xl">${s?.points || ch.points || '0'}</p>
+          </div>
         </div>
 
         <div class="p-6">
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-1 mb-8">
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Core Attributes</h3>
-              <div class="flex justify-center flex-wrap gap-3 mb-4">
-                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+              <div class="flex justify-center flex-wrap gap-1 mb-4">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
                   <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                   <span class="text-red-400 text-xl font-bold">${s?.st ?? '-'}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">ST</span>
                 </div>
-                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
                   <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
                   <span class="text-emerald-400 text-xl font-bold">${s?.dx ?? '-'}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">DX</span>
                 </div>
-                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
                   <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                   <span class="text-blue-400 text-xl font-bold">${s?.iq ?? '-'}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">IQ</span>
                 </div>
-                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
                   <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                   <span class="text-purple-400 text-xl font-bold">${s?.ht ?? '-'}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">HT</span>
                 </div>
               </div>
-              <br /><br />
-              <div class="flex justify-center pb-10">
+              <br />
+              <div class="flex justify-center pb-10 mt-2">
                 ${s ? radarChart(s.st ?? 10, s.dx ?? 10, s.iq ?? 10, s.ht ?? 10) : ''}
               </div>
             </div>
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Vitals</h3>
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4">
-                <div class="flex items-center gap-2">
-                  <span class="text-zinc-500 text-xs font-semibold uppercase">HP</span>
-                  <span class="text-red-400 font-bold text-lg">${s?.hp ?? '-'}</span>
-                  <div class="w-24 bg-zinc-700/50 rounded-full h-2"><div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%"></div></div>
+                <div class="flex items-center gap-2 w-full">
+                  <div class="flex w-full items-center">
+                    <span class="w-1/5">
+                      <span class="text-zinc-500 text-xs font-semibold uppercase">HP </span>
+                      <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}</span>
+                    </span>
+                    <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
+                      <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%">
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-zinc-500 text-xs font-semibold uppercase">FP</span>
-                  <span class="text-emerald-400 font-bold text-lg">${s?.fatigue ?? '-'}</span>
-                  <div class="w-24 bg-zinc-700/50 rounded-full h-2"><div class="bg-emerald-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div></div>
+                <div class="flex items-center gap-2 w-full">
+                  <div class="flex w-full items-center">
+                    <span class="w-1/5">
+                      <span class="text-zinc-500 text-xs font-semibold uppercase">FP </span>
+                      <span class="text-emerald-400 font-bold text-lg ml-1">${s?.fatigue ?? '-'}</span>
+                    </span>
+                    <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
+                      <div class="bg-emerald-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Movement</h3>
-              <div class="flex justify-center flex-wrap gap-3">
+              <div class="flex justify-center flex-wrap gap-1">
                 <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
                   <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
                   <span class="text-cyan-400 text-xl font-bold">${s?.basic_speed ?? '-'}${s.move? ' km/h' : ''}</span>
@@ -342,12 +355,6 @@ export function characterViewer(data: any): string {
                 '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
               )}
             </div>
-
-          <div class="flex items-center justify-between pt-4 border-t border-zinc-700/40">
-            <a href="/" class="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">&larr; Back</a>
-            ${table?.id ? `<a href="/view/game_table_scenes/${table.id}" class="text-amber-500 hover:text-amber-400 text-sm transition-colors">View table &rarr;</a>` : ''}
-          </div>
-
         </div>
       </div>
     </div>
