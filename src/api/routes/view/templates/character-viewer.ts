@@ -211,11 +211,11 @@ export function characterViewer(data: any): string {
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4">
                 <div class="flex items-center gap-2 w-full">
                   <div class="flex w-full items-center">
-                    <span class="w-1/5">
+                    <span class="flex justify-between items-center pr-2 w-1/5">
                       <span class="text-zinc-500 text-xs font-semibold uppercase">HP </span>
                       <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}</span>
                     </span>
-                    <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
+                    <div class="w-full bg-zinc-700/50 rounded-full h-2">
                       <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%">
                       </div>
                     </div>
@@ -223,11 +223,11 @@ export function characterViewer(data: any): string {
                 </div>
                 <div class="flex items-center gap-2 w-full">
                   <div class="flex w-full items-center">
-                    <span class="w-1/5">
+                    <span class="flex justify-between items-center pr-2 w-1/5">
                       <span class="text-zinc-500 text-xs font-semibold uppercase">FP </span>
                       <span class="text-emerald-400 font-bold text-lg ml-1">${s?.fatigue ?? '-'}</span>
                     </span>
-                    <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
+                    <div class="w-full bg-zinc-700/50 rounded-full h-2">
                       <div class="bg-emerald-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div>
                     </div>
                   </div>
