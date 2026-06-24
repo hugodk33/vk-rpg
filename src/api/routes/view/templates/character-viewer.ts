@@ -1,5 +1,4 @@
 import { layout } from './layout'
-import { tabBar } from './tab-bar'
 
 function radarChart(st: number, dx: number, iq: number, ht: number, size = 165): string {
   const cx = size / 2, cy = size / 2, r = size * 0.4
@@ -145,18 +144,58 @@ function isMelee(type?: string): boolean {
   return t.includes('melee') || t.includes('swing') || t.includes('thrust') || t.includes('sword')
 }
 
+function narratorCharNav(tableId: string, chId: string): string {
+  return `
+    <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
+      <a href="/session/${tableId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Act</a>
+      <a href="/view/game_table_scenes/${tableId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Timeline</a>
+      <details class="relative">
+        <summary class="px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent cursor-pointer list-none flex items-center gap-1">Table<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary>
+        <div class="absolute top-full left-0 mt-1 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
+          <a href="/view/game_table_items/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Items</a>
+          <a href="/view/game_table_advantages/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Advantages</a>
+          <a href="/view/game_table_disadvantages/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Disadvantages</a>
+          <a href="/view/game_table_skills/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Skills</a>
+          <a href="/view/game_table_characters/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Characters</a>
+          <a href="/view/game_table_locations/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Locations</a>
+        </div>
+      </details>
+      <a href="/game-table-character-viewer/${chId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-200 border-b-2 border-amber-500">Character</a>
+    </div>
+  `
+}
+
+function playerCharNav(tableId: string, chId: string): string {
+  return `
+    <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
+      <a href="/table/${tableId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Act</a>
+      <a href="/player/game_table_scenes/${tableId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Timeline</a>
+      <details class="relative">
+        <summary class="px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent cursor-pointer list-none flex items-center gap-1">Table<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary>
+        <div class="absolute top-full left-0 mt-1 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
+          <a href="/player/game_table_items/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Items</a>
+          <a href="/player/game_table_advantages/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Advantages</a>
+          <a href="/player/game_table_disadvantages/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Disadvantages</a>
+          <a href="/player/game_table_skills/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Skills</a>
+          <a href="/player/game_table_characters/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Characters</a>
+          <a href="/player/game_table_locations/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Locations</a>
+        </div>
+      </details>
+      <a href="/player/game-table-character-viewer/${chId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-200 border-b-2 border-amber-500">Character</a>
+    </div>
+  `
+}
+
 export function characterViewer(data: any): string {
   const ch = data.character
   const s = ch.sheet
   const table = data.table
   const name = s?.name || ch.name || 'Character'
-
-  const actUrl = data.actUrl ?? `/session/${table?.id}`
-  const isPlayer = data.isPlayer ?? false
+  const tableId = table?.id || ''
 
   return layout(name, `
     <div class="max-w-4xl mx-auto p-6">
-      ${table?.id ? tabBar(table.id, 'character', actUrl, `/game-table-character-viewer/${ch.id}`, isPlayer) : ''}
+      ${tableId ? narratorCharNav(tableId, ch.id) : ''}
       <br />
       <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">
 
@@ -169,6 +208,220 @@ export function characterViewer(data: any): string {
           ${s?.bio ? `<p class="text-xl text-zinc-400 mt-1">${s.bio}</p>` : ''}
           ${s?.backstory ? `<p class="text-zinc-500 text-sm mt-1">${s.backstory}</p>` : ''}
           <div class="flex h-30 mt-3 gap-1 items-center">
+            <span class="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Points</span>
+            <p class="text-amber-400 font-bold text-xl">${s?.points || ch.points || '0'}</p>
+          </div>
+        </div>
+
+        <div class="p-6">
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-1 mb-8">
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Core Attributes</h3>
+              <div class="flex justify-center flex-wrap gap-1 mb-4">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
+                  <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  <span class="text-red-400 text-xl font-bold">${s?.st ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">ST</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
+                  <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                  <span class="text-emerald-400 text-xl font-bold">${s?.dx ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">DX</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
+                  <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                  <span class="text-blue-400 text-xl font-bold">${s?.iq ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">IQ</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
+                  <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                  <span class="text-purple-400 text-xl font-bold">${s?.ht ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">HT</span>
+                </div>
+              </div>
+              <br />
+              <div class="flex justify-center pb-10">
+                ${s ? radarChart(s.st ?? 10, s.dx ?? 10, s.iq ?? 10, s.ht ?? 10) : ''}
+              </div>
+            </div>
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Vitals</h3>
+              <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4">
+                <div class="flex items-center gap-2 w-full">
+                  <div class="flex w-full items-center">
+                    <span class="flex justify-between items-center pr-2 w-1/5">
+                      <span class="text-zinc-500 text-xs font-semibold uppercase">HP </span>
+                      <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}</span>
+                    </span>
+                    <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
+                      <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 w-full">
+                  <div class="flex w-full items-center">
+                    <span class="flex justify-between items-center pr-2 w-1/5">
+                      <span class="text-zinc-500 text-xs font-semibold uppercase">FP </span>
+                      <span class="text-blue-400 font-bold text-lg ml-1">${s?.fatigue ?? '-'}</span>
+                    </span>
+                    <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
+                      <div class="bg-blue-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Movement</h3>
+              <div class="flex justify-center flex-wrap gap-1">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                  <span class="text-cyan-400 text-sm font-bold">${s?.basic_speed ?? '-'}<span class="font-light">${s.move? ' km/h' : ''}</span></span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">Basic Speed</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  <span class="text-cyan-400 text-sm font-bold">${s?.move ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">Move</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[72px]">
+                  <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                  <span class="text-cyan-400 text-sm font-bold">${s?.encumbrance ?? '-'}</span>
+                  <span class="text-zinc-500 text-xs font-semibold uppercase">Enc</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Body</h3>
+              ${armorDiagram(ch.armors)}
+              <div class="space-y-1 mt-4 border-t border-zinc-700/40 pt-4">
+                ${(ch.armors ?? []).map((a: any) => `
+                  <div class="flex justify-between text-xs">
+                    <span class="text-zinc-300">${a.name}</span>
+                    <span class="text-amber-400/80">${(a.value ?? '').replace('DR ', '')} ${a.fit || ''}</span>
+                  </div>
+                `).join('')}
+            </div>
+          </div>
+            <div>
+              ${section('Advantages',
+                !ch.advantages || ch.advantages.length === 0
+                  ? '<p class="text-zinc-600 text-sm italic">None</p>'
+                  : ch.advantages.map((a: any) => `
+                    <div class="bg-zinc-800/60 rounded-lg border border-zinc-700/40 px-3 py-2 flex justify-between items-center mb-1.5 last:mb-0">
+                      <span class="text-zinc-200 text-sm font-medium">${a.name}</span>
+                      <span class="text-emerald-400 text-xs font-semibold">${a.cost_points}</span>
+                    </div>
+                  `).join(''),
+                '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+              )}
+            </div>
+            <div>
+              ${section('Disadvantages',
+                !ch.disadvantages || ch.disadvantages.length === 0
+                  ? '<p class="text-zinc-600 text-sm italic">None</p>'
+                  : ch.disadvantages.map((d: any) => `
+                    <div class="bg-zinc-800/60 rounded-lg border border-zinc-700/40 px-3 py-2 flex justify-between items-center mb-1.5 last:mb-0">
+                      <span class="text-zinc-200 text-sm font-medium">${d.name}</span>
+                      <span class="text-red-400 text-xs font-semibold">${d.cost_points}</span>
+                    </div>
+                  `).join(''),
+                '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+              )}
+            </div>
+            <div>
+              ${section('Skills',
+                !ch.skills || ch.skills.length === 0
+                  ? '<p class="text-zinc-600 text-sm italic">None</p>'
+                  : ch.skills.map((sk: any) => `
+                    <div class="bg-zinc-800/60 rounded-lg border border-zinc-700/40 px-3 py-2 mb-1.5 last:mb-0">
+                      <div class="flex justify-between items-center">
+                        <span class="text-zinc-200 text-sm font-medium">${sk.skill_name}</span>
+                        <span class="text-zinc-500 text-xs">${sk.predefinition_type || ''}${sk.predefinition_difficulty ? '/' + sk.predefinition_difficulty : ''}</span>
+                      </div>
+                      ${sk.effect ? `<p class="text-zinc-500 text-xs mt-0.5">${sk.effect}</p>` : ''}
+                    </div>
+                  `).join(''),
+                '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>'
+              )}
+            </div>
+            <div>
+              ${section('Attacks & Damage',
+                !ch.damages || ch.damages.length === 0
+                  ? '<p class="text-zinc-600 text-sm italic">None</p>'
+                  : ch.damages.map((d: any) => `
+                    <div class="bg-zinc-800/60 rounded-lg border border-zinc-700/40 px-3 py-2 mb-1.5 last:mb-0">
+                      <div class="flex justify-between items-start">
+                        <div>
+                          <span class="text-zinc-200 text-sm font-medium">${d.name || 'Unnamed'}</span>
+                          ${d.type ? `
+                            <span class="text-zinc-500 text-xs ml-1">
+                              ${isMelee(d.type) ? meleeIcon() : ''}
+                              ${isRanged(d.type) ? rangedIcon() : ''}
+                              ${d.type}${d.subtype ? '/' + d.subtype : ''}
+                            </span>
+                          ` : ''}
+                          ${d.range ? `<span class="text-zinc-500 text-xs ml-1">${d.range}</span>` : ''}
+                        </div>
+                        <span class="text-red-400 font-bold text-sm">${d.value || ''}</span>
+                      </div>
+                      ${d.description ? `<p class="text-zinc-500 text-xs mt-0.5">${d.description}</p>` : ''}
+                    </div>
+                  `).join(''),
+                '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/></svg>'
+              )}
+            </div>
+            <div>
+              ${section('Items',
+                !ch.items || ch.items.length === 0
+                  ? '<p class="text-zinc-600 text-sm italic">None</p>'
+                  : ch.items.map((i: any) => `
+                    <div class="bg-zinc-800/60 rounded-lg border border-zinc-700/40 px-3 py-2 mb-1.5 last:mb-0">
+                      <div class="flex justify-between items-start">
+                        <span class="text-zinc-200 text-sm font-medium">${i.name || 'Unnamed'}</span>
+                        ${i.weight ? `<span class="text-zinc-500 text-xs">${i.weight} kg</span>` : ''}
+                      </div>
+                      <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-zinc-500">
+                        ${i.category ? `<span>${i.category}</span>` : ''}
+                        ${i.quality ? `<span>${i.quality}</span>` : ''}
+                        ${i.condition ? `<span>${i.condition}</span>` : ''}
+                        ${i.dimensions ? `<span>${i.dimensions}</span>` : ''}
+                      </div>
+                      ${i.description ? `<p class="text-zinc-500 text-xs mt-0.5">${i.description}</p>` : ''}
+                    </div>
+                  `).join(''),
+                '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
+              )}
+            </div>
+        </div>
+      </div>
+    </div>
+  `)
+}
+
+export function playerCharacterViewer(data: any): string {
+  const ch = data.character
+  const s = ch.sheet
+  const table = data.table
+  const name = s?.name || ch.name || 'Character'
+  const tableId = table?.id || ''
+
+  return layout(name, `
+    <div class="max-w-4xl mx-auto p-6">
+      ${tableId ? playerCharNav(tableId, ch.id) : ''}
+      <br />
+      <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">
+
+        <div class="border-b py-4 pl-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <h1 class="text-3xl font-bold text-amber-100 tracking-tight">${name}</h1>
+            </div>
+          </div>
+          ${s?.bio ? `<p class="text-xl text-zinc-400 mt-1">${s.bio}</p>` : ''}
+          ${s?.backstory ? `<p class="text-zinc-500 text-sm mt-1">${s.backstory}</p>` : ''}
+          <div class="flex mt-3 gap-1 items-center">
             <span class="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Points</span>
             <p class="text-amber-400 font-bold text-xl">${s?.points || ch.points || '0'}</p>
           </div>

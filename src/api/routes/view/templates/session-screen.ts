@@ -1,5 +1,4 @@
 import { layout } from './layout'
-import { tabBar } from './tab-bar'
 
 function charCard(ch: any, isNpc: boolean): string {
   const id = isNpc ? ch.characterId : ch.id
@@ -56,11 +55,25 @@ export function sessionScreen(data: any): string {
 
   return layout(`Session — ${table?.title || 'Game'}`, `
     <div class="max-w-4xl mx-auto p-4 md:p-6">
-      <div class="mb-4">
-        <h1 class="text-2xl font-bold text-amber-100 mt-1">${table?.title || 'Session'}</h1>
+      <div class="flex gap-1 border-b border-zinc-700/50">
+        <a href="/session/${table?.id}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-200 border-b-2 border-amber-500">Act</a>
+        <a href="/view/game_table_scenes/${table?.id}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Timeline</a>
+        <details class="relative">
+          <summary class="px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent cursor-pointer list-none flex items-center gap-1">Table<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary>
+          <div class="absolute top-full left-0 mt-1 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
+            <a href="/view/game_table_items/${table?.id}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Items</a>
+            <a href="/view/game_table_advantages/${table?.id}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Advantages</a>
+            <a href="/view/game_table_disadvantages/${table?.id}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Disadvantages</a>
+            <a href="/view/game_table_skills/${table?.id}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Skills</a>
+            <a href="/view/game_table_characters/${table?.id}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Characters</a>
+            <a href="/view/game_table_locations/${table?.id}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Locations</a>
+          </div>
+        </details>
       </div>
 
-      ${tabBar(table?.id, 'act', `/session/${table?.id}`)}
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-amber-100">${table?.title || 'Session'}</h1>
+      </div>
 
       <div id="chapterModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden">
         <div class="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 w-full max-w-md mx-4">
