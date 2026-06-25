@@ -196,10 +196,9 @@ export function characterViewer(data: any): string {
   return layout(name, `
     <div class="max-w-4xl mx-auto p-6">
       ${tableId ? narratorCharNav(tableId, ch.id) : ''}
-      <br />
-      <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">
+      <div class="bg-zinc-900/90 border border-zinc-700/50 shadow-2xl overflow-hidden">
 
-        <div class="border-b py-4 pl-4">
+        <div class="py-4 pl-4">
           <div class="flex items-start justify-between">
             <div>
               <h1 class="text-3xl font-bold text-amber-100 tracking-tight">${name}</h1>
@@ -410,10 +409,9 @@ export function playerCharacterViewer(data: any): string {
   return layout(name, `
     <div class="max-w-4xl mx-auto p-6">
       ${tableId ? playerCharNav(tableId, ch.id) : ''}
-      <br />
-      <div class="bg-zinc-900/90 border border-zinc-700/50 rounded-xl shadow-2xl overflow-hidden">
+      <div class="bg-zinc-900/90 border border-zinc-700/50 shadow-2xl overflow-hidden">
 
-        <div class="border-b py-4 pl-4">
+        <div class="py-4 pl-4">
           <div class="flex items-start justify-between">
             <div>
               <h1 class="text-3xl font-bold text-amber-100 tracking-tight">${name}</h1>
