@@ -40,5 +40,5 @@ export function tableSkills(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }

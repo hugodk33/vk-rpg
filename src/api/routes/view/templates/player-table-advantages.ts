@@ -43,5 +43,5 @@ export function playerTableAdvantages(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }

@@ -50,5 +50,5 @@ export function tableItems(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }

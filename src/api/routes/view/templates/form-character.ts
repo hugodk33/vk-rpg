@@ -5,155 +5,404 @@ export function formCharacter(data?: any): string {
   const ch = data?.character || {}
   const s = ch.sheet || {}
   const t = data?.table
+  const tableId = t?.id || data?.table_id || ''
 
   if (isEdit) {
-    return layout('Edit Character', `
-    <div class="max-w-3xl mx-auto p-6">
-      <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-6">
-        <h1 class="text-2xl font-bold text-amber-100 mb-6">Edit Character</h1>
-        <form id="editForm" class="space-y-6">
-          <input type="hidden" id="editCharId" value="${ch.id}"/>
-          <input type="hidden" id="editTableId" value="${t?.id || data?.table_id || ''}"/>
+    const chId = ch.id || ''
+    const chName = s.name || ch.name || ''
+    const chBio = s.bio || ''
+    const chBackstory = s.backstory || ''
+    const chPoints = s.points ?? 150
+    const chSt = s.st ?? 10
+    const chDx = s.dx ?? 10
+    const chIq = s.iq ?? 10
+    const chHt = s.ht ?? 10
 
-          <div class="border-b border-zinc-700/40 pb-4">
-            <h2 class="text-lg font-semibold text-zinc-300 mb-4">Identity</h2>
+    const hasAdv = JSON.stringify(ch.advantages || []).replace(/'/g, "\\'")
+    const hasDis = JSON.stringify(ch.disadvantages || []).replace(/'/g, "\\'")
+    const hasSk = JSON.stringify(ch.skills || []).replace(/'/g, "\\'")
+    const hasItems = JSON.stringify(ch.items || []).replace(/'/g, "\\'")
+
+    return layout('Edit Character', `
+    <div class="max-w-6xl mx-auto p-4">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-amber-100">${t?.title || 'Game'}</h1>
+          <p class="text-zinc-400 text-sm">Edit Character</p>
+        </div>
+        <button id="editSaveBtn" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors">Save Changes</button>
+      </div>
+
+      <input type="hidden" id="editCharId" value="${chId}"/>
+
+      <div class="sticky top-14 z-40 bg-zinc-900/90 backdrop-blur-sm border-b border-zinc-700/50 -mx-4 px-4 py-3 mb-6">
+        <div class="flex items-center justify-center gap-6 max-w-3xl mx-auto">
+          <div class="text-2xl font-bold text-amber-400 whitespace-nowrap" id="editBudgetDisplay">0 / ${chPoints}</div>
+          <div class="flex-1 max-w-md">
+            <div class="w-full bg-zinc-800 rounded-full h-3">
+              <div id="editBudgetBar" class="bg-amber-500 h-3 rounded-full transition-all" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="space-y-6">
+          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+            <h2 class="text-lg font-semibold text-amber-100 mb-4">Identity</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Name</label>
-                <input id="editName" value="${s.name || ch.name || ''}" required
+                <input id="editName" value="${chName}"
                   class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
               </div>
               <div>
-                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Total Points</label>
-                <input id="editPoints" type="number" value="${s.points ?? 150}"
+                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Bio</label>
+                <input id="editBio" value="${chBio}"
                   class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
               </div>
             </div>
-            <div class="mt-4">
-              <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Bio</label>
-              <textarea id="editBio" rows="2"
-                class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">${s.bio || ''}</textarea>
-            </div>
-            <div class="mt-4">
+            <div class="mt-3">
               <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Backstory</label>
-              <textarea id="editBackstory" rows="3"
-                class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">${s.backstory || ''}</textarea>
+              <textarea id="editBackstory" rows="2"
+                class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">${chBackstory}</textarea>
             </div>
           </div>
 
-          <div>
-            <h2 class="text-lg font-semibold text-zinc-300 mb-4">Attributes</h2>
-            <div class="grid grid-cols-4 gap-3">
+          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+            <h2 class="text-lg font-semibold text-amber-100 mb-4">Attributes</h2>
+            <div class="grid grid-cols-4 gap-3 mb-4">
               <div>
                 <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">ST</label>
-                <input id="editSt" type="number" value="${s.st ?? 10}"
+                <input id="editSt" type="number" value="${chSt}" min="1" max="50"
                   class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
               </div>
               <div>
                 <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">DX</label>
-                <input id="editDx" type="number" value="${s.dx ?? 10}"
+                <input id="editDx" type="number" value="${chDx}" min="1" max="50"
                   class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
               </div>
               <div>
                 <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">IQ</label>
-                <input id="editIq" type="number" value="${s.iq ?? 10}"
+                <input id="editIq" type="number" value="${chIq}" min="1" max="50"
                   class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
               </div>
               <div>
                 <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">HT</label>
-                <input id="editHt" type="number" value="${s.ht ?? 10}"
+                <input id="editHt" type="number" value="${chHt}" min="1" max="50"
+                  oninput="document.getElementById('editHp').textContent = this.value"
                   class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
               </div>
             </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HP</label>
-              <input id="editHp" type="number" value="${s.hp ?? 10}"
-                class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
-            </div>
-            <div>
-              <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Fatigue (FP)</label>
-              <input id="editFp" type="number" value="${s.fatigue ?? 10}"
-                class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HP</label>
+                <div id="editHp" class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-400 font-mono">${chHt}</div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Encumbrance</label>
-            <select id="editEnc"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
-              <option value="None" ${!s.encumbrance || s.encumbrance === 'None' ? 'selected' : ''}>None (0)</option>
-              <option value="Light" ${s.encumbrance === 'Light' ? 'selected' : ''}>Light (1)</option>
-              <option value="Medium" ${s.encumbrance === 'Medium' ? 'selected' : ''}>Medium (2)</option>
-              <option value="Heavy" ${s.encumbrance === 'Heavy' ? 'selected' : ''}>Heavy (3)</option>
-              <option value="Extra" ${s.encumbrance === 'Extra' ? 'selected' : ''}>Extra (4)</option>
-            </select>
+        <div class="space-y-6">
+          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-amber-100">Advantages</h2>
+              <span class="text-sm text-zinc-500" id="editAdvCount">0 selected</span>
+            </div>
+            <div id="editAdvantagesList" class="space-y-2 max-h-60 overflow-y-auto"></div>
           </div>
 
-          <div class="flex items-center gap-3 pt-2">
-            <button type="submit"
-              class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors">
-              Save Changes
-            </button>
-            <a href="/" class="text-zinc-400 hover:text-zinc-300 text-sm transition-colors">Cancel</a>
+          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-amber-100">Disadvantages</h2>
+              <span class="text-sm text-zinc-500" id="editDisCount">0 selected</span>
+            </div>
+            <div id="editDisadvantagesList" class="space-y-2 max-h-60 overflow-y-auto"></div>
           </div>
-        </form>
+
+          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-amber-100">Skills</h2>
+              <span class="text-sm text-zinc-500" id="editSkCount">0 selected</span>
+            </div>
+            <div id="editSkillsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+          </div>
+
+          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-amber-100">Items</h2>
+              <span class="text-sm text-zinc-500" id="editItemCount">0 selected</span>
+            </div>
+            <div id="editItemsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <input type="hidden" id="editTableId" value="${tableId}" />
+
     <script>
-    document.getElementById('editForm').addEventListener('submit', async (e) => {
-      e.preventDefault()
+    const editTableId = document.getElementById('editTableId').value
+    const editSelections = { advantages: [], disadvantages: [], skills: [], items: [] }
+    let editAvailableData = { advantages: [], disadvantages: [], skills: [], items: [] }
+
+    const editPresetAdv = ${hasAdv}
+    const editPresetDis = ${hasDis}
+    const editPresetSk = ${hasSk}
+    const editPresetItems = ${hasItems}
+
+    async function editLoadAvailable() {
+      const [adv, dis, sk, items] = await Promise.all([
+        fetch('/game-table-advantages/' + editTableId).then(r => r.json()),
+        fetch('/game-table-disadvantages/' + editTableId).then(r => r.json()),
+        fetch('/game-table-skills/' + editTableId).then(r => r.json()),
+        fetch('/game-table-items/' + editTableId).then(r => r.json()),
+      ])
+      editAvailableData = { advantages: adv, disadvantages: dis, skills: sk, items }
+      editPreselect()
+      editRenderAll()
+    }
+
+    function editPreselect() {
+      editPresetAdv.forEach((a) => {
+        editSelections.advantages.push({ id: a.advantage_id || a.id, name: a.name || '', cost_points: a.cost_points || 0, effect: a.effect || '' })
+      })
+      editPresetDis.forEach((d) => {
+        editSelections.disadvantages.push({ id: d.disadvantage_id || d.id, name: d.name || '', cost_points: d.cost_points || 0, effect: d.effect || '' })
+      })
+      editPresetSk.forEach((s) => {
+        editSelections.skills.push({ id: s.skill_id || s.id, name: s.skill_name || s.name || '', cost_points: s.cost_points || 1, effect: s.effect || '' })
+      })
+      editPresetItems.forEach((i) => {
+        editSelections.items.push({ id: i.item_id || i.id, name: i.name || '' })
+      })
+    }
+
+    if (editTableId) editLoadAvailable()
+
+    function editRenderAll() {
+      editRenderCheckboxList('editAdvantagesList', editAvailableData.advantages, editSelections.advantages, 'advantages', 'editAdvCount')
+      editRenderCheckboxList('editDisadvantagesList', editAvailableData.disadvantages, editSelections.disadvantages, 'disadvantages', 'editDisCount')
+      editRenderSkillList()
+      editRenderItemsList()
+      editUpdateBudget()
+    }
+
+    function editRenderCheckboxList(containerId, available, selected, type, countId) {
+      const container = document.getElementById(containerId)
+      if (!container) return
+      container.innerHTML = available.map(item => {
+        const isSelected = selected.some(s => s.id === item.id)
+        return \`
+          <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-700/30 cursor-pointer \${isSelected ? 'bg-zinc-700/40 border border-amber-500/30' : 'border border-transparent'}">
+            <input type="checkbox" \${isSelected ? 'checked' : ''}
+              onchange="editToggleSelection('\${type}', '\${item.id}', '\${(item.name || 'Unnamed').replace(/'/g, "\\\\'")}', \${item.cost_points ?? 0}, this.checked)"
+              class="w-4 h-4 rounded border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-zinc-200 truncate">\${item.name || 'Unnamed'}</div>
+              <div class="text-xs text-zinc-500 truncate">\${(item.description || '').substring(0, 80)}</div>
+            </div>
+            <span class="text-xs font-mono text-zinc-400 shrink-0">\${item.cost_points != null ? (item.cost_points >= 0 ? '+' : '') + item.cost_points : '±0'}</span>
+          </label>
+        \`
+      }).join('')
+      const countEl = document.getElementById(countId)
+      if (countEl) countEl.textContent = selected.length + ' selected'
+    }
+
+    function editToggleSelection(type, id, name, cost, checked) {
+      const list = editSelections[type]
+      if (checked) {
+        list.push({ id, name, cost_points: cost })
+      } else {
+        const idx = list.findIndex(s => s.id === id)
+        if (idx >= 0) list.splice(idx, 1)
+      }
+      editRenderAll()
+    }
+
+    function editRenderSkillList() {
+      const container = document.getElementById('editSkillsList')
+      if (!container) return
+      container.innerHTML = editAvailableData.skills.map(sk => {
+        const sel = editSelections.skills.find(s => s.id === sk.id)
+        const pts = sel ? sel.cost_points : 0
+        return \`
+          <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-700/30 \${sel ? 'bg-zinc-700/40 border border-amber-500/30' : 'border border-transparent'}">
+            <input type="checkbox" \${sel ? 'checked' : ''}
+              onchange="editToggleSkill('\${sk.id}', '\${(sk.name || 'Unnamed').replace(/'/g, "\\\\'")}', this.checked)"
+              class="w-4 h-4 rounded border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-zinc-200">\${sk.name || 'Unnamed'}</div>
+              <div class="text-xs text-zinc-500">\${sk.predefinition_type || ''} \${sk.predefinition_difficulty ? '· ' + sk.predefinition_difficulty : ''}</div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="editAdjSkill('\${sk.id}', -1)" class="w-6 h-6 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-bold flex items-center justify-center">\u2212</button>
+              <span class="text-sm font-mono text-amber-400 w-6 text-center" id="editSkPts_\${sk.id}">\${pts}</span>
+              <button onclick="editAdjSkill('\${sk.id}', 1)" class="w-6 h-6 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-bold flex items-center justify-center">+</button>
+            </div>
+          </div>
+        \`
+      }).join('')
+      const countEl = document.getElementById('editSkCount')
+      if (countEl) countEl.textContent = editSelections.skills.length + ' selected'
+    }
+
+    function editToggleSkill(id, name, checked) {
+      if (checked) {
+        editSelections.skills.push({ id, name, cost_points: 1, effect: '' })
+      } else {
+        const idx = editSelections.skills.findIndex(s => s.id === id)
+        if (idx >= 0) editSelections.skills.splice(idx, 1)
+      }
+      editRenderAll()
+    }
+
+    function editAdjSkill(id, delta) {
+      const sel = editSelections.skills.find(s => s.id === id)
+      if (!sel) return
+      sel.cost_points = Math.max(0, (sel.cost_points || 0) + delta)
+      editRenderAll()
+    }
+
+    function editRenderItemsList() {
+      const container = document.getElementById('editItemsList')
+      if (!container) return
+      container.innerHTML = editAvailableData.items.map(item => {
+        const sel = editSelections.items.some(s => s.id === item.id)
+        return \`
+          <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-700/30 cursor-pointer \${sel ? 'bg-zinc-700/40 border border-amber-500/30' : 'border border-transparent'}">
+            <input type="checkbox" \${sel ? 'checked' : ''}
+              onchange="editToggleItem('\${item.id}', '\${(item.name || 'Unnamed').replace(/'/g, "\\\\'")}', this.checked)"
+              class="w-4 h-4 rounded border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-zinc-200 truncate">\${item.name || 'Unnamed'}</div>
+              <div class="text-xs text-zinc-500 truncate">\${item.category || ''} \${item.weight != null ? '· ' + item.weight + ' lbs' : ''}</div>
+            </div>
+          </label>
+        \`
+      }).join('')
+      const countEl = document.getElementById('editItemCount')
+      if (countEl) countEl.textContent = editSelections.items.length + ' selected'
+    }
+
+    function editToggleItem(id, name, checked) {
+      if (checked) {
+        editSelections.items.push({ id, name })
+      } else {
+        const idx = editSelections.items.findIndex(s => s.id === id)
+        if (idx >= 0) editSelections.items.splice(idx, 1)
+      }
+      editRenderAll()
+    }
+
+    const editTotalPoints = ${chPoints}
+
+    function editUpdateBudget() {
+      const total = editTotalPoints
+      const advCost = editSelections.advantages.reduce((s, a) => s + (a.cost_points || 0), 0)
+      const disCost = editSelections.disadvantages.reduce((s, d) => s + (d.cost_points || 0), 0)
+      const skCost = editSelections.skills.reduce((s, sk) => s + (sk.cost_points || 0), 0)
+      const spent = advCost + disCost + skCost
+
+      const display = document.getElementById('editBudgetDisplay')
+      if (display) display.textContent = spent + ' / ' + total
+      const bar = document.getElementById('editBudgetBar')
+      if (bar) bar.style.width = Math.min(100, (spent / total) * 100) + '%'
+    }
+
+    document.getElementById('editSaveBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('editSaveBtn')
+      btn.disabled = true
+      btn.textContent = 'Saving...'
+
       const payload = {
         id: document.getElementById('editCharId').value,
-        table_id: document.getElementById('editTableId').value,
+        table_id: editTableId,
         user_id: '',
         sheet: {
           name: document.getElementById('editName').value,
           bio: document.getElementById('editBio').value,
           backstory: document.getElementById('editBackstory').value,
-          points: parseInt(document.getElementById('editPoints').value) || 150,
-          hp: parseInt(document.getElementById('editHp').value) || 10,
+          points: editTotalPoints,
+          hp: parseInt(document.getElementById('editHt').value) || 10,
           st: parseInt(document.getElementById('editSt').value) || 10,
           dx: parseInt(document.getElementById('editDx').value) || 10,
           iq: parseInt(document.getElementById('editIq').value) || 10,
           ht: parseInt(document.getElementById('editHt').value) || 10,
-          fatigue: parseInt(document.getElementById('editFp').value) || 10,
-          encumbrance: document.getElementById('editEnc').value
-        }
+        },
+        advantages: editSelections.advantages.map(a => ({
+          advantage_id: a.id,
+          name: a.name,
+          cost_points: a.cost_points,
+          effect: ''
+        })),
+        disadvantages: editSelections.disadvantages.map(d => ({
+          disadvantage_id: d.id,
+          name: d.name,
+          cost_points: d.cost_points,
+          effect: ''
+        })),
+        skills: editSelections.skills.map(s => ({
+          skill_id: s.id,
+          cost_points: s.cost_points,
+          effect: ''
+        })),
+        items: editSelections.items.map(i => ({ item_id: i.id })),
+        damages: [],
+        armors: [],
+        peculiarities: []
       }
-      const res = await fetch('/game-table-character', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      const result = await res.json()
-      if (result.success) {
-        window.location.href = '/game-table-character-viewer/' + payload.id
-      } else {
-        alert('Error: ' + (result.error || 'Unknown'))
+
+      try {
+        const res = await fetch('/game-table-character', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        const result = await res.json()
+        if (result.success) {
+          btn.textContent = 'Saved!'
+          btn.className = 'mt-4 w-full bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors'
+          setTimeout(() => { window.location.href = '/game-table-character-viewer/' + payload.id }, 800)
+        } else {
+          alert('Error: ' + (result.error || 'Unknown'))
+          btn.disabled = false
+          btn.textContent = 'Save Changes'
+        }
+      } catch (err) {
+        alert('Network error: ' + err.message)
+        btn.disabled = false
+        btn.textContent = 'Save Changes'
       }
     })
     </script>
-    `)
+    `, t?.id)
   }
 
   return layout('New Character', `
 <div class="max-w-6xl mx-auto p-4">
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-amber-100">New Character</h1>
-      <p class="text-zinc-400 text-sm">${t?.title || ''} — GURPS</p>
+      <h1 class="text-2xl font-bold text-amber-100">${t?.title || 'Game'}</h1>
+      <p class="text-zinc-400 text-sm">New Character</p>
     </div>
-    <div class="text-right">
-      <div class="text-3xl font-bold text-amber-400" id="totalPointsDisplay">150</div>
-      <div class="text-xs text-zinc-500 uppercase tracking-wider">Total Points</div>
+    <button id="saveBtn" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors">Create Character</button>
+  </div>
+
+  <div class="sticky top-14 z-40 bg-zinc-900/90 backdrop-blur-sm border-b border-zinc-700/50 -mx-4 px-4 py-3 mb-6">
+    <div class="flex items-center justify-center gap-6 max-w-3xl mx-auto">
+      <div class="text-2xl font-bold text-amber-400 whitespace-nowrap" id="budgetDisplay">0 / 150</div>
+      <div class="flex-1 max-w-md">
+        <div class="w-full bg-zinc-800 rounded-full h-3">
+          <div id="budgetBar" class="bg-amber-500 h-3 rounded-full transition-all" style="width:0%"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2 space-y-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="space-y-6">
       <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
         <h2 class="text-lg font-semibold text-amber-100 mb-4">Identity</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -180,55 +429,36 @@ export function formCharacter(data?: any): string {
         <div class="grid grid-cols-4 gap-3 mb-4">
           <div>
             <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">ST</label>
-            <input id="chSt" type="number" value="10" min="1" max="20"
+            <input id="chSt" type="number" value="10" min="1" max="50"
               class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
           </div>
           <div>
             <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">DX</label>
-            <input id="chDx" type="number" value="10" min="1" max="20"
+            <input id="chDx" type="number" value="10" min="1" max="50"
               class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
           </div>
           <div>
             <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">IQ</label>
-            <input id="chIq" type="number" value="10" min="1" max="20"
+            <input id="chIq" type="number" value="10" min="1" max="50"
               class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
           </div>
           <div>
             <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">HT</label>
-            <input id="chHt" type="number" value="10" min="1" max="20"
+            <input id="chHt" type="number" value="10" min="1" max="50"
+              oninput="document.getElementById('chHp').textContent = this.value"
               class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HP</label>
-            <input id="chHp" type="number" value="10" min="1" max="50"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
-          </div>
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Fatigue (FP)</label>
-            <input id="chFp" type="number" value="10" min="1" max="50"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
-          </div>
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Encumbrance</label>
-            <select id="chEnc"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
-              <option value="None">None (0)</option>
-              <option value="Light">Light (1)</option>
-              <option value="Medium">Medium (2)</option>
-              <option value="Heavy">Heavy (3)</option>
-              <option value="Extra">Extra (4)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Total Points</label>
-            <input id="chPoints" type="number" value="150" min="0" max="10000"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
+            <div id="chHp" class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-400 font-mono">10</div>
           </div>
         </div>
       </div>
+    </div>
 
+    <div class="space-y-6">
       <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-amber-100">Advantages</h2>
@@ -261,37 +491,10 @@ export function formCharacter(data?: any): string {
         <div id="itemsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
       </div>
     </div>
-
-    <div class="space-y-6">
-      <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5 sticky top-20">
-        <h2 class="text-lg font-semibold text-amber-100 mb-4">Points Budget</h2>
-        <div class="space-y-3">
-          <div class="flex justify-between text-sm">
-            <span class="text-zinc-400">Total</span>
-            <span class="text-zinc-100 font-mono" id="budgetTotal">150</span>
-          </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-zinc-400">Spent</span>
-            <span class="text-amber-400 font-mono" id="budgetSpent">0</span>
-          </div>
-          <div class="border-t border-zinc-700/40 pt-3 flex justify-between font-semibold">
-            <span>Remaining</span>
-            <span class="font-mono" id="budgetRemain">150</span>
-          </div>
-          <div class="w-full bg-zinc-900 rounded-full h-2 mt-2">
-            <div id="budgetBar" class="bg-amber-500 h-2 rounded-full transition-all" style="width:0%"></div>
-          </div>
-        </div>
-        <button id="saveBtn"
-          class="mt-6 w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-          Create Character
-        </button>
-      </div>
-    </div>
   </div>
 </div>
 
-<input type="hidden" id="tableId" value="${data?.table_id || ''}" />
+<input type="hidden" id="tableId" value="${tableId}" />
 <input type="hidden" id="userId" value="${data?.user_id || ''}" />
 
 <script>
@@ -321,6 +524,7 @@ function renderAll() {
 
 function renderCheckboxList(containerId, available, selected, type, countId) {
   const container = document.getElementById(containerId)
+  if (!container) return
   container.innerHTML = available.map(item => {
     const isSelected = selected.some(s => s.id === item.id)
     return \`
@@ -336,7 +540,8 @@ function renderCheckboxList(containerId, available, selected, type, countId) {
       </label>
     \`
   }).join('')
-  document.getElementById(countId).textContent = selected.length + ' selected'
+  const countEl = document.getElementById(countId)
+  if (countEl) countEl.textContent = selected.length + ' selected'
 }
 
 function toggleSelection(type, id, name, cost, checked) {
@@ -352,6 +557,7 @@ function toggleSelection(type, id, name, cost, checked) {
 
 function renderSkillList() {
   const container = document.getElementById('skillsList')
+  if (!container) return
   container.innerHTML = availableData.skills.map(sk => {
     const sel = selections.skills.find(s => s.id === sk.id)
     const pts = sel ? sel.cost_points : 0
@@ -365,14 +571,15 @@ function renderSkillList() {
           <div class="text-xs text-zinc-500">\${sk.predefinition_type || ''} \${sk.predefinition_difficulty ? '· ' + sk.predefinition_difficulty : ''}</div>
         </div>
         <div class="flex items-center gap-1">
-          <button onclick="adjSkill('\${sk.id}', -1)" class="w-6 h-6 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-bold flex items-center justify-center">−</button>
+          <button onclick="adjSkill('\${sk.id}', -1)" class="w-6 h-6 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-bold flex items-center justify-center">\u2212</button>
           <span class="text-sm font-mono text-amber-400 w-6 text-center" id="skPts_\${sk.id}">\${pts}</span>
           <button onclick="adjSkill('\${sk.id}', 1)" class="w-6 h-6 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-bold flex items-center justify-center">+</button>
         </div>
       </div>
     \`
   }).join('')
-  document.getElementById('skCount').textContent = selections.skills.length + ' selected'
+  const countEl = document.getElementById('skCount')
+  if (countEl) countEl.textContent = selections.skills.length + ' selected'
 }
 
 function toggleSkill(id, name, checked) {
@@ -394,6 +601,7 @@ function adjSkill(id, delta) {
 
 function renderItemsList() {
   const container = document.getElementById('itemsList')
+  if (!container) return
   container.innerHTML = availableData.items.map(item => {
     const sel = selections.items.some(s => s.id === item.id)
     return \`
@@ -408,7 +616,8 @@ function renderItemsList() {
       </label>
     \`
   }).join('')
-  document.getElementById('itemCount').textContent = selections.items.length + ' selected'
+  const countEl = document.getElementById('itemCount')
+  if (countEl) countEl.textContent = selections.items.length + ' selected'
 }
 
 function toggleItem(id, name, checked) {
@@ -421,23 +630,20 @@ function toggleItem(id, name, checked) {
   renderAll()
 }
 
+const totalPoints = 150
+
 function updateBudget() {
-  const total = parseInt(document.getElementById('chPoints').value) || 150
+  const total = totalPoints
   const advCost = selections.advantages.reduce((s, a) => s + (a.cost_points || 0), 0)
   const disCost = selections.disadvantages.reduce((s, d) => s + (d.cost_points || 0), 0)
   const skCost = selections.skills.reduce((s, sk) => s + (sk.cost_points || 0), 0)
   const spent = advCost + disCost + skCost
-  const remain = total - spent
 
-  document.getElementById('budgetTotal').textContent = total
-  document.getElementById('budgetSpent').textContent = spent
-  document.getElementById('budgetRemain').textContent = remain
-  document.getElementById('budgetRemain').className = 'font-mono ' + (remain < 0 ? 'text-red-400' : remain === 0 ? 'text-emerald-400' : 'text-zinc-100')
-  document.getElementById('budgetBar').style.width = Math.min(100, (spent / total) * 100) + '%'
-  document.getElementById('totalPointsDisplay').textContent = total
+  const display = document.getElementById('budgetDisplay')
+  if (display) display.textContent = spent + ' / ' + total
+  const bar = document.getElementById('budgetBar')
+  if (bar) bar.style.width = Math.min(100, (spent / total) * 100) + '%'
 }
-
-document.getElementById('chPoints').addEventListener('input', updateBudget)
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
   const btn = document.getElementById('saveBtn')
@@ -451,14 +657,12 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       name: document.getElementById('chName').value,
       bio: document.getElementById('chBio').value,
       backstory: document.getElementById('chBackstory').value,
-      points: parseInt(document.getElementById('chPoints').value) || 150,
-      hp: parseInt(document.getElementById('chHp').value) || 10,
+      points: totalPoints,
+      hp: parseInt(document.getElementById('chHt').value) || 10,
       st: parseInt(document.getElementById('chSt').value) || 10,
       dx: parseInt(document.getElementById('chDx').value) || 10,
       iq: parseInt(document.getElementById('chIq').value) || 10,
       ht: parseInt(document.getElementById('chHt').value) || 10,
-      fatigue: parseInt(document.getElementById('chFp').value) || 10,
-      encumbrance: document.getElementById('chEnc').value,
     },
     advantages: selections.advantages.map(a => ({
       advantage_id: a.id,
@@ -492,7 +696,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     const result = await res.json()
     if (result.success) {
       btn.textContent = 'Created!'
-      btn.className = 'mt-6 w-full bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors'
+      btn.className = 'mt-4 w-full bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors'
       setTimeout(() => { window.location.href = '/game-table-character-viewer/' + result.character_id }, 800)
     } else {
       alert('Error: ' + (result.error || 'Unknown'))
@@ -506,5 +710,5 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   }
 })
 </script>
-`)
+`, t?.id)
 }

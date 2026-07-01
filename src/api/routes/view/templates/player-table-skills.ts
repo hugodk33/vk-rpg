@@ -42,5 +42,5 @@ export function playerTableSkills(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }

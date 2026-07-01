@@ -41,5 +41,5 @@ export function tableLocations(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }

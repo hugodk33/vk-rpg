@@ -59,5 +59,5 @@ export function tableDisadvantages(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }

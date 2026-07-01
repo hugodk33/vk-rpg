@@ -96,5 +96,5 @@ export function playerGameTableCharacters(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }

@@ -49,5 +49,5 @@ export function playerTableItems(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }

@@ -125,5 +125,5 @@ export function gameTableScenes(data: any): string {
         </div>
       `).join('')}
     </div>
-  `)
+  `, table?.id)
 }

@@ -396,7 +396,7 @@ export function characterViewer(data: any): string {
         </div>
       </div>
     </div>
-  `)
+  `, tableId)
 }
 
 export function playerCharacterViewer(data: any): string {
@@ -609,5 +609,5 @@ export function playerCharacterViewer(data: any): string {
         </div>
       </div>
     </div>
-  `)
+  `, tableId)
 }

@@ -44,5 +44,5 @@ export function tableAdvantages(data: any): string {
         </div>
       `}
     </div>
-  `)
+  `, table?.id)
 }
