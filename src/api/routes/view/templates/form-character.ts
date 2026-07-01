@@ -382,23 +382,22 @@ export function formCharacter(data?: any): string {
 
   return layout('New Character', `
 <div class="max-w-6xl mx-auto p-4">
-  <div class="flex items-center justify-between mb-6">
-    <div>
-      <h1 class="text-2xl font-bold text-amber-100">${t?.title || 'Game'}</h1>
-      <p class="text-zinc-400 text-sm">New Character</p>
-    </div>
-    <button id="saveBtn" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors">Create Character</button>
-  </div>
-
   <div class="sticky top-14 z-40 bg-zinc-900/90 backdrop-blur-sm border-b border-zinc-700/50 -mx-4 px-4 py-3 mb-6">
     <div class="flex items-center justify-center gap-6 max-w-3xl mx-auto">
-      <div class="text-2xl font-bold text-amber-400 whitespace-nowrap" id="budgetDisplay">0 / 150</div>
+      <div class="text-md font-bold text-amber-400 whitespace-nowrap" id="budgetDisplay">0 / 150</div>
       <div class="flex-1 max-w-md">
         <div class="w-full bg-zinc-800 rounded-full h-3">
           <div id="budgetBar" class="bg-amber-500 h-3 rounded-full transition-all" style="width:0%"></div>
         </div>
       </div>
     </div>
+  </div>
+  <div class="flex items-center justify-between mb-6 mt-6">
+    <div>
+      <h1 class="text-2xl font-bold text-amber-100">${t?.title || 'Game'}</h1>
+      <p class="text-zinc-400 text-sm">New Character</p>
+    </div>
+    <button id="saveBtn" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors">Create Character</button>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
