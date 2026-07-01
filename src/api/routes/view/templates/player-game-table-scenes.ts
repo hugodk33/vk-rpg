@@ -41,10 +41,11 @@ function actionRow(a: any): string {
   `
 }
 
-export function gameTableScenes(data: any): string {
+export function playerGameTableScenes(data: any): string {
   const table = data.table
   const scenes = data.scenes ?? []
   const tableId = table?.id || ''
+  const characterUrl = data.characterUrl
 
   const chapters = new Map<number, any[]>()
   for (const scene of scenes) {
@@ -57,19 +58,20 @@ export function gameTableScenes(data: any): string {
   return layout(`${table?.title || 'Scenes'} &mdash; Scenes`, `
     <div class="max-w-4xl mx-auto p-6">
       <div class="flex gap-1 border-b border-zinc-700/50 mb-6">
-        <a href="/session/${tableId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Act</a>
-        <a href="/view/game_table_scenes/${tableId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-200 border-b-2 border-amber-500">Timeline</a>
+        <a href="/table/${tableId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Act</a>
+        <a href="/player/game_table_scenes/${tableId}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-200 border-b-2 border-amber-500">Timeline</a>
         <details class="relative">
           <summary class="px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent cursor-pointer list-none flex items-center gap-1">Table<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary>
           <div class="absolute top-full left-0 mt-1 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
-            <a href="/view/game_table_items/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Items</a>
-            <a href="/view/game_table_advantages/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Advantages</a>
-            <a href="/view/game_table_disadvantages/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Disadvantages</a>
-            <a href="/view/game_table_skills/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Skills</a>
-            <a href="/view/game_table_characters/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Characters</a>
-            <a href="/view/game_table_locations/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Locations</a>
+            <a href="/player/game_table_items/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Items</a>
+            <a href="/player/game_table_advantages/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Advantages</a>
+            <a href="/player/game_table_disadvantages/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Disadvantages</a>
+            <a href="/player/game_table_skills/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Skills</a>
+            <a href="/player/game_table_characters/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Characters</a>
+            <a href="/player/game_table_locations/${tableId}" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Locations</a>
           </div>
         </details>
+        ${characterUrl ? `<a href="${characterUrl}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Character</a>` : ''}
       </div>
       <h1 class="text-3xl font-bold text-amber-100">${table?.title || 'Scenes'}</h1>
       ${table?.intro ? `<p class="text-zinc-400 mt-1 mb-6">${table.intro}</p>` : '<br />'}
@@ -80,13 +82,11 @@ export function gameTableScenes(data: any): string {
         <div class="mb-12">
           <div class="flex items-center gap-3 mb-6">
             <h2 class="text-2xl font-bold text-amber-100">Chapter ${chapter}</h2>
-            <button class="px-3 py-1 text-xs font-medium text-amber-400 bg-transparent border border-amber-700/50 rounded-lg hover:bg-amber-900/20 transition-colors">Edit Chapter</button>
           </div>
           ${chapterScenes.map((scene: any) => `
             <div class="mb-10">
               <div class="flex items-center gap-3 mb-4">
                 <h3 class="text-lg font-semibold text-zinc-200">${scene.title}</h3>
-                <button class="px-3 py-1 text-xs font-medium text-amber-400 bg-transparent border border-amber-700/50 rounded-lg hover:bg-amber-900/20 transition-colors">Edit Scene</button>
               </div>
               ${(() => {
                 const narrations = scene.narrations ?? []
@@ -98,7 +98,6 @@ export function gameTableScenes(data: any): string {
                       ${n.title ? `<span class="text-sm font-medium text-zinc-300">${n.title}</span>` : ''}
                     </div>
                     <p class="text-base text-zinc-300 leading-relaxed">${n.narration}</p>
-                    <button class="mt-2 px-2.5 py-1 text-[11px] font-medium text-amber-400/70 bg-transparent border border-amber-800/40 rounded hover:bg-amber-900/15 transition-colors">Edit Narration</button>
                     ${n.location ? locationCard(n.location) : ''}
                     ${(() => {
                       const participants = [

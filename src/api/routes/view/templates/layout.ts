@@ -1,4 +1,4 @@
-export function layout(title: string, content: string): string {
+export function layout(title: string, content: string, tableId?: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,20 +23,6 @@ export function layout(title: string, content: string): string {
           <a href="/" class="nav-link px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50">Home</a>
           <details class="relative">
             <summary class="nav-link px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 cursor-pointer list-none flex items-center gap-1">
-              New
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div class="absolute right-0 mt-1 w-44 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
-              <a href="/form/game-table/new" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Table</a>
-              <a href="/form/character/new" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Character</a>
-              <a href="/form/npc/new" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">NPC</a>
-              <a href="/form/item/new" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Item</a>
-              <a href="/form/advantage/new" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Advantage</a>
-              <a href="/form/disadvantage/new" class="block px-4 py-2 text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 text-sm">Disadvantage</a>
-            </div>
-          </details>
-          <details class="relative">
-            <summary class="nav-link px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 cursor-pointer list-none flex items-center gap-1">
               Dashboards
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
@@ -54,7 +40,7 @@ export function layout(title: string, content: string): string {
         <a href="/" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50">Home</a>
         <div class="text-zinc-500 text-xs uppercase tracking-wider px-3 pt-3 pb-1">New</div>
         <a href="/form/game-table/new" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Table</a>
-        <a href="/form/character/new" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Character</a>
+        <a href="/form/character/new${tableId ? '?table_id=' + tableId : ''}" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Character</a>
         <a href="/form/npc/new" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">NPC</a>
         <a href="/form/item/new" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Item</a>
         <a href="/form/advantage/new" class="block px-3 py-2 rounded-lg text-zinc-300 hover:text-amber-400 hover:bg-zinc-700/50 pl-6">Advantage</a>
