@@ -250,8 +250,8 @@ for (const modifierNarration of narrations) {
 }
 
 const modifierNarrationsActionstmt = db.prepare(`
-  INSERT INTO narration_actions(id, narrations_id, queue, test, result, dice_roll, description, character_id, modificator, target, multitarget)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO narration_actions(id, narrations_id, queue, result, dice_roll, description, character_id, modificator, target, multitarget)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const modifierNarrationAction of modifierNarrationsActions) {
