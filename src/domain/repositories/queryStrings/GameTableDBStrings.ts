@@ -18,11 +18,11 @@ export const GameTableDBStrings:any = {
 
       -- ACTION
       na.id AS action_id,
-      na.test AS action_test,
       na.queue AS action_queue,
       na.character_id AS action_character_id,
       na.description AS action_description,
       na.dice_roll AS action_dice_roll,
+      na.result AS action_result,
       
       -- CHARACTER (via action)
       ca.id AS action_character_ref_id,

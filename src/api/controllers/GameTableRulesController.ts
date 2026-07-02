@@ -24,6 +24,18 @@ import { CreateGameTableCharacterUseCase } from '../../application/use-cases/tab
 import { EditGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableCharacterUseCase'
 import { FindGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterUseCase'
 import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
+import { CreateGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameModifierUseCase'
+import { EditGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameModifierUseCase'
+import { FindGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameModifierUseCase'
+import { FindAllGameModifiersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameModifiersUseCase'
+import { CreateGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameVisibilityUseCase'
+import { EditGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameVisibilityUseCase'
+import { FindGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameVisibilityUseCase'
+import { FindAllGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameVisibilityUseCase'
+import { CreateGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameQueueUseCase'
+import { EditGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameQueueUseCase'
+import { FindGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameQueueUseCase'
+import { FindAllGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameQueueUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -50,7 +62,19 @@ export class GameTableRulesController {
     private createGameTableCharacterUseCase?: CreateGameTableCharacterUseCase,
     private editGameTableCharacterUseCase?: EditGameTableCharacterUseCase,
     private findGameTableCharacterUseCase?: FindGameTableCharacterUseCase,
-    private findAllGameTableCharactersUseCase?: FindAllGameTableCharactersUseCase
+    private findAllGameTableCharactersUseCase?: FindAllGameTableCharactersUseCase,
+    private createGameModifierUseCase?: CreateGameModifierUseCase,
+    private editGameModifierUseCase?: EditGameModifierUseCase,
+    private findGameModifierUseCase?: FindGameModifierUseCase,
+    private findAllGameModifiersUseCase?: FindAllGameModifiersUseCase,
+    private createGameVisibilityUseCase?: CreateGameVisibilityUseCase,
+    private editGameVisibilityUseCase?: EditGameVisibilityUseCase,
+    private findGameVisibilityUseCase?: FindGameVisibilityUseCase,
+    private findAllGameVisibilityUseCase?: FindAllGameVisibilityUseCase,
+    private createGameQueueUseCase?: CreateGameQueueUseCase,
+    private editGameQueueUseCase?: EditGameQueueUseCase,
+    private findGameQueueUseCase?: FindGameQueueUseCase,
+    private findAllGameQueueUseCase?: FindAllGameQueueUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -184,5 +208,77 @@ export class GameTableRulesController {
   async findAllCharacters(req: Request, res: Response) {
     const characters = await this.findAllGameTableCharactersUseCase!.execute(req.params.id as string)
     return res.json(characters)
+  }
+
+  /* =============== */
+  /*    MODIFIERS    */
+  /* =============== */
+
+  async createModifier(req: Request, res: Response) {
+    const result = await this.createGameModifierUseCase!.execute(req.body)
+    return res.json({ success: true, ...result })
+  }
+
+  async editModifier(req: Request, res: Response) {
+    await this.editGameModifierUseCase!.execute(req.body)
+    return res.json({ success: true })
+  }
+
+  async findModifier(req: Request, res: Response) {
+    const modifier = await this.findGameModifierUseCase!.execute(req.params.id as string)
+    return res.json(modifier)
+  }
+
+  async findAllModifiers(req: Request, res: Response) {
+    const modifiers = await this.findAllGameModifiersUseCase!.execute(req.params.id as string)
+    return res.json(modifiers)
+  }
+
+  /* =============== */
+  /*   VISIBILITY    */
+  /* =============== */
+
+  async createVisibility(req: Request, res: Response) {
+    const result = await this.createGameVisibilityUseCase!.execute(req.body)
+    return res.json({ success: true, ...result })
+  }
+
+  async editVisibility(req: Request, res: Response) {
+    await this.editGameVisibilityUseCase!.execute(req.body)
+    return res.json({ success: true })
+  }
+
+  async findVisibility(req: Request, res: Response) {
+    const visibility = await this.findGameVisibilityUseCase!.execute(req.params.id as string)
+    return res.json(visibility)
+  }
+
+  async findAllVisibility(req: Request, res: Response) {
+    const visibility = await this.findAllGameVisibilityUseCase!.execute(req.params.id as string)
+    return res.json(visibility)
+  }
+
+  /* =============== */
+  /*      QUEUE      */
+  /* =============== */
+
+  async createQueue(req: Request, res: Response) {
+    const result = await this.createGameQueueUseCase!.execute(req.body)
+    return res.json({ success: true, ...result })
+  }
+
+  async editQueue(req: Request, res: Response) {
+    await this.editGameQueueUseCase!.execute(req.body)
+    return res.json({ success: true })
+  }
+
+  async findQueue(req: Request, res: Response) {
+    const queueItem = await this.findGameQueueUseCase!.execute(req.params.id as string)
+    return res.json(queueItem)
+  }
+
+  async findAllQueue(req: Request, res: Response) {
+    const queueItems = await this.findAllGameQueueUseCase!.execute(req.params.id as string)
+    return res.json(queueItems)
   }
 }
