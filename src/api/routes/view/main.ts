@@ -54,7 +54,8 @@ router.get('/', async (req, res) => {
         )
       : tables
     res.send(gameTableList(filtered, req.query.search as string || ''))
-  } catch {
+  } catch (e: any) {
+    console.error('Route / error:', e?.message || e)
     res.status(500).send('Internal server error')
   }
 })

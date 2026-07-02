@@ -160,6 +160,26 @@ export function sessionScreen(data: any): string {
             </div>
           </div>
           ${ln ? `<p class="text-sm text-zinc-400 leading-relaxed italic border-l-2 border-zinc-700/50 pl-3 mt-3">${ln}</p>` : ''}
+          ${latestNarration?.actions?.length ? `
+            <div class="mt-4 border-t border-zinc-700/40 pt-3">
+              ${latestNarration.actions.sort((a: any, b: any) => (a.queue ?? 0) - (b.queue ?? 0)).map((a: any) => {
+                const charId = a.character?.id || ''
+                const charName = a.character?.name || a.character?.username || 'Unknown'
+                return `
+                  <div class="flex items-start gap-3 py-1.5">
+                    <span class="text-xs text-zinc-600 w-4 mt-0.5">${a.queue}.</span>
+                    <div class="flex-1">
+                      <span class="text-sm text-zinc-300">
+                        ${charId ? `<a href="/game-table-character-viewer/${charId}" class="text-zinc-200 hover:text-blue-400">${charName}</a>` : charName}
+                        ${a.description ? `&mdash; ${a.description}` : ''}
+                      </span>
+                      ${a.dice_roll ? `<span class="text-xs text-zinc-400 ml-1">${a.dice_roll}${a.result ? ` = ${a.result}` : ''}</span>` : ''}
+                    </div>
+                  </div>
+                `
+              }).join('')}
+            </div>
+          ` : ''}
         </div>
 
         <div class="bg-zinc-900/80 border border-zinc-700/40 rounded-xl p-5">

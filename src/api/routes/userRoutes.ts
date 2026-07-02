@@ -48,6 +48,18 @@ import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/t
 import { FindGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableNPCVisibilityUseCase'
 import { EditGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableNPCVisibilityUseCase'
 import { CreateGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableNPCVisibilityUseCase'
+import { CreateGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameModifierUseCase'
+import { EditGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameModifierUseCase'
+import { FindGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameModifierUseCase'
+import { FindAllGameModifiersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameModifiersUseCase'
+import { CreateGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameVisibilityUseCase'
+import { EditGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameVisibilityUseCase'
+import { FindGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameVisibilityUseCase'
+import { FindAllGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameVisibilityUseCase'
+import { CreateGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameQueueUseCase'
+import { EditGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameQueueUseCase'
+import { FindGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameQueueUseCase'
+import { FindAllGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameQueueUseCase'
 
 const router = Router()
 
@@ -109,6 +121,18 @@ const findAllGameTableCharactersUseCase = new FindAllGameTableCharactersUseCase(
 const createGameTableNPCVisibilityUseCase = new CreateGameTableNPCVisibilityUseCase(gameTableRulesRepo)
 const editGameTableNPCVisibilityUseCase = new EditGameTableNPCVisibilityUseCase(gameTableRulesRepo)
 const findGameTableNPCVisibilityUseCase = new FindGameTableNPCVisibilityUseCase(gameTableRulesRepo)
+const createGameModifierUseCase = new CreateGameModifierUseCase(gameTableRulesRepo)
+const editGameModifierUseCase = new EditGameModifierUseCase(gameTableRulesRepo)
+const findGameModifierUseCase = new FindGameModifierUseCase(gameTableRulesRepo)
+const findAllGameModifiersUseCase = new FindAllGameModifiersUseCase(gameTableRulesRepo)
+const createGameVisibilityUseCase = new CreateGameVisibilityUseCase(gameTableRulesRepo)
+const editGameVisibilityUseCase = new EditGameVisibilityUseCase(gameTableRulesRepo)
+const findGameVisibilityUseCase = new FindGameVisibilityUseCase(gameTableRulesRepo)
+const findAllGameVisibilityUseCase = new FindAllGameVisibilityUseCase(gameTableRulesRepo)
+const createGameQueueUseCase = new CreateGameQueueUseCase(gameTableRulesRepo)
+const editGameQueueUseCase = new EditGameQueueUseCase(gameTableRulesRepo)
+const findGameQueueUseCase = new FindGameQueueUseCase(gameTableRulesRepo)
+const findAllGameQueueUseCase = new FindAllGameQueueUseCase(gameTableRulesRepo)
 
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(
@@ -136,7 +160,19 @@ const gameTableRulesController = new GameTableRulesController(
     createGameTableCharacterUseCase,
     editGameTableCharacterUseCase,
     findGameTableCharacterUseCase,
-    findAllGameTableCharactersUseCase)
+    findAllGameTableCharactersUseCase,
+    createGameModifierUseCase,
+    editGameModifierUseCase,
+    findGameModifierUseCase,
+    findAllGameModifiersUseCase,
+    createGameVisibilityUseCase,
+    editGameVisibilityUseCase,
+    findGameVisibilityUseCase,
+    findAllGameVisibilityUseCase,
+    createGameQueueUseCase,
+    editGameQueueUseCase,
+    findGameQueueUseCase,
+    findAllGameQueueUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -167,5 +203,23 @@ router.post('/game-table-character', (req, res) => gameTableRulesController.crea
 router.put('/game-table-character', (req, res) => gameTableRulesController.editCharacter(req, res))
 router.get('/game-table-character/:id', (req, res) => gameTableRulesController.findCharacter(req, res))
 router.get('/game-table-characters/:id', (req, res) => gameTableRulesController.findAllCharacters(req, res))
+
+/* ===== MODIFIERS ===== */
+router.get('/game-table-modifiers/:id', (req, res) => gameTableRulesController.findAllModifiers(req, res))
+router.get('/game-table-modifier/:id', (req, res) => gameTableRulesController.findModifier(req, res))
+router.post('/game-table-modifier', (req, res) => gameTableRulesController.createModifier(req, res))
+router.put('/game-table-modifier', (req, res) => gameTableRulesController.editModifier(req, res))
+
+/* ===== VISIBILITY ===== */
+router.get('/game-table-visibility/:id', (req, res) => gameTableRulesController.findAllVisibility(req, res))
+router.get('/game-table-visibility-item/:id', (req, res) => gameTableRulesController.findVisibility(req, res))
+router.post('/game-table-visibility', (req, res) => gameTableRulesController.createVisibility(req, res))
+router.put('/game-table-visibility', (req, res) => gameTableRulesController.editVisibility(req, res))
+
+/* ===== QUEUE ===== */
+router.get('/game-table-queue/:id', (req, res) => gameTableRulesController.findAllQueue(req, res))
+router.get('/game-table-queue-item/:id', (req, res) => gameTableRulesController.findQueue(req, res))
+router.post('/game-table-queue', (req, res) => gameTableRulesController.createQueue(req, res))
+router.put('/game-table-queue', (req, res) => gameTableRulesController.editQueue(req, res))
 
 export default router

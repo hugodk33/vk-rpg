@@ -933,4 +933,241 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       }))
     }
   }
+
+  /* =============== */
+  /*    MODIFIERS    */
+  /* =============== */
+
+  async createGameModifier(data: any): Promise<any> {
+    const id = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      data.character_id || null,
+      data.item_id || null,
+      data.skill_id || null,
+      data.advantage_id || null,
+      data.disadvantage_id || null,
+      data.action_id || null,
+      data.narration_id || null,
+      data.scene_id || null,
+      data.name || '',
+      data.cost_points ?? null,
+      data.effect || '',
+      data.description || '',
+      data.hp ?? null,
+      data.st ?? null,
+      data.dx ?? null,
+      data.iq ?? null,
+      data.ht ?? null,
+      data.fatigue ?? null,
+      data.encumbrance || null,
+      data.mod_hp ?? null,
+      data.mod_st ?? null,
+      data.mod_dx ?? null,
+      data.mod_iq ?? null,
+      data.mod_ht ?? null,
+      data.mod_fatigue ?? null,
+      data.mod_encumbrance || null,
+      data.skill_value || null,
+      data.advantage_value || null,
+      data.disadvantage_value || null,
+      data.armor_value || null,
+      data.damage_value || null,
+      data.item_quantity ?? null,
+      data.item_dimension || null,
+      data.item_weight ?? null,
+      data.item_range || null,
+      data.item_status || null
+    )
+    return { id }
+  }
+
+  async editGameModifier(data: any): Promise<void> {
+    db.prepare(`
+      UPDATE modifiers SET
+        character_id = ?, item_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
+        action_id = ?, narration_id = ?, scene_id = ?, name = ?, cost_points = ?,
+        effect = ?, description = ?, hp = ?, st = ?, dx = ?, iq = ?, ht = ?,
+        fatigue = ?, encumbrance = ?, mod_hp = ?, mod_st = ?, mod_dx = ?, mod_iq = ?,
+        mod_ht = ?, mod_fatigue = ?, mod_encumbrance = ?, skill_value = ?,
+        advantage_value = ?, disadvantage_value = ?, armor_value = ?, damage_value = ?,
+        item_quantity = ?, item_dimension = ?, item_weight = ?, item_range = ?, item_status = ?
+      WHERE id = ?
+    `).run(
+      data.character_id || null,
+      data.item_id || null,
+      data.skill_id || null,
+      data.advantage_id || null,
+      data.disadvantage_id || null,
+      data.action_id || null,
+      data.narration_id || null,
+      data.scene_id || null,
+      data.name || '',
+      data.cost_points ?? null,
+      data.effect || '',
+      data.description || '',
+      data.hp ?? null,
+      data.st ?? null,
+      data.dx ?? null,
+      data.iq ?? null,
+      data.ht ?? null,
+      data.fatigue ?? null,
+      data.encumbrance || null,
+      data.mod_hp ?? null,
+      data.mod_st ?? null,
+      data.mod_dx ?? null,
+      data.mod_iq ?? null,
+      data.mod_ht ?? null,
+      data.mod_fatigue ?? null,
+      data.mod_encumbrance || null,
+      data.skill_value || null,
+      data.advantage_value || null,
+      data.disadvantage_value || null,
+      data.armor_value || null,
+      data.damage_value || null,
+      data.item_quantity ?? null,
+      data.item_dimension || null,
+      data.item_weight ?? null,
+      data.item_range || null,
+      data.item_status || null,
+      data.id
+    )
+  }
+
+  async findGameModifier(id: any): Promise<any> {
+    const modifier = db.prepare(`SELECT * FROM modifiers WHERE id = ?`).get(id) as any
+    return modifier
+  }
+
+  async findAllGameModifiers(tableId: any): Promise<any> {
+    const table = db.prepare(`SELECT id, narrator_id, intro, title FROM game_tables WHERE id = ?`).get(tableId as string)
+
+    const modifiers = db.prepare(`
+      SELECT DISTINCT m.* FROM modifiers m
+      LEFT JOIN game_table_characters gc ON gc.id = m.character_id
+      LEFT JOIN scenes s ON s.id = m.scene_id
+      LEFT JOIN narrations n ON n.id = m.narration_id
+      LEFT JOIN narration_actions na ON na.id = m.action_id
+      LEFT JOIN game_table_items gi ON gi.id = m.item_id
+      LEFT JOIN game_table_skills gsk ON gsk.id = m.skill_id
+      LEFT JOIN game_table_advantages ga ON ga.id = m.advantage_id
+      LEFT JOIN game_table_disadvantages gd ON gd.id = m.disadvantage_id
+      WHERE gc.table_id = ?
+         OR s.table_id = ?
+         OR n.table_id = ?
+         OR na.narrations_id IN (SELECT id FROM narrations WHERE table_id = ?)
+         OR gi.table_id = ?
+         OR gsk.table_id = ?
+         OR ga.table_id = ?
+         OR gd.table_id = ?
+    `).all(tableId, tableId, tableId, tableId, tableId, tableId, tableId, tableId) as any[]
+
+    return { table, modifiers }
+  }
+
+  /* =============== */
+  /*    VISIBILITY   */
+  /* =============== */
+
+  async createGameVisibility(data: any): Promise<any> {
+    const id = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO visibility (id, character_id, skill_id, advantage_id, disadvantage_id, attribute, additionals_attributes, item_id, value, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      data.character_id || null,
+      data.skill_id || null,
+      data.advantage_id || null,
+      data.disadvantage_id || null,
+      data.attribute || null,
+      data.additionals_attributes || null,
+      data.item_id || null,
+      data.value || '',
+      data.status || 'hidden'
+    )
+    return { id }
+  }
+
+  async editGameVisibility(data: any): Promise<void> {
+    db.prepare(`
+      UPDATE visibility SET
+        character_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
+        attribute = ?, additionals_attributes = ?, item_id = ?, value = ?, status = ?
+      WHERE id = ?
+    `).run(
+      data.character_id || null,
+      data.skill_id || null,
+      data.advantage_id || null,
+      data.disadvantage_id || null,
+      data.attribute || null,
+      data.additionals_attributes || null,
+      data.item_id || null,
+      data.value || '',
+      data.status || 'hidden',
+      data.id
+    )
+  }
+
+  async findGameVisibility(id: any): Promise<any> {
+    const visibility = db.prepare(`SELECT * FROM visibility WHERE id = ?`).get(id) as any
+    return visibility
+  }
+
+  async findAllGameVisibility(characterId: any): Promise<any> {
+    const visibility = db.prepare(`SELECT * FROM visibility WHERE character_id = ?`).all(characterId) as any[]
+    return visibility
+  }
+
+  /* =============== */
+  /*      QUEUE      */
+  /* =============== */
+
+  async createGameQueue(data: any): Promise<any> {
+    const id = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO queue (id, character_id, action_id, queue, status)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(
+      id,
+      data.character_id || null,
+      data.action_id || null,
+      data.queue || '',
+      data.status || 'pending'
+    )
+    return { id }
+  }
+
+  async editGameQueue(data: any): Promise<void> {
+    db.prepare(`
+      UPDATE queue SET character_id = ?, action_id = ?, queue = ?, status = ?
+      WHERE id = ?
+    `).run(
+      data.character_id || null,
+      data.action_id || null,
+      data.queue || '',
+      data.status || 'pending',
+      data.id
+    )
+  }
+
+  async findGameQueue(id: any): Promise<any> {
+    const queueItem = db.prepare(`SELECT * FROM queue WHERE id = ?`).get(id) as any
+    return queueItem
+  }
+
+  async findAllGameQueue(tableId: any): Promise<any> {
+    const queueItems = db.prepare(`
+      SELECT q.*, cs.name as character_name
+      FROM queue q
+      LEFT JOIN game_table_characters gc ON gc.id = q.character_id
+      LEFT JOIN game_table_character_sheets cs ON cs.character_id = gc.id
+      WHERE gc.table_id = ?
+      ORDER BY q.queue ASC
+    `).all(tableId) as any[]
+    return queueItems
+  }
 }

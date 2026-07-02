@@ -274,6 +274,7 @@ CREATE TABLE IF NOT EXISTS game_table_skills (
   name TEXT,
   category TEXT,
   subcategory TEXT,
+  type TEXT,
   predefinition_type TEXT,
   predefinition_difficulty TEXT,
   description TEXT,
@@ -376,12 +377,14 @@ CREATE TABLE IF NOT EXISTS game_table_disadvantages (
 
 CREATE TABLE IF NOT EXISTS modifiers (
   id TEXT PRIMARY KEY,
-  table_id TEXT,
   character_id TEXT,
   item_id TEXT,
   skill_id TEXT,
   advantage_id TEXT,
   disadvantage_id TEXT,
+  action_id TEXT,
+  narration_id TEXT,
+  scene_id TEXT,
   name TEXT,
   cost_points INTEGER,
   effect TEXT,
@@ -393,12 +396,54 @@ CREATE TABLE IF NOT EXISTS modifiers (
   ht INTEGER,
   fatigue INTEGER,
   encumbrance TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id),
+  mod_hp INTEGER,
+  mod_st INTEGER,
+  mod_dx INTEGER,
+  mod_iq INTEGER,
+  mod_ht INTEGER,
+  mod_fatigue INTEGER,
+  mod_encumbrance TEXT,
+  skill_value TEXT,
+  advantage_value TEXT,
+  disadvantage_value TEXT,
+  armor_value TEXT,
+  damage_value TEXT,
+  item_quantity INTEGER,
+  item_dimension TEXT,
+  item_weight INTEGER,
+  item_range TEXT,
+  item_status TEXT,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (item_id) REFERENCES game_table_items(id),
   FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
   FOREIGN KEY (advantage_id) REFERENCES game_table_advantages(id),
-  FOREIGN KEY (disadvantage_id) REFERENCES game_table_disadvantages(id)
+  FOREIGN KEY (disadvantage_id) REFERENCES game_table_disadvantages(id),
+  FOREIGN KEY (action_id) REFERENCES narration_actions(id),
+  FOREIGN KEY (narration_id) REFERENCES narrations(id),
+  FOREIGN KEY (scene_id) REFERENCES scenes(id)
+);
+
+CREATE TABLE IF NOT EXISTS visibility (
+  id TEXT PRIMARY KEY,
+  character_id TEXT,
+  skill_id TEXT,
+  advantage_id TEXT,
+  disadvantage_id TEXT,
+  attribute TEXT,
+  additionals_attributes TEXT,
+  item_id TEXT,
+  value TEXT,
+  status TEXT,
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
+  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id)
+);
+
+CREATE TABLE IF NOT EXISTS queue (
+  id TEXT PRIMARY KEY,
+  character_id TEXT,
+  action_id TEXT,
+  queue TEXT,
+  status TEXT
 );
 
 CREATE TABLE IF NOT EXISTS log (

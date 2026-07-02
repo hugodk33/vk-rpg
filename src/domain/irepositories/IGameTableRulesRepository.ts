@@ -33,4 +33,19 @@ export interface IGameTableRulesRepository {
   editGameNPCVisibility(id: any): Promise<void>
   findGameNPCVisibility(id: any): Promise<void>
   findAllGameNPCVisibility(id: any): Promise<void>
+
+  createGameModifier(data: any): Promise<any>
+  editGameModifier(data: any): Promise<void>
+  findGameModifier(id: any): Promise<any>
+  findAllGameModifiers(tableId: any): Promise<any>
+
+  createGameVisibility(data: any): Promise<any>
+  editGameVisibility(data: any): Promise<void>
+  findGameVisibility(id: any): Promise<any>
+  findAllGameVisibility(characterId: any): Promise<any>
+
+  createGameQueue(data: any): Promise<any>
+  editGameQueue(data: any): Promise<void>
+  findGameQueue(id: any): Promise<any>
+  findAllGameQueue(tableId: any): Promise<any>
 }
