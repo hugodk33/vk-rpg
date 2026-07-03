@@ -74,7 +74,7 @@ export function playerSession(data: any): string {
         ${playerChar ? `<a href="/player/game-table-character-viewer/${playerChar.id}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Character</a>` : ''}
       </div>
 
-      <div class="mb-6">
+      <div class="mb-3 mt-3">
         <h1 class="text-2xl font-bold text-amber-100">${table?.title || 'Session'}</h1>
       </div>
 

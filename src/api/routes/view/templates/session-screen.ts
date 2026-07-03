@@ -72,7 +72,7 @@ export function sessionScreen(data: any): string {
         </details>
       </div>
 
-      <div class="mb-6">
+      <div class="mb-3 mt-3">
         <h1 class="text-2xl font-bold text-amber-100">${table?.title || 'Session'}</h1>
       </div>
 
