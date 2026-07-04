@@ -743,7 +743,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   }
 
 
-  async findGameCharacter(id: any): Promise<any> {
+  async findGameCharacter(id: any, moment?: number): Promise<any> {
     const characterData = db.prepare(`
       SELECT
         c.id as character_id,
@@ -825,9 +825,60 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE character_id = ?
     `).all(characterId) as any[]
 
-    const basicSpeed = (characterData.dx as number + characterData.ht as number) / 4
+    const moments = db.prepare(`
+      SELECT DISTINCT n.moment
+      FROM narrations n
+      WHERE n.table_id = ? AND n.moment IS NOT NULL
+      ORDER BY n.moment ASC
+    `).all(tableId) as any[]
+
+    let modifiers: any[]
+    if (moment != null) {
+      modifiers = db.prepare(`
+        SELECT m.* FROM modifiers m
+        LEFT JOIN narrations n ON n.id = m.narration_id
+        WHERE m.character_id = ?
+          AND (n.moment IS NULL OR n.moment <= ?)
+        ORDER BY m.rowid ASC
+      `).all(characterId, moment) as any[]
+    } else {
+      modifiers = db.prepare(`
+        SELECT * FROM modifiers
+        WHERE character_id = ?
+        ORDER BY rowid ASC
+      `).all(characterId) as any[]
+    }
+
+    const baseStats = {
+      hp: characterData.hp ?? 10,
+      st: characterData.st ?? 10,
+      dx: characterData.dx ?? 10,
+      iq: characterData.iq ?? 10,
+      ht: characterData.ht ?? 10,
+      fatigue: characterData.fatigue ?? 10,
+    }
+
+    const currentStats = { ...baseStats }
+
+    for (const mod of modifiers) {
+      if (mod.hp != null) currentStats.hp = mod.hp
+      if (mod.st != null) currentStats.st = mod.st
+      if (mod.dx != null) currentStats.dx = mod.dx
+      if (mod.iq != null) currentStats.iq = mod.iq
+      if (mod.ht != null) currentStats.ht = mod.ht
+      if (mod.fatigue != null) currentStats.fatigue = mod.fatigue
+
+      if (mod.mod_hp != null) currentStats.hp += mod.mod_hp
+      if (mod.mod_st != null) currentStats.st += mod.mod_st
+      if (mod.mod_dx != null) currentStats.dx += mod.mod_dx
+      if (mod.mod_iq != null) currentStats.iq += mod.mod_iq
+      if (mod.mod_ht != null) currentStats.ht += mod.mod_ht
+      if (mod.mod_fatigue != null) currentStats.fatigue += mod.mod_fatigue
+    }
+
+    const basicSpeed = (currentStats.dx + currentStats.ht) / 4
     const itemsWeight = items.reduce((total, item) => total + (item.weight as number || 0), 0)
-    const st = characterData.st as number;
+    const st = currentStats.st;
 
   const encumbranceValue =
       itemsWeight <= st * 2 ? 0 :
@@ -860,24 +911,33 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
           bio: characterData.bio,
           backstory: characterData.backstory,
           points: characterData.points,
-          hp: characterData.hp,
-          st: characterData.st,
-          dx: characterData.dx,
-          iq: characterData.iq,
-          ht: characterData.ht,
-          fatigue: characterData.fatigue,
+          hp: currentStats.hp,
+          st: currentStats.st,
+          dx: currentStats.dx,
+          iq: currentStats.iq,
+          ht: currentStats.ht,
+          fatigue: currentStats.fatigue,
           encumbrance: characterData.encumbrance,
           basic_speed: basicSpeed,
-          move: basicSpeed - encumbranceValue
+          move: basicSpeed - encumbranceValue,
+          base_hp: baseStats.hp,
+          base_st: baseStats.st,
+          base_dx: baseStats.dx,
+          base_iq: baseStats.iq,
+          base_ht: baseStats.ht,
+          base_fatigue: baseStats.fatigue,
           } : null,
         advantages,
         disadvantages,
         armors,
         skills,
         items,
-        damages
+        damages,
+        modifiers
       },
-      peculiarities
+      peculiarities,
+      moments: moments.map((r: any) => r.moment).filter((m: any) => m != null),
+      selected_moment: moment ?? null
     }
   }
 

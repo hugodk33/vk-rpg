@@ -147,6 +147,28 @@ export type GameTableWithNarrator = {
   players: GameTablePlayerWithCharacter[]
 }
 
+type GameTableModifier = {
+  id: string
+  name: string
+  description: string
+  hp?: number | null
+  st?: number | null
+  dx?: number | null
+  iq?: number | null
+  ht?: number | null
+  fatigue?: number | null
+  mod_hp?: number | null
+  mod_st?: number | null
+  mod_dx?: number | null
+  mod_iq?: number | null
+  mod_ht?: number | null
+  mod_fatigue?: number | null
+  damage_value?: string | null
+  skill_value?: string | null
+  item_quantity?: number | null
+  item_weight?: number | null
+}
+
 type GameTableSceneAction = {
   id: string
   queue: number
@@ -159,4 +181,5 @@ type GameTableSceneAction = {
     userId: string
     username: string
   } | null
+  modifier?: GameTableModifier | null
 }

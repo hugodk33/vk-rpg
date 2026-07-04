@@ -101,7 +101,8 @@ router.get('/player/game_table_characters/:id', async (req, res) => {
 
 router.get('/game-table-character-viewer/:id', async (req, res) => {
   try {
-    const character = await charRepo.findGameCharacter(req.params.id)
+    const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
+    const character = await charRepo.findGameCharacter(req.params.id, moment)
     if (!character) {
       return res.status(404).send('Character not found')
     }
@@ -113,7 +114,8 @@ router.get('/game-table-character-viewer/:id', async (req, res) => {
 
 router.get('/player/game-table-character-viewer/:id', async (req, res) => {
   try {
-    const character = await charRepo.findGameCharacter(req.params.id)
+    const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
+    const character = await charRepo.findGameCharacter(req.params.id, moment)
     if (!character) {
       return res.status(404).send('Character not found')
     }

@@ -1,5 +1,12 @@
 import { layout } from './layout'
 
+function statDiff(base: number | undefined, current: number | undefined): string {
+  if (base == null || current == null || base === current) return ''
+  const diff = current - base
+  const color = diff < 0 ? 'text-red-400' : 'text-emerald-400'
+  return `<span class="${color} text-xs ml-1">(${diff >= 0 ? '+' : ''}${diff})</span>`
+}
+
 function radarChart(st: number, dx: number, iq: number, ht: number, size = 165): string {
   const cx = size / 2, cy = size / 2, r = size * 0.4
   const angles = [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2]
@@ -186,6 +193,63 @@ function playerCharNav(tableId: string, chId: string): string {
   `
 }
 
+function bottomPanel(data: any, chId: string, basePath: string): string {
+  const ch = data.character
+  const moments = data.moments ?? []
+  const modifiers = ch.modifiers ?? []
+  const hasContent = moments.length > 0 || modifiers.length > 0
+  if (!hasContent) return ''
+
+  return `
+    <div class="bg-zinc-900/90 border border-zinc-700/50 shadow-2xl overflow-hidden mt-6">
+      <div class="p-4">
+        ${moments.length > 0 ? `
+        <div class="mb-4">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mr-1">History</span>
+            <a href="${basePath}${chId}"
+               class="px-2.5 py-1 text-xs rounded-md transition-colors ${!data.selected_moment ? 'bg-amber-600/30 text-amber-300 border border-amber-600/50' : 'bg-zinc-800/60 text-zinc-400 border border-zinc-700/50 hover:text-zinc-200'}">Present</a>
+            ${moments.map((m: number) => `
+              <a href="${basePath}${chId}?moment=${m}"
+                 class="px-2.5 py-1 text-xs rounded-md transition-colors ${data.selected_moment === m ? 'bg-amber-600/30 text-amber-300 border border-amber-600/50' : 'bg-zinc-800/60 text-zinc-400 border border-zinc-700/50 hover:text-zinc-200'}">Moment ${m}</a>
+            `).join('')}
+          </div>
+          ${data.selected_moment ? `<p class="text-xs text-zinc-500 mt-2">Viewing character state at <span class="text-amber-400 font-medium">Moment ${data.selected_moment}</span></p>` : ''}
+        </div>
+        ` : ''}
+        ${modifiers.length > 0 ? `
+        <div>
+          <div class="flex items-center gap-2 mb-3 border-b border-zinc-700/60 pb-1.5">
+            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            <h2 class="text-lg font-bold uppercase tracking-wider text-zinc-300">Modifiers Applied</h2>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            ${modifiers.map((m: any) => `
+              <div class="bg-zinc-800/60 rounded-lg border border-zinc-700/40 px-3 py-2">
+                <div class="flex justify-between items-start">
+                  <span class="text-zinc-200 text-sm font-medium">${m.name}</span>
+                  <span class="text-xs text-zinc-500">${m.damage_value || ''}</span>
+                </div>
+                ${m.description ? `<p class="text-zinc-500 text-xs mt-0.5">${m.description}</p>` : ''}
+                <div class="flex flex-wrap gap-2 mt-1 text-xs">
+                  ${m.mod_hp != null ? `<span class="text-red-400">HP ${m.mod_hp >= 0 ? '+' : ''}${m.mod_hp}</span>` : ''}
+                  ${m.mod_st != null ? `<span class="text-red-400">ST ${m.mod_st >= 0 ? '+' : ''}${m.mod_st}</span>` : ''}
+                  ${m.mod_dx != null ? `<span class="text-emerald-400">DX ${m.mod_dx >= 0 ? '+' : ''}${m.mod_dx}</span>` : ''}
+                  ${m.mod_iq != null ? `<span class="text-blue-400">IQ ${m.mod_iq >= 0 ? '+' : ''}${m.mod_iq}</span>` : ''}
+                  ${m.mod_ht != null ? `<span class="text-purple-400">HT ${m.mod_ht >= 0 ? '+' : ''}${m.mod_ht}</span>` : ''}
+                  ${m.mod_fatigue != null ? `<span class="text-blue-400">FP ${m.mod_fatigue >= 0 ? '+' : ''}${m.mod_fatigue}</span>` : ''}
+                  ${m.hp != null ? `<span class="text-red-400">Base HP&rarr;${m.hp}</span>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+  `
+}
+
 export function characterViewer(data: any): string {
   const ch = data.character
   const s = ch.sheet
@@ -218,24 +282,24 @@ export function characterViewer(data: any): string {
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Core Attributes</h3>
               <div class="flex justify-center flex-wrap gap-1 mb-4">
-                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[55px]">
                   <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                  <span class="text-red-400 text-xl font-bold">${s?.st ?? '-'}</span>
+                  <span class="text-red-400 text-xl font-bold">${s?.st ?? '-'}${statDiff(s?.base_st, s?.st)}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">ST</span>
                 </div>
-                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[55px]">
                   <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
-                  <span class="text-emerald-400 text-xl font-bold">${s?.dx ?? '-'}</span>
+                  <span class="text-emerald-400 text-xl font-bold">${s?.dx ?? '-'}${statDiff(s?.base_dx, s?.dx)}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">DX</span>
                 </div>
-                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[55px]">
                   <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                  <span class="text-blue-400 text-xl font-bold">${s?.iq ?? '-'}</span>
+                  <span class="text-blue-400 text-xl font-bold">${s?.iq ?? '-'}${statDiff(s?.base_iq, s?.iq)}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">IQ</span>
                 </div>
-                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[56px]">
+                <div class="flex flex-col items-center gap-1 p-2 bg-zinc-800/40 rounded-lg min-w-[55px]">
                   <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                  <span class="text-purple-400 text-xl font-bold">${s?.ht ?? '-'}</span>
+                  <span class="text-purple-400 text-xl font-bold">${s?.ht ?? '-'}${statDiff(s?.base_ht, s?.ht)}</span>
                   <span class="text-zinc-500 text-xs font-semibold uppercase">HT</span>
                 </div>
               </div>
@@ -249,11 +313,11 @@ export function characterViewer(data: any): string {
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4">
                 <div class="flex items-center gap-2 w-full">
                   <div class="flex w-full items-center">
-                    <span class="flex justify-between items-center pr-2 w-1/5">
+                    <span class="flex justify-between items-center pr-2 w-2/5">
                       <span class="text-zinc-500 text-xs font-semibold uppercase">HP </span>
-                      <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}</span>
+                      <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}/${s?.base_hp ?? '-'}</span>
                     </span>
-                    <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
+                    <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
                       <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%">
                       </div>
                     </div>
@@ -261,11 +325,11 @@ export function characterViewer(data: any): string {
                 </div>
                 <div class="flex items-center gap-2 w-full">
                   <div class="flex w-full items-center">
-                    <span class="flex justify-between items-center pr-2 w-1/5">
+                    <span class="flex justify-between items-center pr-2 w-2/5">
                       <span class="text-zinc-500 text-xs font-semibold uppercase">FP </span>
                       <span class="text-blue-400 font-bold text-lg ml-1">${s?.fatigue ?? '-'}</span>
                     </span>
-                    <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
+                    <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
                       <div class="bg-blue-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div>
                     </div>
                   </div>
@@ -301,6 +365,7 @@ export function characterViewer(data: any): string {
                     <span class="text-amber-400/80">${(a.value ?? '').replace('DR ', '')} ${a.fit || ''}</span>
                   </div>
                 `).join('')}
+
             </div>
           </div>
             <div>
@@ -395,6 +460,7 @@ export function characterViewer(data: any): string {
             </div>
         </div>
       </div>
+      ${tableId ? bottomPanel(data, ch.id, '/game-table-character-viewer/') : ''}
     </div>
   `, tableId)
 }
@@ -464,7 +530,7 @@ export function playerCharacterViewer(data: any): string {
                   <div class="flex w-full items-center">
                     <span class="flex justify-between items-center pr-2 w-1/5">
                       <span class="text-zinc-500 text-xs font-semibold uppercase">HP </span>
-                      <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}</span>
+                      <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}/${s?.base_hp ?? '-'}</span>
                     </span>
                     <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
                       <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%">
@@ -514,6 +580,7 @@ export function playerCharacterViewer(data: any): string {
                     <span class="text-amber-400/80">${(a.value ?? '').replace('DR ', '')} ${a.fit || ''}</span>
                   </div>
                 `).join('')}
+
             </div>
           </div>
             <div>
@@ -608,6 +675,7 @@ export function playerCharacterViewer(data: any): string {
             </div>
         </div>
       </div>
+      ${tableId ? bottomPanel(data, ch.id, '/player/game-table-character-viewer/') : ''}
     </div>
   `, tableId)
 }

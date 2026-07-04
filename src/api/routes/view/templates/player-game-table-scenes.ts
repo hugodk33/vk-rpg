@@ -11,9 +11,10 @@ function locationCard(loc: any): string {
   `
 }
 
-function entityBadge(id: string, name: string, subtitle: string): string {
+function entityBadge(id: string, name: string, subtitle: string, moment?: number): string {
+  const url = `/game-table-character-viewer/${id}${moment != null ? `?moment=${moment}` : ''}`
   return `
-    <a href="/game-table-character-viewer/${id}"
+    <a href="${url}"
        class="inline-flex items-center gap-2 bg-zinc-700 hover:bg-zinc-600 rounded px-3 py-1.5 text-sm transition-colors">
       <span class="w-2 h-2 rounded-full bg-blue-500"></span>
       <div>
@@ -24,18 +25,38 @@ function entityBadge(id: string, name: string, subtitle: string): string {
   `
 }
 
-function actionRow(a: any): string {
+function modifierTag(m: any): string {
+  if (!m) return ''
+  const parts: string[] = []
+  if (m.mod_hp != null) parts.push(`<span class="text-red-400 font-medium">${m.mod_hp >= 0 ? '+' : ''}${m.mod_hp} HP</span>`)
+  if (m.mod_st != null) parts.push(`<span class="text-red-400 font-medium">${m.mod_st >= 0 ? '+' : ''}${m.mod_st} ST</span>`)
+  if (m.mod_dx != null) parts.push(`<span class="text-emerald-400 font-medium">${m.mod_dx >= 0 ? '+' : ''}${m.mod_dx} DX</span>`)
+  if (m.mod_iq != null) parts.push(`<span class="text-blue-400 font-medium">${m.mod_iq >= 0 ? '+' : ''}${m.mod_iq} IQ</span>`)
+  if (m.mod_ht != null) parts.push(`<span class="text-purple-400 font-medium">${m.mod_ht >= 0 ? '+' : ''}${m.mod_ht} HT</span>`)
+  if (m.mod_fatigue != null) parts.push(`<span class="text-blue-400 font-medium">${m.mod_fatigue >= 0 ? '+' : ''}${m.mod_fatigue} FP</span>`)
+  if (m.hp != null) parts.push(`<span class="text-red-400 font-medium">HP&rarr;${m.hp}</span>`)
+  if (m.damage_value != null) parts.push(`<span class="text-red-400 font-medium">${m.damage_value}</span>`)
+  if (m.skill_value != null) parts.push(`<span class="text-amber-400 font-medium">Skill: ${m.skill_value}</span>`)
+  if (m.item_quantity != null) parts.push(`<span class="text-amber-400 font-medium">Qty: ${m.item_quantity}</span>`)
+  if (m.item_weight != null) parts.push(`<span class="text-amber-400 font-medium">Wt: ${m.item_weight}</span>`)
+  if (!parts.length) return ''
+  return `<div class="flex flex-wrap gap-2 mt-1 ml-7 text-xs">${parts.join('')}</div>`
+}
+
+function actionRow(a: any, moment?: number): string {
   const charId = a.character?.id || ''
   const charName = a.character?.name || a.character?.username || 'Unknown'
+  const charUrl = charId ? `/game-table-character-viewer/${charId}${moment != null ? `?moment=${moment}` : ''}` : ''
   return `
     <div class="flex items-start gap-3 py-1.5">
       <span class="text-xs text-zinc-600 w-4 mt-0.5">${a.queue}.</span>
       <div class="flex-1">
         <span class="text-sm text-zinc-300">
-          ${charId ? `<a href="/game-table-character-viewer/${charId}" class="text-zinc-200 hover:text-blue-400">${charName}</a>` : charName}
+          ${charUrl ? `<a href="${charUrl}" class="text-zinc-200 hover:text-blue-400">${charName}</a>` : charName}
           ${a.description ? `&mdash; ${a.description}` : ''}
         </span>
         ${a.dice_roll ? `<span class="text-xs text-zinc-400 ml-1">${a.dice_roll}${a.result ? ` = ${a.result}` : ''}</span>` : ''}
+        ${modifierTag(a.modifier)}
       </div>
     </div>
   `
@@ -101,8 +122,8 @@ export function playerGameTableScenes(data: any): string {
                     ${n.location ? locationCard(n.location) : ''}
                     ${(() => {
                       const participants = [
-                        ...(n.characters ?? []).map((ch: any) => entityBadge(ch.id, ch.name || ch.username || 'Unknown', 'Player')),
-                        ...(n.npcs ?? []).map((npc: any) => entityBadge(npc.characterId, npc.name || 'Unknown', npc.status || 'NPC'))
+                        ...(n.characters ?? []).map((ch: any) => entityBadge(ch.id, ch.name || ch.username || 'Unknown', 'Player', n.moment)),
+                        ...(n.npcs ?? []).map((npc: any) => entityBadge(npc.characterId, npc.name || 'Unknown', npc.status || 'NPC', n.moment))
                       ]
                       return participants.length ? `
                         <div class="flex flex-wrap gap-3 mt-3">
@@ -113,7 +134,7 @@ export function playerGameTableScenes(data: any): string {
                     ${n.actions?.length ? `
                       <div class="mt-3">
                         <p class="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1">Actions</p>
-                        ${[...n.actions].sort((a: any, b: any) => (a.queue ?? 0) - (b.queue ?? 0)).map(actionRow).join('')}
+                        ${[...n.actions].sort((a: any, b: any) => (a.queue ?? 0) - (b.queue ?? 0)).map(a => actionRow(a, n.moment)).join('')}
                       </div>
                     ` : ''}
                   </div>

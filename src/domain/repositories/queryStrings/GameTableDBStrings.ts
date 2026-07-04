@@ -48,6 +48,27 @@ export const GameTableDBStrings:any = {
       c_npc.id AS narration_npc_ref_id,
       npc_cs.name AS narration_npc_name,
 
+      -- MODIFIER (via action)
+      m.id AS modifier_id,
+      m.name AS modifier_name,
+      m.description AS modifier_description,
+      m.hp AS modifier_hp,
+      m.st AS modifier_st,
+      m.dx AS modifier_dx,
+      m.iq AS modifier_iq,
+      m.ht AS modifier_ht,
+      m.fatigue AS modifier_fatigue,
+      m.mod_hp AS modifier_mod_hp,
+      m.mod_st AS modifier_mod_st,
+      m.mod_dx AS modifier_mod_dx,
+      m.mod_iq AS modifier_mod_iq,
+      m.mod_ht AS modifier_mod_ht,
+      m.mod_fatigue AS modifier_mod_fatigue,
+      m.damage_value AS modifier_damage_value,
+      m.skill_value AS modifier_skill_value,
+      m.item_quantity AS modifier_item_quantity,
+      m.item_weight AS modifier_item_weight,
+
       -- LOCATION
       nl.id AS narration_location_link_id,
       tl.id AS location_id,
@@ -102,6 +123,10 @@ export const GameTableDBStrings:any = {
 
     LEFT JOIN game_table_character_sheets npc_cs
       ON npc_cs.character_id = c_npc.id
+
+    -- MODIFIER
+    LEFT JOIN modifiers m
+      ON m.action_id = na.id
 
     -- LOCATION
     LEFT JOIN narration_locations nl

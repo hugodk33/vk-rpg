@@ -352,6 +352,7 @@ export class GameTableRepository implements IGameTableRepository {
               description: string
               dice_roll: string
               character: { id: string; name: string; userId: string; username: string } | null
+              modifier: any
             }>
             characters: Map<
               string,
@@ -414,8 +415,8 @@ export class GameTableRepository implements IGameTableRepository {
           title: row.narration_title,
           narration: row.narration_text,
           moment: row.narration_moment,
-          actions: [],
-          characters: new Map(),
+            actions: [],
+            characters: new Map(),
           npcs: new Map(),
           location:  null
         })
@@ -428,6 +429,30 @@ export class GameTableRepository implements IGameTableRepository {
         row.action_id &&
         !narration.actions.some((action) => action.id === row.action_id)
       ) {
+        const modifier = row.modifier_id
+          ? {
+              id: row.modifier_id,
+              name: row.modifier_name,
+              description: row.modifier_description,
+              hp: row.modifier_hp,
+              st: row.modifier_st,
+              dx: row.modifier_dx,
+              iq: row.modifier_iq,
+              ht: row.modifier_ht,
+              fatigue: row.modifier_fatigue,
+              mod_hp: row.modifier_mod_hp,
+              mod_st: row.modifier_mod_st,
+              mod_dx: row.modifier_mod_dx,
+              mod_iq: row.modifier_mod_iq,
+              mod_ht: row.modifier_mod_ht,
+              mod_fatigue: row.modifier_mod_fatigue,
+              damage_value: row.modifier_damage_value,
+              skill_value: row.modifier_skill_value,
+              item_quantity: row.modifier_item_quantity,
+              item_weight: row.modifier_item_weight
+            }
+          : null
+
         narration.actions.push({
           id: row.action_id,
           queue: row.action_queue,
@@ -441,7 +466,8 @@ export class GameTableRepository implements IGameTableRepository {
               userId: row.action_character_user_id,
               username: row.action_character_username
             }
-            : null
+            : null,
+          modifier
         })
       }
 

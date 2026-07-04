@@ -2,7 +2,7 @@
 import { db } from './database'
 import './migrate'
 import { narrators  , gameTables , gameTablePlayers  } from '../variables/varGameTable'
-import { modifierNarrationsActions , modifierNarrationsLocations , modifierNarrationsCharacters , modifierNarrationsNPCs } from '../variables/varModifiers'
+import { modifierNarrationsActions , modifierNarrationsLocations , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierSeedEntries } from '../variables/varModifiers'
 import { skills } from '../variables/varSkills'
 import { items } from '../variables/varItems'
 import { advantages } from '../variables/varAdvantages'
@@ -441,6 +441,37 @@ for (const modifierGameTableCharacterArmor of armors) {
     modifierGameTableCharacterArmor.item_id,
     modifierGameTableCharacterArmor.skill_id,
     modifierGameTableCharacterArmor.advantage_id
+  )
+}
+
+const modifierStmt = db.prepare(`
+  INSERT INTO modifiers(
+    id, character_id, action_id, narration_id,
+    name, description,
+    mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue,
+    damage_value, skill_value, item_quantity, item_weight
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const modifier of modifierSeedEntries) {
+  modifierStmt.run(
+    modifier.id,
+    modifier.character_id,
+    modifier.action_id,
+    modifier.narration_id,
+    modifier.name,
+    modifier.description,
+    modifier.mod_hp ?? null,
+    modifier.mod_st ?? null,
+    modifier.mod_dx ?? null,
+    modifier.mod_iq ?? null,
+    modifier.mod_ht ?? null,
+    modifier.mod_fatigue ?? null,
+    modifier.damage_value ?? null,
+    modifier.skill_value ?? null,
+    modifier.item_quantity ?? null,
+    modifier.item_weight ?? null
   )
 }
 

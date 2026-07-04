@@ -257,6 +257,97 @@ export const  modifierNarrationsActions: SeedModifierNarrationActions[] = [
   },
 ]
 
+type SeedModifierEntry = {
+  id: string
+  action_id: string
+  character_id: string
+  narration_id: string
+  name: string
+  description: string
+  hp?: number
+  st?: number
+  dx?: number
+  iq?: number
+  ht?: number
+  fatigue?: number
+  mod_hp?: number
+  mod_st?: number
+  mod_dx?: number
+  mod_iq?: number
+  mod_ht?: number
+  mod_fatigue?: number
+  damage_value?: string
+  skill_value?: string
+  item_quantity?: number
+  item_weight?: number
+}
+
+export const modifierSeedEntries: SeedModifierEntry[] = [
+  {
+    id: crypto.randomUUID(),
+    action_id: modifierNarrationsActions[2]!.id,
+    character_id: characterLyraId,
+    narration_id: narration1,
+    name: 'Cantrip fatigue',
+    description: 'Lyra expended energy casting a divination cantrip',
+    mod_fatigue: -1,
+  },
+  {
+    id: crypto.randomUUID(),
+    action_id: modifierNarrationsActions[6]!.id,
+    character_id: characterNPCsIds[1] as string,
+    narration_id: narration3,
+    name: 'Slash wound',
+    description: 'Elric landed a deep slash across Thorne\'s flank',
+    mod_hp: -4,
+  },
+  {
+    id: crypto.randomUUID(),
+    action_id: modifierNarrationsActions[7]!.id,
+    character_id: characterGalarhornId,
+    narration_id: narration3,
+    name: 'Blunt trauma',
+    description: 'Thorne\'s heavy overhand blows bruised Elric through his guard',
+    mod_hp: -3,
+  },
+  {
+    id: crypto.randomUUID(),
+    action_id: modifierNarrationsActions[8]!.id,
+    character_id: characterNPCsIds[0] as string,
+    narration_id: narration3,
+    name: 'Dazzled',
+    description: 'Lyra\'s blinding flash left Riven disoriented',
+    mod_dx: -2,
+  },
+  {
+    id: crypto.randomUUID(),
+    action_id: modifierNarrationsActions[9]!.id,
+    character_id: characterLyraId,
+    narration_id: narration3,
+    name: 'Dagger wound',
+    description: 'Riven\'s poisoned dagger caught Lyra in the shoulder',
+    mod_hp: -2,
+  },
+  {
+    id: crypto.randomUUID(),
+    action_id: modifierNarrationsActions[10]!.id,
+    character_id: characterNPCsIds[1] as string,
+    narration_id: narration3,
+    name: 'Kidney stab',
+    description: 'Kael\'s dagger drove deep into Thorne\'s kidney',
+    mod_hp: -5,
+  },
+  {
+    id: crypto.randomUUID(),
+    action_id: modifierNarrationsActions[15]!.id,
+    character_id: characterKaelId,
+    narration_id: narration5,
+    name: 'Arrow wound',
+    description: 'Nyx\'s arrow pierced Kael\'s shoulder',
+    mod_hp: -3,
+  },
+]
+
 type SeedModifierNarrationCharacter= {
   id: string
   character_id: string
