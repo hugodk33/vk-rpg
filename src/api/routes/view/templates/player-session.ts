@@ -59,7 +59,6 @@ export function playerSession(data: any): string {
       <div class="flex gap-1 border-b border-zinc-700/50">
         <a href="/table/${table?.id}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-200 border-b-2 border-amber-500">Act</a>
         <a href="/player/game_table_scenes/${table?.id}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Timeline</a>
-        <a href="/form/character/new?table_id=${table?.id}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">New Character</a>
         <details class="relative">
           <summary class="px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent cursor-pointer list-none flex items-center gap-1">Table<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary>
           <div class="absolute top-full left-0 mt-1 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
@@ -74,7 +73,7 @@ export function playerSession(data: any): string {
         ${playerChar ? `<a href="/player/game-table-character-viewer/${playerChar.id}" class="px-4 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 border-b-2 border-transparent">Character</a>` : ''}
       </div>
 
-      <div class="mb-6">
+      <div class="mb-3 mt-3">
         <h1 class="text-2xl font-bold text-amber-100">${table?.title || 'Session'}</h1>
       </div>
 
