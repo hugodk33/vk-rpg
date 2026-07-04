@@ -209,10 +209,12 @@ function bottomPanel(data: any, chId: string, basePath: string): string {
             <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mr-1">History</span>
             <a href="${basePath}${chId}"
                class="px-2.5 py-1 text-xs rounded-md transition-colors ${!data.selected_moment ? 'bg-amber-600/30 text-amber-300 border border-amber-600/50' : 'bg-zinc-800/60 text-zinc-400 border border-zinc-700/50 hover:text-zinc-200'}">Present</a>
-            ${moments.map((m: number) => `
+            ${[...moments].reverse().map((m: number, i: number, arr: number[]) => {
+              const label = i === arr.length - 1 ? 'Starting' : `${m}`
+              return `
               <a href="${basePath}${chId}?moment=${m}"
-                 class="px-2.5 py-1 text-xs rounded-md transition-colors ${data.selected_moment === m ? 'bg-amber-600/30 text-amber-300 border border-amber-600/50' : 'bg-zinc-800/60 text-zinc-400 border border-zinc-700/50 hover:text-zinc-200'}">Moment ${m}</a>
-            `).join('')}
+                 class="px-2.5 py-1 text-xs rounded-md transition-colors ${data.selected_moment === m ? 'bg-amber-600/30 text-amber-300 border border-amber-600/50' : 'bg-zinc-800/60 text-zinc-400 border border-zinc-700/50 hover:text-zinc-200'}">${label}</a>`
+            }).join('')}
           </div>
           ${data.selected_moment ? `<p class="text-xs text-zinc-500 mt-2">Viewing character state at <span class="text-amber-400 font-medium">Moment ${data.selected_moment}</span></p>` : ''}
         </div>
@@ -318,7 +320,7 @@ export function characterViewer(data: any): string {
                       <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}/${s?.base_hp ?? '-'}</span>
                     </span>
                     <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
-                      <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%">
+                      <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, Math.max(0, ((parseInt(s?.hp) || 0) / (parseInt(s?.base_hp) || 1)) * 100))}%">
                       </div>
                     </div>
                   </div>
@@ -330,7 +332,7 @@ export function characterViewer(data: any): string {
                       <span class="text-blue-400 font-bold text-lg ml-1">${s?.fatigue ?? '-'}</span>
                     </span>
                     <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
-                      <div class="bg-blue-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div>
+                      <div class="bg-blue-500/80 h-2 rounded-full" style="width: ${Math.min(100, ((parseInt(s?.fatigue) || 0) / (parseInt(s?.ht) || 1)) * 100)}%"></div>
                     </div>
                   </div>
                 </div>
@@ -528,24 +530,24 @@ export function playerCharacterViewer(data: any): string {
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4">
                 <div class="flex items-center gap-2 w-full">
                   <div class="flex w-full items-center">
-                    <span class="flex justify-between items-center pr-2 w-1/5">
+                    <span class="flex justify-between items-center pr-2 w-2/5">
                       <span class="text-zinc-500 text-xs font-semibold uppercase">HP </span>
                       <span class="text-red-400 font-bold text-lg ml-1">${s?.hp ?? '-'}/${s?.base_hp ?? '-'}</span>
                     </span>
-                    <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
-                      <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.hp) || 10) * 10)}%">
+                    <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
+                      <div class="bg-red-500/80 h-2 rounded-full" style="width: ${Math.min(100, Math.max(0, ((parseInt(s?.hp) || 0) / (parseInt(s?.base_hp) || 1)) * 100))}%">
                       </div>
                     </div>
                   </div>
                 </div>
                 <div class="flex items-center gap-2 w-full">
                   <div class="flex w-full items-center">
-                    <span class="flex justify-between items-center pr-2 w-1/5">
+                    <span class="flex justify-between items-center pr-2 w-2/5">
                       <span class="text-zinc-500 text-xs font-semibold uppercase">FP </span>
                       <span class="text-blue-400 font-bold text-lg ml-1">${s?.fatigue ?? '-'}</span>
                     </span>
-                    <div class="w-4/5 bg-zinc-700/50 rounded-full h-2">
-                      <div class="bg-blue-500/80 h-2 rounded-full" style="width: ${Math.min(100, (parseInt(s?.fatigue) || 10) * 10)}%"></div>
+                    <div class="w-3/5 bg-zinc-700/50 rounded-full h-2">
+                      <div class="bg-blue-500/80 h-2 rounded-full" style="width: ${Math.min(100, ((parseInt(s?.fatigue) || 0) / (parseInt(s?.ht) || 1)) * 100)}%"></div>
                     </div>
                   </div>
                 </div>

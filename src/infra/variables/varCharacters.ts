@@ -86,7 +86,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     dx: 10,
     iq: 15,
     ht: 10,
-    fatigue: 13,
+    fatigue: 0,
     encumbrance: 'None'
   },
   {
@@ -101,7 +101,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     dx: 14,
     iq: 12,
     ht: 11,
-    fatigue: 11,
+    fatigue: 0,
     encumbrance: 'None'
   },
   {
@@ -110,7 +110,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Riven Kael',
     bio: 'A fast dual-blade fighter.',
     backstory: 'Survived by speed and instinct.',
-    points: 150, hp: 11, st: 11, dx: 14, iq: 11, ht: 10, fatigue: 10, encumbrance: 'Light'
+    points: 150, hp: 11, st: 11, dx: 14, iq: 11, ht: 10, fatigue: 0, encumbrance: 'Light'
   },
   {
     id: crypto.randomUUID(),
@@ -118,7 +118,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Thorne Black',
     bio: 'A grim bounty hunter.',
     backstory: 'Tracks targets across kingdoms.',
-    points: 155, hp: 12, st: 12, dx: 12, iq: 11, ht: 11, fatigue: 11, encumbrance: 'Medium'
+    points: 155, hp: 12, st: 12, dx: 12, iq: 11, ht: 11, fatigue: 0, encumbrance: 'Medium'
   },
   {
     id: crypto.randomUUID(),
@@ -126,7 +126,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Selene Voss',
     bio: 'A shadow mage.',
     backstory: 'Manipulates darkness itself.',
-    points: 160, hp: 10, st: 9, dx: 12, iq: 15, ht: 10, fatigue: 12, encumbrance: 'Light'
+    points: 160, hp: 10, st: 9, dx: 12, iq: 15, ht: 10, fatigue: 0, encumbrance: 'Light'
   },
   {
     id: crypto.randomUUID(),
@@ -134,7 +134,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Kael Draven',
     bio: 'A ruthless duelist.',
     backstory: 'Seeks perfection in combat.',
-    points: 150, hp: 11, st: 11, dx: 13, iq: 11, ht: 11, fatigue: 10, encumbrance: 'Light'
+    points: 150, hp: 11, st: 11, dx: 13, iq: 11, ht: 11, fatigue: 0, encumbrance: 'Light'
   },
   {
     id: crypto.randomUUID(),
@@ -142,7 +142,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Lyra Moonfall',
     bio: 'A celestial sorcerer.',
     backstory: 'Gifted by ancient stars.',
-    points: 165, hp: 10, st: 9, dx: 11, iq: 15, ht: 11, fatigue: 13, encumbrance: 'Light'
+    points: 165, hp: 10, st: 9, dx: 11, iq: 15, ht: 11, fatigue: 0, encumbrance: 'Light'
   },
   {
     id: crypto.randomUUID(),
@@ -150,7 +150,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Borin Stonehelm',
     bio: 'A dwarven tank.',
     backstory: 'Unbreakable in battle.',
-    points: 160, hp: 14, st: 14, dx: 10, iq: 10, ht: 13, fatigue: 12, encumbrance: 'Heavy'
+    points: 160, hp: 14, st: 14, dx: 10, iq: 10, ht: 13, fatigue: 1, encumbrance: 'Heavy'
   },
   {
     id: crypto.randomUUID(),
@@ -158,7 +158,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Nyx Shadowend',
     bio: 'An elite assassin.',
     backstory: 'Never seen, always lethal.',
-    points: 155, hp: 10, st: 10, dx: 15, iq: 12, ht: 10, fatigue: 10, encumbrance: 'Light'
+    points: 155, hp: 10, st: 10, dx: 15, iq: 12, ht: 10, fatigue: 0, encumbrance: 'Light'
   },
   {
     id: crypto.randomUUID(),
@@ -166,7 +166,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Eldric Vale',
     bio: 'A wise mage.',
     backstory: 'Keeper of forbidden lore.',
-    points: 170, hp: 10, st: 9, dx: 10, iq: 16, ht: 11, fatigue: 13, encumbrance: 'Light'
+    points: 170, hp: 10, st: 9, dx: 10, iq: 16, ht: 11, fatigue: 0, encumbrance: 'Light'
   },
   {
     id: crypto.randomUUID(),
@@ -174,7 +174,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Vera Hollow',
     bio: 'A cursed archer.',
     backstory: 'Haunted by past battles.',
-    points: 150, hp: 11, st: 11, dx: 13, iq: 11, ht: 11, fatigue: 10, encumbrance: 'Light'
+    points: 150, hp: 11, st: 11, dx: 13, iq: 11, ht: 11, fatigue: 0, encumbrance: 'Light'
   },
   {
     id: crypto.randomUUID(),
@@ -182,7 +182,7 @@ export const characterSheets: SeedCharacterSheet[] = [
     name: 'Dante Crowe',
     bio: 'A charismatic warlock.',
     backstory: 'Power at a terrible cost.',
-    points: 165, hp: 10, st: 10, dx: 11, iq: 15, ht: 11, fatigue: 12, encumbrance: 'Light'
+    points: 165, hp: 10, st: 10, dx: 11, iq: 15, ht: 11, fatigue: 0, encumbrance: 'Light'
   }
 ]
 
