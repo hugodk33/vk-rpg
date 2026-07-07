@@ -5,7 +5,8 @@ import { FindAllGameTablesUseCase } from '../../../application/use-cases/tables-
 import { FindAllGameTableScenesUseCase } from '../../../application/use-cases/tables-use-cases/FindAllGameTableScenesUseCase'
 import { FindGameTableUseCase } from '../../../application/use-cases/tables-use-cases/FindGameTableUseCase'
 import { characterViewer, playerCharacterViewer } from './templates/character-viewer'
-import { gameTableList } from './templates/game-table-list'
+import { gameTableCards } from './templates/game-table-list'
+import { apiDocs } from './templates/api-docs'
 import { gameTableScenes } from './templates/game-table-scenes'
 import { gameTableCharacters } from './templates/game-table-characters'
 import { formGameTable } from './templates/form-game-table'
@@ -44,16 +45,7 @@ const findAllGameTableSkillsUseCase = new FindGameTableSkillsUseCase(charRepo)
 
 router.get('/', async (req, res) => {
   try {
-    const tables = await findAllGameTablesUseCase.execute()
-    const search = (req.query.search as string || '').toLowerCase()
-    const filtered = search
-      ? tables.filter((t: any) =>
-          t.title?.toLowerCase().includes(search) ||
-          t.narrator?.username?.toLowerCase().includes(search) ||
-          t.intro?.toLowerCase().includes(search)
-        )
-      : tables
-    res.send(gameTableList(filtered, req.query.search as string || ''))
+    res.send(apiDocs(gameTableCards()))
   } catch (e: any) {
     console.error('Route / error:', e?.message || e)
     res.status(500).send('Internal server error')
