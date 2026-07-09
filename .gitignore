@@ -35,3 +35,4 @@ jest.config.js
 .test.ts
 node_modules/.cache/jest/
 src/application/use-cases/CreateUserUseCase.test.ts
+src/application/use-cases/table-game-rules-use-case/GameTableCharacterRoutes.test.ts
