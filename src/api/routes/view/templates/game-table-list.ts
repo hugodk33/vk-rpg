@@ -1,6 +1,6 @@
 export function gameTableCards(): string {
   return `
-    <div class="text-center mb-12">
+    <div class="mb-12">
       <h1 class="text-4xl font-bold text-amber-100 mb-3">VKRPG</h1>
       <p class="text-zinc-400 text-lg">A platform for playing games and telling stories.</p>
     </div>
