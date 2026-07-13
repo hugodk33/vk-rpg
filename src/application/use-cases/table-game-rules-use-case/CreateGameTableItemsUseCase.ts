@@ -2,7 +2,8 @@ import { IGameTableRulesRepository } from '../../../domain/irepositories/IGameTa
 
 export class CreateGameTableItemsUseCase {
   constructor(private repo: IGameTableRulesRepository) {}
-  async execute(item: any) {
-    await this.repo.createGameItems(item)
+  async execute(item: any): Promise<any> {
+    const result = await this.repo.createGameItems(item)
+    return result
   }
 }

@@ -3,6 +3,7 @@ import { FindGameTableSkillUseCase } from '../../application/use-cases/table-gam
 import { FindGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableSkillsUseCase'
 import { FindGameTableAdvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableAdvantageUseCase'
 import { FindGameTableAdvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableAdvantagesUseCase '
+import { FindGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableDisadvantagesUseCase'
 import { CreateGameTableAdvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableAdvantagesUseCase'
 import { EditGameTableAdvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableAdvantagesUseCase'
 import { FindGameTablePeculiarityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTablePeculiarityUseCase'
@@ -42,6 +43,7 @@ export class GameTableRulesController {
     private findAllGameTableSkillsUseCase: FindGameTableSkillsUseCase,
     private findGameTableAdvantageUseCase: FindGameTableAdvantageUseCase,
     private findAllGameTableAdvantagesUseCase: FindGameTableAdvantagesUseCase,
+    private findAllGameTableDisadvantagesUseCase: FindGameTableDisadvantagesUseCase,
     private findGameTablePeculiarityUseCase: FindGameTablePeculiarityUseCase,
     private findAllGameTablePeculiaritiesUseCase: FindAllGameTablePeculiaritiesUseCase,
     private findGameTableItemUseCase: FindGameTableItemUseCase,
@@ -92,6 +94,11 @@ export class GameTableRulesController {
     return res.json(advantages)
   }
 
+  async findAllDisadvantages(req: Request, res: Response) {
+    const disadvantages = await this.findAllGameTableDisadvantagesUseCase.execute(req.params.id as string)
+    return res.json(disadvantages)
+  }
+
   async findAllItems(req: Request, res: Response) {
     const Items = await this.findAllGameTableItemsUseCase.execute(req.params.id as string)
     return res.json(Items)
@@ -138,8 +145,8 @@ export class GameTableRulesController {
   }
 
   async createItem(req: Request, res: Response) {
-    await this.createGameTableItemsUseCase!.execute(req.body)
-    return res.json({ success: true })
+    const result = await this.createGameTableItemsUseCase!.execute(req.body)
+    return res.json({ success: true, ...result })
   }
 
   async editItem(req: Request, res: Response) {

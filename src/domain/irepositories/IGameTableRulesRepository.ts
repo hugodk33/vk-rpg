@@ -8,13 +8,14 @@ export interface IGameTableRulesRepository {
   editGameAdvantages(id: any): Promise<void>
   findGameAdvantages(id: any): Promise<void>
   findAllGameAdvantages(id: any): Promise<any[] | void>
+  findAllGameDisadvantages(id: any): Promise<any[] | void>
   
   createGamePeculiarites(id: any): Promise<void>
   editGamePeculiarites(id: any): Promise<void>
   findGamePeculiarites(id: any): Promise<void>
   findAllGamePeculiarites(id: any): Promise<any[] | void>
   
-  createGameItems(id: any): Promise<void>
+  createGameItems(id: any): Promise<any>
   editGameItems(id: any): Promise<void>
   findGameItems(id: any): Promise<void>
   findAllGameItems(id: any): Promise<any[] | void>

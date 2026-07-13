@@ -26,6 +26,7 @@ import { GameTableRulesController } from '../controllers/GameTableRulesControlle
 import { FindGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableSkillsUseCase'
 
 import { FindGameTableAdvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableAdvantagesUseCase '
+import { FindGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableDisadvantagesUseCase'
 import { FindAllGameTableNPCSUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableNPCSUseCase'
 import { FindGameTableItemsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableItemsUseCase'
 import { CreateGameTableAdvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableAdvantagesUseCase'
@@ -100,6 +101,7 @@ const findGameTableSkillsUseCase = new FindGameTableSkillUseCase(gameTableRulesR
 const findAllGameTableSkillsUseCase = new FindGameTableSkillsUseCase(gameTableRulesRepo) 
 const findGameTableAdvantageUseCase = new FindGameTableAdvantageUseCase(gameTableRulesRepo)
 const findAllGameTableAdvantagesUseCase = new FindGameTableAdvantagesUseCase(gameTableRulesRepo)
+const findAllGameTableDisadvantagesUseCase = new FindGameTableDisadvantagesUseCase(gameTableRulesRepo)
 const createGameTableAdvantagesUseCase = new CreateGameTableAdvantagesUseCase(gameTableRulesRepo)
 const editGameTableAdvantagesUseCase = new EditGameTableAdvantagesUseCase(gameTableRulesRepo)
 const findGameTablePeculiarityUseCase = new FindGameTablePeculiarityUseCase(gameTableRulesRepo)
@@ -140,6 +142,7 @@ const gameTableRulesController = new GameTableRulesController(
     findAllGameTableSkillsUseCase,
     findGameTableAdvantageUseCase,
     findAllGameTableAdvantagesUseCase,
+    findAllGameTableDisadvantagesUseCase,
     findGameTablePeculiarityUseCase,
     findAllGameTablePeculiaritiesUseCase,
     findGameTableItemUseCase,
@@ -193,8 +196,15 @@ router.post('/game-table-action', (req, res) => gameTableController.createNarrat
 
 router.get('/game-table-skills/:id', (req, res) => gameTableRulesController.findAllSkills(req, res))
 router.get('/game-table-advantages/:id', (req, res) => gameTableRulesController.findAllAdvantages(req, res))
+router.get('/game-table-disadvantages/:id', (req, res) => gameTableRulesController.findAllDisadvantages(req, res))
 router.get('/game-table-peculiarities/:id', (req, res) => gameTableRulesController.findAllPeculiarities(req, res))
+router.get('/game-table-peculiarity/:id', (req, res) => gameTableRulesController.findPeculiarity(req, res))
+router.post('/game-table-peculiarity', (req, res) => gameTableRulesController.createPeculiarity(req, res))
+router.put('/game-table-peculiarity', (req, res) => gameTableRulesController.editPeculiarity(req, res))
 router.get('/game-table-items/:id', (req, res) => gameTableRulesController.findAllItems(req, res))
+router.get('/game-table-item/:id', (req, res) => gameTableRulesController.findItem(req, res))
+router.post('/game-table-item', (req, res) => gameTableRulesController.createItem(req, res))
+router.put('/game-table-item', (req, res) => gameTableRulesController.editItem(req, res))
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 

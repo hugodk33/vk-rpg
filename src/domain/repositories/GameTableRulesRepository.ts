@@ -282,9 +282,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).get(id as string)
 
     const gameTablesPeculiarites = db.prepare(`
-      SELECT 
-      * FROM 
-      game_table_peculiarites WHERE table_id = ?
+      SELECT q.* FROM game_table_characters_quirks q
+      LEFT JOIN game_table_characters c ON c.id = q.character_id
+      WHERE c.table_id = ?
     `).all(id) as any[]
     return ({
       table: table,
@@ -296,12 +296,13 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /*      ITEMS      */
   /* =============== */
   
-  async createGameItems(data: any): Promise<void> {
+  async createGameItems(data: any): Promise<any> {
+    const itemId = crypto.randomUUID()
     db.prepare(`
       INSERT INTO game_table_items (id, table_id, name, type, category, weight, dimensions, description, quality, condition, holder_id, owner_id, skill_user_id, skill_level)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      crypto.randomUUID(),
+      itemId,
       data.table_id,
       data.name,
       data.type,
@@ -316,6 +317,31 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.skill_user_id,
       data.skill_level
     )
+
+    if (data.type === 1 && data.character_id && data.damage_value) {
+      db.prepare(`
+        INSERT INTO game_table_damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        crypto.randomUUID(), data.name, data.description || '', 'Physical',
+        data.damage_value, data.range || 'Melee',
+        data.character_id, itemId, data.skill_id || null, null
+      )
+    }
+
+    if ((data.type === 2 || data.type === 3) && data.character_id && data.armor_value) {
+      db.prepare(`
+        INSERT INTO game_table_armors (id, name, description, type, value, fit, character_id, item_id, skill_id, advantage_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        crypto.randomUUID(), data.name, data.description || '',
+        data.type === 2 ? 'Armor' : 'Clothing',
+        data.armor_value, data.fit || 'Torso',
+        data.character_id, itemId, null, null
+      )
+    }
+
+    return { id: itemId }
   }
   async editGameItems(data: any): Promise<void> {
     db.prepare(`
@@ -337,6 +363,24 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.skill_level,
       data.id
     )
+
+    if (data.type === 1 && data.character_id && data.damage_value) {
+      const existing = db.prepare(`SELECT id FROM game_table_damages WHERE item_id = ?`).get(data.id) as any
+      if (existing) {
+        db.prepare(`UPDATE game_table_damages SET name = ?, value = ?, range = ? WHERE id = ?`).run(data.name, data.damage_value, data.range || 'Melee', existing.id)
+      } else {
+        db.prepare(`INSERT INTO game_table_damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(crypto.randomUUID(), data.name, data.description || '', 'Physical', data.damage_value, data.range || 'Melee', data.character_id, data.id, data.skill_id || null, null)
+      }
+    }
+
+    if ((data.type === 2 || data.type === 3) && data.character_id && data.armor_value) {
+      const existing = db.prepare(`SELECT id FROM game_table_armors WHERE item_id = ?`).get(data.id) as any
+      if (existing) {
+        db.prepare(`UPDATE game_table_armors SET name = ?, value = ?, fit = ? WHERE id = ?`).run(data.name, data.armor_value, data.fit || 'Torso', existing.id)
+      } else {
+        db.prepare(`INSERT INTO game_table_armors (id, name, description, type, value, fit, character_id, item_id, skill_id, advantage_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(crypto.randomUUID(), data.name, data.description || '', data.type === 2 ? 'Armor' : 'Clothing', data.armor_value, data.fit || 'Torso', data.character_id, data.id, null, null)
+      }
+    }
   }
   async findGameItems(id: any): Promise<any> {
     const gameTableItem = db.prepare(`
