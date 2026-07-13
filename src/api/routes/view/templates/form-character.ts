@@ -421,6 +421,28 @@ export function formCharacter(data?: any): string {
           <textarea id="chBackstory" rows="2"
             class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
         </div>
+        <div class="mt-4 pt-4 border-t border-zinc-700/40">
+          <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Type</label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="charType" value="pc" checked onchange="toggleCharType()"
+                class="w-4 h-4 border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
+              <span class="text-zinc-200 text-sm">Player Character</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="charType" value="npc" onchange="toggleCharType()"
+                class="w-4 h-4 border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
+              <span class="text-zinc-200 text-sm">NPC</span>
+            </label>
+          </div>
+        </div>
+        <div id="playerSelectGroup" class="mt-3">
+          <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Assign to Player</label>
+          <select id="chUserId"
+            class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+            <option value="">-- Select a player --</option>
+          </select>
+        </div>
       </div>
 
       <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
@@ -489,6 +511,13 @@ export function formCharacter(data?: any): string {
         </div>
         <div id="itemsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
       </div>
+
+      <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+        <h2 class="text-lg font-semibold text-amber-100 mb-3">Peculiarities (Quirks)</h2>
+        <p class="text-xs text-zinc-500 mb-2">One per line. Format: <code>Name: cost_points: effect</code></p>
+        <textarea id="chPeculiarities" rows="4" placeholder="Bad Temper: -5: -2 reaction rolls when provoked.&#10;Night Owl: -5: +1 alertness after midnight."
+          class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 font-mono text-sm focus:outline-none focus:border-amber-500"></textarea>
+      </div>
     </div>
   </div>
 </div>
@@ -499,19 +528,43 @@ export function formCharacter(data?: any): string {
 <script>
 const tableId = document.getElementById('tableId').value
 const selections = { advantages: [], disadvantages: [], skills: [], items: [] }
-let availableData = { advantages: [], disadvantages: [], skills: [], items: [] }
+let availableData = { advantages: [], disadvantages: [], skills: [], items: [], users: [] }
 
 async function loadAvailable() {
-  const [adv, dis, sk, items] = await Promise.all([
+  const [adv, dis, sk, items, pec, users] = await Promise.all([
     fetch('/game-table-advantages/' + tableId).then(r => r.json()),
     fetch('/game-table-disadvantages/' + tableId).then(r => r.json()),
     fetch('/game-table-skills/' + tableId).then(r => r.json()),
     fetch('/game-table-items/' + tableId).then(r => r.json()),
+    fetch('/game-table-peculiarities/' + tableId).then(r => r.json()),
+    fetch('/users').then(r => r.json()),
   ])
-  availableData = { advantages: adv, disadvantages: dis, skills: sk, items }
+  availableData = {
+    advantages: adv?.advantages || adv || [],
+    disadvantages: dis?.disadvantages || dis || [],
+    skills: sk || [],
+    items: items?.items || items || [],
+    peculiarities: pec?.peculiarites || (Array.isArray(pec) ? pec : []),
+    users: users || []
+  }
+  populatePlayerSelect(availableData.users)
   renderAll()
 }
 if (tableId) loadAvailable()
+
+function populatePlayerSelect(users) {
+  const sel = document.getElementById('chUserId')
+  if (!sel) return
+  sel.innerHTML = '<option value="">-- Select a player --</option>' + users
+    .filter(u => u.type !== 2)
+    .map(u => '<option value="' + u.id + '">' + (u.username || u.email || u.id) + '</option>')
+    .join('')
+}
+
+function toggleCharType() {
+  const isNpc = document.querySelector('input[name="charType"]:checked')?.value === 'npc'
+  document.getElementById('playerSelectGroup').style.display = isNpc ? 'none' : 'block'
+}
 
 function renderAll() {
   renderCheckboxList('advantagesList', availableData.advantages, selections.advantages, 'advantages', 'advCount')
@@ -649,9 +702,10 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   btn.disabled = true
   btn.textContent = 'Saving...'
 
+  const isNpc = document.querySelector('input[name="charType"]:checked')?.value === 'npc'
   const payload = {
     table_id: tableId,
-    user_id: document.getElementById('userId').value,
+    user_id: isNpc ? '' : document.getElementById('chUserId').value,
     sheet: {
       name: document.getElementById('chName').value,
       bio: document.getElementById('chBio').value,
@@ -681,9 +735,10 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       effect: ''
     })),
     items: selections.items.map(i => ({ item_id: i.id })),
-    damages: [],
-    armors: [],
-    peculiarities: []
+    peculiarities: document.getElementById('chPeculiarities').value.split('\n').filter(Boolean).map(line => {
+      const parts = line.split(':').map(s => s.trim())
+      return { name: parts[0] || '', cost_points: parseInt(parts[1]) || 0, effect: parts[2] || '' }
+    })
   }
 
   try {

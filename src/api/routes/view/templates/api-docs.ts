@@ -75,12 +75,6 @@ const characterRoutes: RouteDoc[] = [
       ],
       skills: [
         { skill_id: 'd282e343-89c8-41ec-a686-83d81b69c34e', cost_points: 14, effect: 'Melee attacks with swords' }
-      ],
-      damages: [
-        { name: 'Cutting Strike', type: 'Physical', value: 'sw+2 cut', range: 'Melee' }
-      ],
-      armors: [
-        { name: 'Leather Armor', type: 'Armor', value: 'DR 2', fit: 'Torso' }
       ]
     }, null, 2),
     resBody: JSON.stringify({ id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Elric Galrhorn Denmark' }, null, 2)
@@ -232,14 +226,53 @@ const rulesRoutes: RouteDoc[] = [
     resBody: JSON.stringify([{ id: '962f395e-b81d-44b6-8257-4dc304a223ec', name: 'Leadership', cost_points: 5, category: 'Social' }], null, 2)
   },
   {
+    method: 'GET', path: '/game-table-disadvantages/:id',
+    desc: 'List all disadvantages for a game table.',
+    resBody: JSON.stringify([{ id: 'dis_001', name: 'Code of Honor', cost_points: -10, description: 'Must follow a strict code' }], null, 2)
+  },
+  {
     method: 'GET', path: '/game-table-peculiarities/:id',
-    desc: 'List all peculiarities for a game table.',
+    desc: 'List all peculiarities (quirks) for a game table.',
     resBody: JSON.stringify([{ id: '2bd1d892-814d-4d62-b167-3d7df9c32b81', name: 'Bad Temper', cost_points: -5 }], null, 2)
+  },
+  {
+    method: 'GET', path: '/game-table-peculiarity/:id',
+    desc: 'Get a single peculiarity by ID.',
+    resBody: JSON.stringify({ id: '2bd1d892-814d-4d62-b167-3d7df9c32b81', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls when provoked.' }, null, 2)
+  },
+  {
+    method: 'POST', path: '/game-table-peculiarity',
+    desc: 'Create a peculiarity (quirk) for a character.',
+    reqBody: JSON.stringify({ character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls when provoked.' }, null, 2),
+    resBody: JSON.stringify({ success: true }, null, 2)
+  },
+  {
+    method: 'PUT', path: '/game-table-peculiarity',
+    desc: 'Update an existing peculiarity.',
+    reqBody: JSON.stringify({ id: '2bd1d892-814d-4d62-b167-3d7df9c32b81', name: 'Bad Temper', cost_points: -5, effect: '-3 reaction rolls when provoked.' }, null, 2),
+    resBody: JSON.stringify({ success: true }, null, 2)
   },
   {
     method: 'GET', path: '/game-table-items/:id',
     desc: 'List all items for a game table.',
     resBody: JSON.stringify([{ id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', name: 'Short Sword', type: 1, category: 'Melee', weight: 3 }], null, 2)
+  },
+  {
+    method: 'GET', path: '/game-table-item/:id',
+    desc: 'Get a single item by ID.',
+    resBody: JSON.stringify({ id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', table_id: '85234849-c260-4950-8d6d-20d897cca1b6', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, dimensions: '30cm', description: 'A balanced steel short sword.', quality: 'Fine', condition: 'Good', holder_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', owner_id: '5af72edc-aef3-4af0-a494-27c4926d1c45' }, null, 2)
+  },
+  {
+    method: 'POST', path: '/game-table-item',
+    desc: 'Create an item',
+    reqBody: JSON.stringify({ table_id: '85234849-c260-4950-8d6d-20d897cca1b6', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, dimensions: '30cm', description: 'A balanced steel short sword.', quality: 'Fine', condition: 'Good', holder_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', owner_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', damage_value: 'sw+2 cut', range: 'Melee' }, null, 2),
+    resBody: JSON.stringify({ success: true, id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e' }, null, 2)
+  },
+  {
+    method: 'PUT', path: '/game-table-item',
+    desc: 'Update an existing item. Also updates the associated Damage/Armor record if applicable.',
+    reqBody: JSON.stringify({ id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', name: 'Short Sword+1', damage_value: 'sw+3 cut', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a' }, null, 2),
+    resBody: JSON.stringify({ success: true }, null, 2)
   },
   {
     method: 'GET', path: '/game-table-visibility/:id',
