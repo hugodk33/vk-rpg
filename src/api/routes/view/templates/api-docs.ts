@@ -89,71 +89,15 @@ const characterRoutes: RouteDoc[] = [
     method: 'GET', path: '/game-table-character/:id',
     desc: 'Get a character by ID (optionally ?moment=N for historical state).',
     resBody: JSON.stringify({
-      table: {
-        id: 'f8a9b0c1-d2e3-4567-fabc-678901234567',
-        title: 'A Noite do Lobisomem',
-        intro: 'Uma aventura de horror na aldeia de Shadowbrook',
-        system: 'GURPS'
-      },
+      table: { id: 'f8a9b0c1-d2e3-4567-fabc-678901234567', title: 'A Noite do Lobisomem', intro: 'Uma aventura de horror na aldeia de Shadowbrook', system: 'GURPS' },
       character: {
         id: 'dc60499b-829f-4763-983f-9b7a22f3c00a',
         name: 'Elric Galrhorn Denmark',
-        user: {
-          id: '5af72edc-aef3-4af0-a494-27c4926d1c45',
-          username: 'John Doe',
-          email: 'john.doe@email.com',
-          phone: '85888888888',
-          type: 1
-        },
-        sheet: {
-          id: '9000c81a-ca73-4a4e-9fb2-91107da645c2',
-          name: 'Elric Galrhorn Denmark',
-          bio: 'A streetwise duelist with quick reflexes.',
-          backstory: 'Former city watch turned blade-for-hire, she fights for freedom and survival.',
-          points: 150,
-          hp: 8, st: 11, dx: 12, iq: 13, ht: 10, fatigue: 0,
-          encumbrance: 'Light',
-          basic_speed: 5.5, move: 4.5,
-          base_hp: 11, base_st: 11, base_dx: 12, base_iq: 13, base_ht: 10, base_fatigue: 0
-        },
-        advantages: [
-          { id: '8fba37f1-7e5a-4784-9690-bf77abffe4fd', advantage_id: '962f395e-b81d-44b6-8257-4dc304a223ec', name: 'Leadership', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', cost_points: 5, effect: 'Used to inspire allies and lead them in battle.' },
-          { id: '3c15d903-2e6a-42fb-8e57-65837d96ea68', advantage_id: '98a1b104-cb5f-43d1-8cde-2cd22609b2ab', name: 'Absolute Direction', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', cost_points: 10, effect: 'Used to always know which way is north and navigate effectively.' },
-          { id: 'd555fbd0-4716-45f3-9f3f-5c4a1844c269', advantage_id: '195964c3-da2e-4e8d-8a55-9ac322aeb351', name: 'Combat Reflexes', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', cost_points: 15, effect: 'Used to react quickly in combat and avoid attacks.' }
-        ],
-        disadvantages: [
-          { id: '68e081a1-0005-4ada-b932-8dc32dadab07', disadvantage_id: 'fbc86dc5-2c39-4acb-9f56-b648334cedef', name: 'Code of Honor (Soldier)', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', cost_points: -10, effect: 'Maintains discipline and professional conduct.' },
-          { id: '6670736a-4996-48b9-ac1c-324b5820d61f', disadvantage_id: null, name: 'Enemy', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', cost_points: -10, effect: 'A corrupt former captain of the city watch seeks revenge.' },
-          { id: '664123ab-9e72-4a8f-b3f5-9ec061b158e4', disadvantage_id: 'fd1792ff-d8b8-4a53-9e38-5f2701e6145d', name: 'Overconfidence', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', cost_points: -5, effect: 'Frequently underestimates opponents.' }
-        ],
-        armors: [
-          { id: '9bbf3047-20d2-4601-a97d-4c0382de13bb', name: 'Leather Armor', description: 'Sturdy leather armor offering moderate protection.', type: 'Armor', subtype: null, value: 'DR 2', fit: 'Torso', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', item_id: '146de229-5b52-4835-96cf-7732826298ac', skill_id: null, advantage_id: null },
-          { id: '0cfa7a10-666b-4dfd-9f1b-820081429ba9', name: 'Leather Bracers', description: 'Leather forearm guards for added protection.', type: 'Armor', subtype: null, value: 'DR 1', fit: 'Arms', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', item_id: 'c39e967e-c430-4548-a306-5c9d07d99409', skill_id: null, advantage_id: null },
-          { id: '1470f49d-2a8f-471b-96e7-666508ec41bc', name: 'Travel Cloak', description: 'A simple travel cloak for weather protection.', type: 'Clothing', subtype: null, value: '-', fit: 'Shoulders', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', item_id: '23957300-86c4-4877-a181-62559c34b99b', skill_id: null, advantage_id: null }
-        ],
-        skills: [
-          { id: '8e0e5952-b501-4cd5-907c-a0de17174833', skill_id: 'd282e343-89c8-41ec-a686-83d81b69c34e', cost_points: 14, effect: 'Used for melee attacks with swords and blades.', skill_name: 'Swordsmanship', predefinition_type: 'Physical', predefinition_difficulty: 'Easy' }
-        ],
-        items: [
-          { id: 'f4fd51dc-ce16-4985-93c5-bfcb3152b23d', table_id: '85234849-c260-4950-8d6d-20d897cca1b6', name: 'Dagger', type: 1, category: 'Melee', weight: 1, dimensions: '10cm', description: 'A balanced steel Dagger for fast close combat.', quality: 'Fine', condition: 'Good', holder_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', owner_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', skill_user_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', skill_level: 'Swordsmanship 15' },
-          { id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', table_id: '85234849-c260-4950-8d6d-20d897cca1b6', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, dimensions: '30cm', description: 'A balanced steel short sword for fast close combat.', quality: 'Fine', condition: 'Good', holder_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', owner_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', skill_user_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', skill_level: 'Swordsmanship 15' },
-          { id: '146de229-5b52-4835-96cf-7732826298ac', table_id: '85234849-c260-4950-8d6d-20d897cca1b6', name: 'Leather Armor', type: 2, category: 'Armor', weight: 18, dimensions: 'Torso', description: 'Sturdy leather armor offering moderate protection.', quality: 'Good', condition: 'Good', holder_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', owner_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', skill_user_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', skill_level: '' },
-          { id: '23957300-86c4-4877-a181-62559c34b99b', table_id: '85234849-c260-4950-8d6d-20d897cca1b6', name: 'Travel Cloak', type: 3, category: 'Clothing', weight: 2, dimensions: 'Shoulders', description: 'A simple travel cloak for weather protection.', quality: 'Normal', condition: 'Good', holder_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', owner_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', skill_user_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', skill_level: '' }
-        ],
-        damages: [
-          { id: '4588b3ae-bbf0-400e-af8c-c60a3f891b7a', name: 'Cutting Strike', description: 'A fast slash with a short sword designed to open armor gaps.', type: 'Physical', subtype: null, value: 'sw+2 cut', range: 'Melee', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', item_id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', skill_id: null, advantage_id: null },
-          { id: 'fc25aca7-b637-4f2f-b8e8-cbb7c471186e', name: 'Sword Thrust', description: 'A precise thrusting attack using the sword point.', type: 'melee attack', subtype: null, value: '1d imp', range: '1', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', item_id: null, skill_id: null, advantage_id: null },
-          { id: '29c6e6e2-b9e2-4e9a-8dc8-e8a70d1a5f65', name: 'Sword Swing', description: 'A wide swinging slash attack with the sword.', type: 'melee attack', subtype: null, value: '2d cut', range: '1', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', item_id: null, skill_id: null, advantage_id: null }
-        ],
-        modifiers: [
-          { id: '0ffb17df-c9d9-4782-b5ea-8e976a5eb577', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', item_id: null, skill_id: null, advantage_id: null, disadvantage_id: null, action_id: 'f30b26f3-90fc-4a93-b225-9edaf8347e7e', narration_id: '64b076b3-36da-47fe-b601-ce4587c931ed', scene_id: null, name: 'Blunt trauma', cost_points: null, effect: null, description: "Thorne's heavy overhand blows bruised Elric through his guard", hp: null, st: null, dx: null, iq: null, ht: null, fatigue: null, encumbrance: null, mod_hp: -3, mod_st: null, mod_dx: null, mod_iq: null, mod_ht: null, mod_fatigue: null, mod_encumbrance: null, skill_value: null, advantage_value: null, disadvantage_value: null, armor_value: null, damage_value: '3d', item_quantity: null, item_dimension: null, item_weight: null, item_range: null, item_status: null }
-        ]
+        user: { id: '5af72edc-aef3-4af0-a494-27c4926d1c45', username: 'John Doe', email: 'john.doe@email.com', phone: '85888888888', type: 1 },
+        sheet: { id: '9000c81a-ca73-4a4e-9fb2-91107da645c2', name: 'Elric Galrhorn Denmark', bio: 'A streetwise duelist.', backstory: 'Former city watch.', points: 150, hp: 8, st: 11, dx: 12, iq: 13, ht: 10, fatigue: 0, encumbrance: 'Light', basic_speed: 5.5, move: 4.5, base_hp: 11, base_st: 11, base_dx: 12, base_iq: 13, base_ht: 10, base_fatigue: 0 },
+        advantages: [], disadvantages: [], skills: [], items: [], damages: [], armors: [], modifiers: []
       },
-      peculiarities: [
-        { id: '2bd1d892-814d-4d62-b167-3d7df9c32b81', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls when provoked.', description: null },
-        { id: '56d57307-8fae-417c-8be6-f81200c1060c', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Night Owl', cost_points: -5, effect: 'Harder to sleep at night, +1 alertness after midnight.', description: null },
-        { id: 'c95c8362-dcd8-4f65-bd9c-5ff5c07789cf', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Fragile Bones', cost_points: -10, effect: '+1 injury roll from falls and blunt trauma.', description: null }
-      ],
+      peculiarities: [],
       moments: [0, 1],
       selected_moment: null
     }, null, 2)
@@ -172,45 +116,34 @@ const characterRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-npc/:id',
     desc: 'Get a single NPC by ID.',
-    resBody: JSON.stringify({
-      npc: { id: 'd6e7f8a9-b0c1-2345-defa-456789012345', status: 'active' },
-      character: {
-        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        name: 'Goblin', user: null,
-        sheet: { id: 'e5f6a7b8-c9d0-1234-efab-345678901234', name: 'Goblin', hp: 7, st: 9, dx: 12, iq: 8, ht: 10, fatigue: 10, encumbrance: 'None' },
-        advantages: [], skills: [], items: [], damages: [], armors: []
-      }
-    }, null, 2)
+    resBody: JSON.stringify({ npc: { id: 'npc_001', status: 'active' }, character: { id: 'ch_001', name: 'Goblin', sheet: { hp: 7, st: 9, dx: 12, iq: 8, ht: 10 }, advantages: [], skills: [], items: [], damages: [], armors: [] } }, null, 2)
   },
   {
     method: 'GET', path: '/game-table-npcs/:id',
     desc: 'List all NPCs for a game table.',
-    resBody: JSON.stringify({
-      table: { id: 'f8a9b0c1-d2e3-4567-fabc-678901234567', title: 'Campaign' },
-      npcs: [{ npc_id: 'd6e7f8a9-b0c1-2345-defa-456789012345', sheet_name: 'Goblin', st: 9, dx: 12, hp: 7 }]
-    }, null, 2)
+    resBody: JSON.stringify({ table: { id: 'tbl_001', title: 'Campaign' }, npcs: [{ npc_id: 'npc_001', sheet_name: 'Goblin' }] }, null, 2)
   },
   {
     method: 'POST', path: '/game-table-modifier',
     desc: 'Create a new modifier for a character.',
-    reqBody: JSON.stringify({ character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Slash Wound', mod_hp: -4, narration_id: '64b076b3-36da-47fe-b601-ce4587c931ed', action_id: 'f30b26f3-90fc-4a93-b225-9edaf8347e7e' }, null, 2),
-    resBody: JSON.stringify({ id: '0ffb17df-c9d9-4782-b5ea-8e976a5eb577', name: 'Blunt trauma' }, null, 2)
+    reqBody: JSON.stringify({ character_id: 'ch_001', name: 'Slash Wound', mod_hp: -4 }, null, 2),
+    resBody: JSON.stringify({ id: 'mod_001', name: 'Slash Wound' }, null, 2)
   },
   {
     method: 'PUT', path: '/game-table-modifier',
     desc: 'Update an existing modifier.',
-    reqBody: JSON.stringify({ id: '0ffb17df-c9d9-4782-b5ea-8e976a5eb577', mod_hp: -5 }, null, 2),
-    resBody: JSON.stringify({ id: '0ffb17df-c9d9-4782-b5ea-8e976a5eb577', mod_hp: -5 }, null, 2)
+    reqBody: JSON.stringify({ id: 'mod_001', mod_hp: -5 }, null, 2),
+    resBody: JSON.stringify({ id: 'mod_001', mod_hp: -5 }, null, 2)
   },
   {
     method: 'GET', path: '/game-table-modifier/:id',
     desc: 'Get a single modifier by ID.',
-    resBody: JSON.stringify({ id: '0ffb17df-c9d9-4782-b5ea-8e976a5eb577', name: 'Blunt trauma', mod_hp: -3, character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a' }, null, 2)
+    resBody: JSON.stringify({ id: 'mod_001', name: 'Slash Wound', mod_hp: -3, character_id: 'ch_001' }, null, 2)
   },
   {
     method: 'GET', path: '/game-table-modifiers/:id',
     desc: 'List all modifiers for a game table.',
-    resBody: JSON.stringify([{ id: '0ffb17df-c9d9-4782-b5ea-8e976a5eb577', name: 'Blunt trauma', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', mod_hp: -3 }], null, 2)
+    resBody: JSON.stringify([{ id: 'mod_001', name: 'Slash Wound', character_id: 'ch_001', mod_hp: -3 }], null, 2)
   }
 ]
 
@@ -218,60 +151,60 @@ const rulesRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-skills/:id',
     desc: 'List all skills for a game table.',
-    resBody: JSON.stringify([{ id: 'd282e343-89c8-41ec-a686-83d81b69c34e', name: 'Swordsmanship', predefinition_type: 'Physical', predefinition_difficulty: 'Easy' }], null, 2)
+    resBody: JSON.stringify([{ id: 'sk_001', name: 'Swordsmanship', predefinition_type: 'Physical', predefinition_difficulty: 'Easy' }], null, 2)
   },
   {
     method: 'GET', path: '/game-table-advantages/:id',
     desc: 'List all advantages for a game table.',
-    resBody: JSON.stringify([{ id: '962f395e-b81d-44b6-8257-4dc304a223ec', name: 'Leadership', cost_points: 5, category: 'Social' }], null, 2)
+    resBody: JSON.stringify([{ id: 'adv_001', name: 'Leadership', cost_points: 5, category: 'Social' }], null, 2)
   },
   {
     method: 'GET', path: '/game-table-disadvantages/:id',
     desc: 'List all disadvantages for a game table.',
-    resBody: JSON.stringify([{ id: 'dis_001', name: 'Code of Honor', cost_points: -10, description: 'Must follow a strict code' }], null, 2)
+    resBody: JSON.stringify([{ id: 'dis_001', name: 'Code of Honor', cost_points: -10 }], null, 2)
   },
   {
     method: 'GET', path: '/game-table-peculiarities/:id',
     desc: 'List all peculiarities (quirks) for a game table.',
-    resBody: JSON.stringify([{ id: '2bd1d892-814d-4d62-b167-3d7df9c32b81', name: 'Bad Temper', cost_points: -5 }], null, 2)
+    resBody: JSON.stringify([{ id: 'pec_001', name: 'Bad Temper', cost_points: -5 }], null, 2)
   },
   {
     method: 'GET', path: '/game-table-peculiarity/:id',
     desc: 'Get a single peculiarity by ID.',
-    resBody: JSON.stringify({ id: '2bd1d892-814d-4d62-b167-3d7df9c32b81', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls when provoked.' }, null, 2)
+    resBody: JSON.stringify({ id: 'pec_001', character_id: 'ch_001', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls' }, null, 2)
   },
   {
     method: 'POST', path: '/game-table-peculiarity',
-    desc: 'Create a peculiarity (quirk) for a character.',
-    reqBody: JSON.stringify({ character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls when provoked.' }, null, 2),
+    desc: 'Create a peculiarity for a character.',
+    reqBody: JSON.stringify({ character_id: 'ch_001', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls' }, null, 2),
     resBody: JSON.stringify({ success: true }, null, 2)
   },
   {
     method: 'PUT', path: '/game-table-peculiarity',
     desc: 'Update an existing peculiarity.',
-    reqBody: JSON.stringify({ id: '2bd1d892-814d-4d62-b167-3d7df9c32b81', name: 'Bad Temper', cost_points: -5, effect: '-3 reaction rolls when provoked.' }, null, 2),
+    reqBody: JSON.stringify({ id: 'pec_001', name: 'Bad Temper', cost_points: -5, effect: '-3 reaction rolls' }, null, 2),
     resBody: JSON.stringify({ success: true }, null, 2)
   },
   {
     method: 'GET', path: '/game-table-items/:id',
     desc: 'List all items for a game table.',
-    resBody: JSON.stringify([{ id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', name: 'Short Sword', type: 1, category: 'Melee', weight: 3 }], null, 2)
+    resBody: JSON.stringify([{ id: 'item_001', name: 'Short Sword', type: 1, category: 'Melee', weight: 3 }], null, 2)
   },
   {
     method: 'GET', path: '/game-table-item/:id',
     desc: 'Get a single item by ID.',
-    resBody: JSON.stringify({ id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', table_id: '85234849-c260-4950-8d6d-20d897cca1b6', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, dimensions: '30cm', description: 'A balanced steel short sword.', quality: 'Fine', condition: 'Good', holder_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', owner_id: '5af72edc-aef3-4af0-a494-27c4926d1c45' }, null, 2)
+    resBody: JSON.stringify({ id: 'item_001', table_id: 'tbl_001', name: 'Short Sword', type: 1, category: 'Melee', weight: 3 }, null, 2)
   },
   {
     method: 'POST', path: '/game-table-item',
-    desc: 'Create an item',
-    reqBody: JSON.stringify({ table_id: '85234849-c260-4950-8d6d-20d897cca1b6', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, dimensions: '30cm', description: 'A balanced steel short sword.', quality: 'Fine', condition: 'Good', holder_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', owner_id: '5af72edc-aef3-4af0-a494-27c4926d1c45', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', damage_value: 'sw+2 cut', range: 'Melee' }, null, 2),
-    resBody: JSON.stringify({ success: true, id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e' }, null, 2)
+    desc: 'Create an item. Auto-creates Damage for weapons or Armor for armor/clothing.',
+    reqBody: JSON.stringify({ table_id: 'tbl_001', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, character_id: 'ch_001', damage_value: 'sw+2 cut', range: 'Melee' }, null, 2),
+    resBody: JSON.stringify({ success: true, id: 'item_001' }, null, 2)
   },
   {
     method: 'PUT', path: '/game-table-item',
-    desc: 'Update an existing item. Also updates the associated Damage/Armor record if applicable.',
-    reqBody: JSON.stringify({ id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', name: 'Short Sword+1', damage_value: 'sw+3 cut', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a' }, null, 2),
+    desc: 'Update an existing item. Also updates linked Damage/Armor.',
+    reqBody: JSON.stringify({ id: 'item_001', name: 'Short Sword+1', damage_value: 'sw+3 cut', character_id: 'ch_001' }, null, 2),
     resBody: JSON.stringify({ success: true }, null, 2)
   },
   {
@@ -287,8 +220,8 @@ const rulesRoutes: RouteDoc[] = [
   {
     method: 'POST', path: '/game-table-visibility',
     desc: 'Create a visibility rule.',
-    reqBody: JSON.stringify({ table_id: 'f8a9b0c1-d2e3-4567-fabc-678901234567', item_id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', role: 'player', visible: true }, null, 2),
-    resBody: JSON.stringify({ id: 'vis_002', item_id: '7e0ba973-b602-4e5a-ab5d-9e264ff0ef3e', role: 'player', visible: true }, null, 2)
+    reqBody: JSON.stringify({ table_id: 'tbl_001', item_id: 'item_001', role: 'player', visible: true }, null, 2),
+    resBody: JSON.stringify({ id: 'vis_002', visible: true }, null, 2)
   },
   {
     method: 'PUT', path: '/game-table-visibility',
@@ -299,18 +232,18 @@ const rulesRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-queue/:id',
     desc: 'List all queue entries for a game table.',
-    resBody: JSON.stringify([{ id: 'que_001', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', position: 1 }], null, 2)
+    resBody: JSON.stringify([{ id: 'que_001', character_id: 'ch_001', position: 1 }], null, 2)
   },
   {
     method: 'GET', path: '/game-table-queue-item/:id',
     desc: 'Get a single queue entry by ID.',
-    resBody: JSON.stringify({ id: 'que_001', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', position: 1 }, null, 2)
+    resBody: JSON.stringify({ id: 'que_001', character_id: 'ch_001', position: 1 }, null, 2)
   },
   {
     method: 'POST', path: '/game-table-queue',
     desc: 'Create a queue entry.',
-    reqBody: JSON.stringify({ table_id: 'f8a9b0c1-d2e3-4567-fabc-678901234567', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', position: 1 }, null, 2),
-    resBody: JSON.stringify({ id: 'que_002', character_id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', position: 1 }, null, 2)
+    reqBody: JSON.stringify({ table_id: 'tbl_001', character_id: 'ch_001', position: 1 }, null, 2),
+    resBody: JSON.stringify({ id: 'que_002', position: 1 }, null, 2)
   },
   {
     method: 'PUT', path: '/game-table-queue',
