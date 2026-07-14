@@ -47,62 +47,73 @@ export function formCharacter(data?: any): string {
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="space-y-6">
-          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
-            <h2 class="text-lg font-semibold text-amber-100 mb-4">Identity</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Name</label>
-                <input id="editName" value="${chName}"
-                  class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
-              </div>
-              <div>
-                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Bio</label>
-                <input id="editBio" value="${chBio}"
-                  class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
-              </div>
+        <!-- Identity -->
+        <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+          <h2 class="text-lg font-semibold text-amber-100 mb-4">Identity</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Name</label>
+              <input id="editName" value="${chName}"
+                class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
             </div>
-            <div class="mt-3">
-              <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Backstory</label>
-              <textarea id="editBackstory" rows="2"
-                class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">${chBackstory}</textarea>
+            <div>
+              <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Bio</label>
+              <input id="editBio" value="${chBio}"
+                class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
             </div>
           </div>
-
-          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
-            <h2 class="text-lg font-semibold text-amber-100 mb-4">Attributes</h2>
-            <div class="grid grid-cols-4 gap-3 mb-4">
-              <div>
-                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">ST</label>
-                <input id="editSt" type="number" value="${chSt}" min="1" max="50"
-                  class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
-              </div>
-              <div>
-                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">DX</label>
-                <input id="editDx" type="number" value="${chDx}" min="1" max="50"
-                  class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
-              </div>
-              <div>
-                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">IQ</label>
-                <input id="editIq" type="number" value="${chIq}" min="1" max="50"
-                  class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
-              </div>
-              <div>
-                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">HT</label>
-                <input id="editHt" type="number" value="${chHt}" min="1" max="50"
-                  oninput="document.getElementById('editHp').textContent = this.value"
-                  class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HP</label>
-                <div id="editHp" class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-400 font-mono">${chHt}</div>
-              </div>
-            </div>
+          <div class="mt-3">
+            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Backstory</label>
+            <textarea id="editBackstory" rows="2"
+              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">${chBackstory}</textarea>
           </div>
         </div>
 
+        <!-- Attributes -->
+        <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+          <h2 class="text-lg font-semibold text-amber-100 mb-4">Attributes</h2>
+          <div class="grid grid-cols-2 gap-y-5 gap-x-6">
+            <div class="flex flex-col items-center">
+              <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">ST</label>
+              <div class="flex items-center gap-2">
+                <button onclick="editAdjAttr('st', -1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">−</button>
+                <span id="editAttrST" class="w-10 text-center text-lg font-bold text-amber-100">${chSt}</span>
+                <button onclick="editAdjAttr('st', 1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">+</button>
+              </div>
+            </div>
+            <div class="flex flex-col items-center">
+              <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">DX</label>
+              <div class="flex items-center gap-2">
+                <button onclick="editAdjAttr('dx', -1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">−</button>
+                <span id="editAttrDX" class="w-10 text-center text-lg font-bold text-amber-100">${chDx}</span>
+                <button onclick="editAdjAttr('dx', 1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">+</button>
+              </div>
+            </div>
+            <div class="flex flex-col items-center">
+              <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">IQ</label>
+              <div class="flex items-center gap-2">
+                <button onclick="editAdjAttr('iq', -1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">−</button>
+                <span id="editAttrIQ" class="w-10 text-center text-lg font-bold text-amber-100">${chIq}</span>
+                <button onclick="editAdjAttr('iq', 1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">+</button>
+              </div>
+            </div>
+            <div class="flex flex-col items-center">
+              <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HT</label>
+              <div class="flex items-center gap-2">
+                <button onclick="editAdjAttr('ht', -1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">−</button>
+                <span id="editAttrHT" class="w-10 text-center text-lg font-bold text-amber-100">${chHt}</span>
+                <button onclick="editAdjAttr('ht', 1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-zinc-700/40">
+            <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HP</label>
+            <div id="editHp" class="bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-400 font-mono text-center">${chHt}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <div class="space-y-6">
           <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
@@ -112,6 +123,16 @@ export function formCharacter(data?: any): string {
             <div id="editAdvantagesList" class="space-y-2 max-h-60 overflow-y-auto"></div>
           </div>
 
+          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-amber-100">Items</h2>
+              <span class="text-sm text-zinc-500" id="editItemCount">0 selected</span>
+            </div>
+            <div id="editItemsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
           <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg font-semibold text-amber-100">Disadvantages</h2>
@@ -126,14 +147,6 @@ export function formCharacter(data?: any): string {
               <span class="text-sm text-zinc-500" id="editSkCount">0 selected</span>
             </div>
             <div id="editSkillsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
-          </div>
-
-          <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-semibold text-amber-100">Items</h2>
-              <span class="text-sm text-zinc-500" id="editItemCount">0 selected</span>
-            </div>
-            <div id="editItemsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
           </div>
         </div>
       </div>
@@ -297,18 +310,37 @@ export function formCharacter(data?: any): string {
     }
 
     const editTotalPoints = ${chPoints}
+    const editAttrBase = 10
+    const editAttrCosts = { st: 10, dx: 20, iq: 20, ht: 10 }
+    const editAttrValues = { st: ${chSt}, dx: ${chDx}, iq: ${chIq}, ht: ${chHt} }
 
-    function editUpdateBudget() {
-      const total = editTotalPoints
+    function editCalcSpentPoints() {
+      const attrCost = (editAttrValues.st - editAttrBase) * editAttrCosts.st +
+                       (editAttrValues.dx - editAttrBase) * editAttrCosts.dx +
+                       (editAttrValues.iq - editAttrBase) * editAttrCosts.iq +
+                       (editAttrValues.ht - editAttrBase) * editAttrCosts.ht
       const advCost = editSelections.advantages.reduce((s, a) => s + (a.cost_points || 0), 0)
       const disCost = editSelections.disadvantages.reduce((s, d) => s + (d.cost_points || 0), 0)
       const skCost = editSelections.skills.reduce((s, sk) => s + (sk.cost_points || 0), 0)
-      const spent = advCost + disCost + skCost
+      return attrCost + advCost + disCost + skCost
+    }
 
+    function editAdjAttr(attr, delta) {
+      if (delta > 0 && editCalcSpentPoints() + editAttrCosts[attr] > editTotalPoints) return
+      const newVal = editAttrValues[attr] + delta
+      if (newVal < 1 || newVal > 50) return
+      editAttrValues[attr] = newVal
+      document.getElementById('editAttr' + attr.toUpperCase()).textContent = newVal
+      if (attr === 'ht') document.getElementById('editHp').textContent = newVal
+      editUpdateBudget()
+    }
+
+    function editUpdateBudget() {
+      const spent = editCalcSpentPoints()
       const display = document.getElementById('editBudgetDisplay')
-      if (display) display.textContent = spent + ' / ' + total
+      if (display) display.textContent = spent + ' / ' + editTotalPoints
       const bar = document.getElementById('editBudgetBar')
-      if (bar) bar.style.width = Math.min(100, (spent / total) * 100) + '%'
+      if (bar) bar.style.width = Math.min(100, (spent / editTotalPoints) * 100) + '%'
     }
 
     document.getElementById('editSaveBtn').addEventListener('click', async () => {
@@ -325,11 +357,11 @@ export function formCharacter(data?: any): string {
           bio: document.getElementById('editBio').value,
           backstory: document.getElementById('editBackstory').value,
           points: editTotalPoints,
-          hp: parseInt(document.getElementById('editHt').value) || 10,
-          st: parseInt(document.getElementById('editSt').value) || 10,
-          dx: parseInt(document.getElementById('editDx').value) || 10,
-          iq: parseInt(document.getElementById('editIq').value) || 10,
-          ht: parseInt(document.getElementById('editHt').value) || 10,
+          hp: editAttrValues.ht,
+          st: editAttrValues.st,
+          dx: editAttrValues.dx,
+          iq: editAttrValues.iq,
+          ht: editAttrValues.ht,
         },
         advantages: editSelections.advantages.map(a => ({
           advantage_id: a.id,
@@ -401,84 +433,96 @@ export function formCharacter(data?: any): string {
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="space-y-6">
-      <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
-        <h2 class="text-lg font-semibold text-amber-100 mb-4">Identity</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Name</label>
-            <input id="chName" value=""
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
-          </div>
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Bio</label>
-            <input id="chBio" value=""
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
-          </div>
+    <!-- Identity -->
+    <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+      <h2 class="text-lg font-semibold text-amber-100 mb-4">Identity</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Name</label>
+          <input id="chName" value=""
+            class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
         </div>
-        <div class="mt-3">
-          <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Backstory</label>
-          <textarea id="chBackstory" rows="2"
-            class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
-        </div>
-        <div class="mt-4 pt-4 border-t border-zinc-700/40">
-          <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Type</label>
-          <div class="flex gap-4">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="charType" value="pc" checked onchange="toggleCharType()"
-                class="w-4 h-4 border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
-              <span class="text-zinc-200 text-sm">Player Character</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="charType" value="npc" onchange="toggleCharType()"
-                class="w-4 h-4 border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
-              <span class="text-zinc-200 text-sm">NPC</span>
-            </label>
-          </div>
-        </div>
-        <div id="playerSelectGroup" class="mt-3">
-          <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Assign to Player</label>
-          <select id="chUserId"
-            class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
-            <option value="">-- Select a player --</option>
-          </select>
+        <div>
+          <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Bio</label>
+          <input id="chBio" value=""
+            class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"/>
         </div>
       </div>
-
-      <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
-        <h2 class="text-lg font-semibold text-amber-100 mb-4">Attributes</h2>
-        <div class="grid grid-cols-4 gap-3 mb-4">
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">ST</label>
-            <input id="chSt" type="number" value="10" min="1" max="50"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
-          </div>
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">DX</label>
-            <input id="chDx" type="number" value="10" min="1" max="50"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
-          </div>
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">IQ</label>
-            <input id="chIq" type="number" value="10" min="1" max="50"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
-          </div>
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5 text-center">HT</label>
-            <input id="chHt" type="number" value="10" min="1" max="50"
-              oninput="document.getElementById('chHp').textContent = this.value"
-              class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-center text-zinc-100 focus:outline-none focus:border-amber-500"/>
-          </div>
+      <div class="mt-3">
+        <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Backstory</label>
+        <textarea id="chBackstory" rows="2"
+          class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
+      </div>
+      <div class="mt-4 pt-4 border-t border-zinc-700/40">
+        <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Type</label>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="charType" value="pc" checked onchange="toggleCharType()"
+              class="w-4 h-4 border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
+            <span class="text-zinc-200 text-sm">Player Character</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="charType" value="npc" onchange="toggleCharType()"
+              class="w-4 h-4 border-zinc-600 text-amber-500 focus:ring-amber-500 bg-zinc-900"/>
+            <span class="text-zinc-200 text-sm">NPC</span>
+          </label>
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HP</label>
-            <div id="chHp" class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-400 font-mono">10</div>
-          </div>
-        </div>
+      </div>
+      <div id="playerSelectGroup" class="mt-3">
+        <label class="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">Assign to Player</label>
+        <select id="chUserId"
+          class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+          <option value="">-- Select a player --</option>
+        </select>
       </div>
     </div>
 
+    <!-- Attributes -->
+    <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+      <h2 class="text-lg font-semibold text-amber-100 mb-4">Attributes</h2>
+      <div class="grid grid-cols-2 gap-y-5 gap-x-6">
+        <div class="flex flex-col items-center">
+          <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">ST</label>
+          <div class="flex items-center gap-2">
+            <button onclick="adjAttr('st', -1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">−</button>
+            <span id="attrST" class="w-10 text-center text-lg font-bold text-amber-100">10</span>
+            <button onclick="adjAttr('st', 1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">+</button>
+          </div>
+        </div>
+        <div class="flex flex-col items-center">
+          <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">DX</label>
+          <div class="flex items-center gap-2">
+            <button onclick="adjAttr('dx', -1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">−</button>
+            <span id="attrDX" class="w-10 text-center text-lg font-bold text-amber-100">10</span>
+            <button onclick="adjAttr('dx', 1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">+</button>
+          </div>
+        </div>
+        <div class="flex flex-col items-center">
+          <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">IQ</label>
+          <div class="flex items-center gap-2">
+            <button onclick="adjAttr('iq', -1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">−</button>
+            <span id="attrIQ" class="w-10 text-center text-lg font-bold text-amber-100">10</span>
+            <button onclick="adjAttr('iq', 1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">+</button>
+          </div>
+        </div>
+        <div class="flex flex-col items-center">
+          <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HT</label>
+          <div class="flex items-center gap-2">
+            <button onclick="adjAttr('ht', -1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">−</button>
+            <span id="attrHT" class="w-10 text-center text-lg font-bold text-amber-100">10</span>
+            <button onclick="adjAttr('ht', 1)" class="w-8 h-8 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-lg font-bold flex items-center justify-center leading-none">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 pt-4 border-t border-zinc-700/40">
+        <label class="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1.5">HP</label>
+        <div id="chHp" class="bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-2.5 text-zinc-400 font-mono text-center">10</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Remaining sections in 2 columns -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
     <div class="space-y-6">
       <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
@@ -488,6 +532,16 @@ export function formCharacter(data?: any): string {
         <div id="advantagesList" class="space-y-2 max-h-60 overflow-y-auto"></div>
       </div>
 
+      <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-amber-100">Items</h2>
+          <span class="text-sm text-zinc-500" id="itemCount">0 selected</span>
+        </div>
+        <div id="itemsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+      </div>
+    </div>
+
+    <div class="space-y-6">
       <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-amber-100">Disadvantages</h2>
@@ -502,14 +556,6 @@ export function formCharacter(data?: any): string {
           <span class="text-sm text-zinc-500" id="skCount">0 selected</span>
         </div>
         <div id="skillsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
-      </div>
-
-      <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold text-amber-100">Items</h2>
-          <span class="text-sm text-zinc-500" id="itemCount">0 selected</span>
-        </div>
-        <div id="itemsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
       </div>
 
       <div class="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5">
@@ -683,18 +729,37 @@ function toggleItem(id, name, checked) {
 }
 
 const totalPoints = 150
+const attrBase = 10
+const attrValues = { st: 10, dx: 10, iq: 10, ht: 10 }
+const attrCosts = { st: 10, dx: 20, iq: 20, ht: 10 }
 
-function updateBudget() {
-  const total = totalPoints
+function calcSpentPoints() {
+  const attrCost = (attrValues.st - attrBase) * attrCosts.st +
+                   (attrValues.dx - attrBase) * attrCosts.dx +
+                   (attrValues.iq - attrBase) * attrCosts.iq +
+                   (attrValues.ht - attrBase) * attrCosts.ht
   const advCost = selections.advantages.reduce((s, a) => s + (a.cost_points || 0), 0)
   const disCost = selections.disadvantages.reduce((s, d) => s + (d.cost_points || 0), 0)
   const skCost = selections.skills.reduce((s, sk) => s + (sk.cost_points || 0), 0)
-  const spent = advCost + disCost + skCost
+  return attrCost + advCost + disCost + skCost
+}
 
+function adjAttr(attr, delta) {
+  if (delta > 0 && calcSpentPoints() + attrCosts[attr] > totalPoints) return
+  const newVal = attrValues[attr] + delta
+  if (newVal < 1 || newVal > 50) return
+  attrValues[attr] = newVal
+  document.getElementById('attr' + attr.toUpperCase()).textContent = newVal
+  if (attr === 'ht') document.getElementById('chHp').textContent = newVal
+  updateBudget()
+}
+
+function updateBudget() {
+  const spent = calcSpentPoints()
   const display = document.getElementById('budgetDisplay')
-  if (display) display.textContent = spent + ' / ' + total
+  if (display) display.textContent = spent + ' / ' + totalPoints
   const bar = document.getElementById('budgetBar')
-  if (bar) bar.style.width = Math.min(100, (spent / total) * 100) + '%'
+  if (bar) bar.style.width = Math.min(100, (spent / totalPoints) * 100) + '%'
 }
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
@@ -711,11 +776,11 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       bio: document.getElementById('chBio').value,
       backstory: document.getElementById('chBackstory').value,
       points: totalPoints,
-      hp: parseInt(document.getElementById('chHt').value) || 10,
-      st: parseInt(document.getElementById('chSt').value) || 10,
-      dx: parseInt(document.getElementById('chDx').value) || 10,
-      iq: parseInt(document.getElementById('chIq').value) || 10,
-      ht: parseInt(document.getElementById('chHt').value) || 10,
+      hp: attrValues.ht,
+      st: attrValues.st,
+      dx: attrValues.dx,
+      iq: attrValues.iq,
+      ht: attrValues.ht,
     },
     advantages: selections.advantages.map(a => ({
       advantage_id: a.id,
