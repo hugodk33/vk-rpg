@@ -85,22 +85,44 @@ export class GameTableRulesController {
   }
   
   async findAllSkills(req: Request, res: Response) {
-    const skills = await this.findAllGameTableSkillsUseCase.execute(req.params.id as string)
+    const { search, type, difficulty } = req.query
+    const skills = await this.findAllGameTableSkillsUseCase.execute(
+      req.params.id as string,
+      search as string | undefined,
+      type as string | undefined,
+      difficulty as string | undefined
+    )
     return res.json(skills)
   }
   
   async findAllAdvantages(req: Request, res: Response) {
-    const advantages = await this.findAllGameTableAdvantagesUseCase.execute(req.params.id as string)
+    const { search, category } = req.query
+    const advantages = await this.findAllGameTableAdvantagesUseCase.execute(
+      req.params.id as string,
+      search as string | undefined,
+      category as string | undefined
+    )
     return res.json(advantages)
   }
 
   async findAllDisadvantages(req: Request, res: Response) {
-    const disadvantages = await this.findAllGameTableDisadvantagesUseCase.execute(req.params.id as string)
+    const { search, category } = req.query
+    const disadvantages = await this.findAllGameTableDisadvantagesUseCase.execute(
+      req.params.id as string,
+      search as string | undefined,
+      category as string | undefined
+    )
     return res.json(disadvantages)
   }
 
   async findAllItems(req: Request, res: Response) {
-    const Items = await this.findAllGameTableItemsUseCase.execute(req.params.id as string)
+    const { search, category, type } = req.query
+    const Items = await this.findAllGameTableItemsUseCase.execute(
+      req.params.id as string,
+      search as string | undefined,
+      category as string | undefined,
+      type as string | undefined
+    )
     return res.json(Items)
   }
 
@@ -160,8 +182,8 @@ export class GameTableRulesController {
   }
 
   async createNPC(req: Request, res: Response) {
-    await this.createGameTableNPCSUseCase!.execute(req.body)
-    return res.json({ success: true })
+    const result = await this.createGameTableNPCSUseCase!.execute(req.body)
+    return res.json({ success: true, ...result })
   }
 
   async editNPC(req: Request, res: Response) {

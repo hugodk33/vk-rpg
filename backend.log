@@ -1,0 +1,9 @@
+$ ts-node-dev --respawn src/server.ts
+[INFO] 22:26:23 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 6.0.3)
+Server running on http://localhost:3000
+[INFO] 10:15:57 Restarting: C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\domain\repositories\GameTableRulesRepository.ts has been modified
+Compilation error in C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\api\controllers\GameTableRulesController.ts
+[ERROR] 10:16:09 ⨯ Unable to compile TypeScript:
+src/api/controllers/GameTableRulesController.ts(122,7): error TS2554: Expected 1 arguments, but got 4.
+
+[ELIFECYCLE] Command failed with exit code 4294967295.

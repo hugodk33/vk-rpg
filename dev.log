@@ -1,0 +1,23 @@
+
+> vkrpg@1.0.0 dev
+> ts-node-dev --respawn src/server.ts
+
+[INFO] 15:31:30 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 6.0.3)
+Server running on http://localhost:3000
+SqliteError: FOREIGN KEY constraint failed
+    at C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\domain\repositories\GameTableRulesRepository.ts:429:10
+    at sqliteTransaction (C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\node_modules\better-sqlite3\lib\methods\transaction.js:65:24)
+    at GameTableRulesRepository.createGameNPC (C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\domain\repositories\GameTableRulesRepository.ts:481:5)
+    at CreateGameTableNPCUseCase.execute (C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\application\use-cases\table-game-rules-use-case\CreateGameTableNPCUseCase.ts:6:21)
+    at GameTableRulesController.createNPC (C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\api\controllers\GameTableRulesController.ts:163:44)
+    at C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\api\routes\userRoutes.ts:211:71
+    at Layer.handleRequest (C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\node_modules\router\lib\layer.js:152:17)
+    at next (C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\node_modules\router\lib\route.js:117:3)
+    at handle (C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\node_modules\router\index.js:435:11)
+[INFO] 15:32:46 Restarting: C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\application\use-cases\table-game-rules-use-case\CreateGameTableNPCUseCase.ts has been modified
+Server running on http://localhost:3000
+[INFO] 15:32:50 Restarting: C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\api\controllers\GameTableRulesController.ts has been modified
+Server running on http://localhost:3000
+[INFO] 15:32:54 Restarting: C:\Users\Lenovo\Documents\Hugo\VK-RPG\VKRPG\src\domain\repositories\GameTableRulesRepository.ts has been modified
+Server running on http://localhost:3000

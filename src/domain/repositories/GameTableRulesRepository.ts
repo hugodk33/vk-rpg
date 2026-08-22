@@ -41,7 +41,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return gameTableSkill
   }
 
-  async findAllGameTableSkills(id: any): Promise<any> {
+  async findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string): Promise<any> {
 
     const table = db.prepare(`
       SELECT
@@ -53,12 +53,23 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE id = ?
     `).get(id as string)
 
+    const skillClauses: string[] = ["table_id = ?"]
+    const skillParams: any[] = [id]
+
+    if (search) {
+      skillClauses.push("(name LIKE ? OR category LIKE ? OR subcategory LIKE ? OR predefinition_type LIKE ? OR predefinition_difficulty LIKE ? OR description LIKE ?)")
+      const like = `%${search}%`
+      skillParams.push(like, like, like, like, like, like)
+    }
+    if (type) { skillClauses.push("predefinition_type = ?"); skillParams.push(type) }
+    if (difficulty) { skillClauses.push("predefinition_difficulty = ?"); skillParams.push(difficulty) }
+
     // Todas as skills
     const skills = db.prepare(`
       SELECT *
       FROM game_table_skills
-      WHERE table_id = ?
-    `).all(id) as any[]
+      WHERE ${skillClauses.join(" AND ")}
+    `).all(...skillParams) as any[]
 
     // =========================
     // PREDEFINITIONS
@@ -187,7 +198,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return gameTableAdvantage
   }
 
-  async findAllGameAdvantages(id: any): Promise<any> {
+  async findAllGameAdvantages(id: any, search?: string, category?: string): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -198,18 +209,26 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE id = ?
     `).get(id as string)
 
+    const advClauses: string[] = ["table_id = ?"]
+    const advParams: any[] = [id]
+    if (search) {
+      advClauses.push("(name LIKE ? OR category LIKE ? OR subcategory LIKE ? OR description LIKE ?)")
+      const like = `%${search}%`
+      advParams.push(like, like, like, like)
+    }
+    if (category) { advClauses.push("category = ?"); advParams.push(category) }
+
     const gameTablesAdvantages = db.prepare(`
-      SELECT 
-      * FROM 
-      game_table_advantages WHERE table_id = ?
-    `).all(id) as any[]
+      SELECT * FROM game_table_advantages
+      WHERE ${advClauses.join(" AND ")}
+    `).all(...advParams) as any[]
     return ({
       table: table,
       advantages: gameTablesAdvantages
     })
   }
 
-  async findAllGameDisadvantages(id: any): Promise<any> {
+  async findAllGameDisadvantages(id: any, search?: string, category?: string): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -220,11 +239,19 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE id = ?
     `).get(id as string)
 
+    const disClauses: string[] = ["table_id = ?"]
+    const disParams: any[] = [id]
+    if (search) {
+      disClauses.push("(name LIKE ? OR category LIKE ? OR subcategory LIKE ? OR effect LIKE ? OR description LIKE ?)")
+      const like = `%${search}%`
+      disParams.push(like, like, like, like, like)
+    }
+    if (category) { disClauses.push("category = ?"); disParams.push(category) }
+
     const gameTablesDisadvantages = db.prepare(`
-      SELECT
-      * FROM
-      game_table_disadvantages WHERE table_id = ?
-    `).all(id) as any[]
+      SELECT * FROM game_table_disadvantages
+      WHERE ${disClauses.join(" AND ")}
+    `).all(...disParams) as any[]
     return ({
       table: table,
       disadvantages: gameTablesDisadvantages
@@ -390,7 +417,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).get(id) as any
     return gameTableItem
   }
-  async findAllGameItems(id: any): Promise<any> {
+  async findAllGameItems(id: any, search?: string, category?: string, type?: string): Promise<any> {
     
     const table = db.prepare(`
       SELECT
@@ -402,11 +429,47 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE id = ?
     `).get(id as string)
 
+    const itemClauses: string[] = ["table_id = ?"]
+    const itemParams: any[] = [id]
+
+    if (search) {
+      itemClauses.push("(name LIKE ? OR category LIKE ? OR quality LIKE ? OR condition LIKE ? OR description LIKE ?)")
+      const q = `%${search}%`
+      itemParams.push(q, q, q, q, q)
+    }
+
+    if (category) {
+      itemClauses.push("category = ?")
+      itemParams.push(category)
+    }
+
+    if (type != null) {
+      itemClauses.push("\"type\" = ?")
+      itemParams.push(parseInt(type, 10))
+    }
+
     const gameTablesItems = db.prepare(`
-      SELECT 
-      * FROM 
-      game_table_items WHERE table_id = ?
-    `).all(id) as any[]
+      SELECT
+        i.*,
+        d.id AS damage_id,
+        d.name AS damage_name,
+        d.description AS damage_description,
+        d.type AS damage_type,
+        d.subtype AS damage_subtype,
+        d.value AS damage_value,
+        d.range AS damage_range,
+        a.id AS armor_id,
+        a.name AS armor_name,
+        a.description AS armor_description,
+        a.type AS armor_type,
+        a.subtype AS armor_subtype,
+        a.value AS armor_value,
+        a.fit AS armor_fit
+      FROM game_table_items i
+      LEFT JOIN game_table_damages d ON d.item_id = i.id
+      LEFT JOIN game_table_armors a ON a.item_id = i.id
+      WHERE ${itemClauses.join(" AND ")}
+    `).all(...itemParams) as any[]
 
     return ({
       table: table,
@@ -426,7 +489,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       db.prepare(`
         INSERT INTO game_table_characters (id, user_id, table_id)
         VALUES (?, ?, ?)
-      `).run(characterId, data.user_id || '', data.table_id)
+      `).run(characterId, data.user_id || null, data.table_id)
 
       if (data.sheet) {
         db.prepare(`

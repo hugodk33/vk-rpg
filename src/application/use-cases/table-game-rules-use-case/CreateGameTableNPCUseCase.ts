@@ -3,6 +3,6 @@ import { IGameTableRulesRepository } from '../../../domain/irepositories/IGameTa
 export class CreateGameTableNPCUseCase {
   constructor(private repo: IGameTableRulesRepository) {}
   async execute(npc: any) {
-    await this.repo.createGameNPC(npc)
+    return await this.repo.createGameNPC(npc)
   }
 }
