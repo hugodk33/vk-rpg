@@ -37,6 +37,8 @@ import { CreateGameQueueUseCase } from '../../application/use-cases/table-game-r
 import { EditGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameQueueUseCase'
 import { FindGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameQueueUseCase'
 import { FindAllGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameQueueUseCase'
+import { FindGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableDisadvantageUseCase'
+import { FindTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/FindTableLocationUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -76,7 +78,9 @@ export class GameTableRulesController {
     private createGameQueueUseCase?: CreateGameQueueUseCase,
     private editGameQueueUseCase?: EditGameQueueUseCase,
     private findGameQueueUseCase?: FindGameQueueUseCase,
-    private findAllGameQueueUseCase?: FindAllGameQueueUseCase
+    private findAllGameQueueUseCase?: FindAllGameQueueUseCase,
+    private findGameTableDisadvantageUseCase?: FindGameTableDisadvantageUseCase,
+    private findTableLocationUseCase?: FindTableLocationUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -85,22 +89,44 @@ export class GameTableRulesController {
   }
   
   async findAllSkills(req: Request, res: Response) {
-    const skills = await this.findAllGameTableSkillsUseCase.execute(req.params.id as string)
+    const { search, type, difficulty } = req.query
+    const skills = await this.findAllGameTableSkillsUseCase.execute(
+      req.params.id as string,
+      search as string | undefined,
+      type as string | undefined,
+      difficulty as string | undefined
+    )
     return res.json(skills)
   }
   
   async findAllAdvantages(req: Request, res: Response) {
-    const advantages = await this.findAllGameTableAdvantagesUseCase.execute(req.params.id as string)
+    const { search, category } = req.query
+    const advantages = await this.findAllGameTableAdvantagesUseCase.execute(
+      req.params.id as string,
+      search as string | undefined,
+      category as string | undefined
+    )
     return res.json(advantages)
   }
 
   async findAllDisadvantages(req: Request, res: Response) {
-    const disadvantages = await this.findAllGameTableDisadvantagesUseCase.execute(req.params.id as string)
+    const { search, category } = req.query
+    const disadvantages = await this.findAllGameTableDisadvantagesUseCase.execute(
+      req.params.id as string,
+      search as string | undefined,
+      category as string | undefined
+    )
     return res.json(disadvantages)
   }
 
   async findAllItems(req: Request, res: Response) {
-    const Items = await this.findAllGameTableItemsUseCase.execute(req.params.id as string)
+    const { search, category, type } = req.query
+    const Items = await this.findAllGameTableItemsUseCase.execute(
+      req.params.id as string,
+      search as string | undefined,
+      category as string | undefined,
+      type as string | undefined
+    )
     return res.json(Items)
   }
 
@@ -159,9 +185,19 @@ export class GameTableRulesController {
     return res.json(item)
   }
 
+  async findDisadvantage(req: Request, res: Response) {
+    const disadvantage = await this.findGameTableDisadvantageUseCase!.execute(req.params.id as string)
+    return res.json(disadvantage)
+  }
+
+  async findLocation(req: Request, res: Response) {
+    const location = await this.findTableLocationUseCase!.execute(req.params.id as string)
+    return res.json(location)
+  }
+
   async createNPC(req: Request, res: Response) {
-    await this.createGameTableNPCSUseCase!.execute(req.body)
-    return res.json({ success: true })
+    const result = await this.createGameTableNPCSUseCase!.execute(req.body)
+    return res.json({ success: true, ...result })
   }
 
   async editNPC(req: Request, res: Response) {

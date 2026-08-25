@@ -147,57 +147,87 @@ const characterRoutes: RouteDoc[] = [
   }
 ]
 
-const rulesRoutes: RouteDoc[] = [
+const skillRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-skills/:id',
     desc: 'List all skills for a game table.',
-    resBody: JSON.stringify([{ id: 'sk_001', name: 'Swordsmanship', predefinition_type: 'Physical', predefinition_difficulty: 'Easy' }], null, 2)
+    resBody: JSON.stringify([{ id: 'sk_001', name: 'Swordsmanship', predefinition_type: 'Physical', predefinition_difficulty: 'Easy', category: 'Combat' }], null, 2)
   },
+  {
+    method: 'GET', path: '/game-table-skill/:id',
+    desc: 'Get a single skill by ID.',
+    resBody: JSON.stringify({ id: 'sk_001', table_id: 'tbl_001', name: 'Swordsmanship', predefinition_type: 'Physical', predefinition_difficulty: 'Easy', predefinition_value: 12, category: 'Combat' }, null, 2)
+  }
+]
+
+const advantageRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-advantages/:id',
     desc: 'List all advantages for a game table.',
-    resBody: JSON.stringify([{ id: 'adv_001', name: 'Leadership', cost_points: 5, category: 'Social' }], null, 2)
+    resBody: JSON.stringify([{ id: 'adv_001', name: 'Leadership', cost_points: 5, category: 'Social', description: 'Inspire allies in combat.' }], null, 2)
   },
+  {
+    method: 'GET', path: '/game-table-advantage/:id',
+    desc: 'Get a single advantage by ID.',
+    resBody: JSON.stringify({ id: 'adv_001', table_id: 'tbl_001', name: 'Leadership', cost_points: 5, category: 'Social', description: 'Inspire allies in combat.' }, null, 2)
+  }
+]
+
+const disadvantageRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-disadvantages/:id',
     desc: 'List all disadvantages for a game table.',
-    resBody: JSON.stringify([{ id: 'dis_001', name: 'Code of Honor', cost_points: -10 }], null, 2)
+    resBody: JSON.stringify([{ id: 'dis_001', name: 'Code of Honor', cost_points: -10, category: 'Mental', effect: 'Must follow a strict code.' }], null, 2)
   },
   {
+    method: 'GET', path: '/game-table-disadvantage/:id',
+    desc: 'Get a single disadvantage by ID.',
+    resBody: JSON.stringify({ id: 'dis_001', table_id: 'tbl_001', name: 'Code of Honor', cost_points: -10, category: 'Mental', effect: 'Must follow a strict code.' }, null, 2)
+  }
+]
+
+const quirkRoutes: RouteDoc[] = [
+  {
     method: 'GET', path: '/game-table-peculiarities/:id',
-    desc: 'List all peculiarities (quirks) for a game table.',
-    resBody: JSON.stringify([{ id: 'pec_001', name: 'Bad Temper', cost_points: -5 }], null, 2)
+    desc: 'List all quirks (peculiarities) for a game table.',
+    resBody: JSON.stringify([{ id: 'pec_001', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls' }], null, 2)
   },
   {
     method: 'GET', path: '/game-table-peculiarity/:id',
-    desc: 'Get a single peculiarity by ID.',
+    desc: 'Get a single quirk by ID.',
     resBody: JSON.stringify({ id: 'pec_001', character_id: 'ch_001', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls' }, null, 2)
   },
   {
     method: 'POST', path: '/game-table-peculiarity',
-    desc: 'Create a peculiarity for a character.',
+    desc: 'Create a quirk for a character.',
     reqBody: JSON.stringify({ character_id: 'ch_001', name: 'Bad Temper', cost_points: -5, effect: '-2 reaction rolls' }, null, 2),
     resBody: JSON.stringify({ success: true }, null, 2)
   },
   {
     method: 'PUT', path: '/game-table-peculiarity',
-    desc: 'Update an existing peculiarity.',
+    desc: 'Update an existing quirk.',
     reqBody: JSON.stringify({ id: 'pec_001', name: 'Bad Temper', cost_points: -5, effect: '-3 reaction rolls' }, null, 2),
     resBody: JSON.stringify({ success: true }, null, 2)
-  },
+  }
+]
+
+const itemRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-items/:id',
-    desc: 'List all items for a game table.',
-    resBody: JSON.stringify([{ id: 'item_001', name: 'Short Sword', type: 1, category: 'Melee', weight: 3 }], null, 2)
+    desc: 'List all items for a game table (includes joined damage and armor data).',
+    resBody: JSON.stringify([
+      { id: 'item_001', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, damage_value: 'sw+2 cut', range: 'Melee', armor_value: null, armor_fit: null },
+      { id: 'item_002', name: 'Chain Mail', type: 2, category: 'Armor', weight: 15, damage_value: null, range: null, armor_value: 4, armor_fit: 'Snug' }
+    ], null, 2)
   },
   {
     method: 'GET', path: '/game-table-item/:id',
-    desc: 'Get a single item by ID.',
-    resBody: JSON.stringify({ id: 'item_001', table_id: 'tbl_001', name: 'Short Sword', type: 1, category: 'Melee', weight: 3 }, null, 2)
+    desc: 'Get a single item by ID (includes joined damage and armor data).',
+    resBody: JSON.stringify({ id: 'item_001', table_id: 'tbl_001', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, damage_id: 'dmg_001', damage_value: 'sw+2 cut', range: 'Melee', armor_id: null, armor_value: null, armor_fit: null }, null, 2)
   },
   {
     method: 'POST', path: '/game-table-item',
-    desc: 'Create an item. Auto-creates Damage for weapons or Armor for armor/clothing.',
+    desc: 'Create an item. Auto-creates Damage for weapons (type=1) or Armor for armor (type=2).',
     reqBody: JSON.stringify({ table_id: 'tbl_001', name: 'Short Sword', type: 1, category: 'Melee', weight: 3, character_id: 'ch_001', damage_value: 'sw+2 cut', range: 'Melee' }, null, 2),
     resBody: JSON.stringify({ success: true, id: 'item_001' }, null, 2)
   },
@@ -206,7 +236,35 @@ const rulesRoutes: RouteDoc[] = [
     desc: 'Update an existing item. Also updates linked Damage/Armor.',
     reqBody: JSON.stringify({ id: 'item_001', name: 'Short Sword+1', damage_value: 'sw+3 cut', character_id: 'ch_001' }, null, 2),
     resBody: JSON.stringify({ success: true }, null, 2)
+  }
+]
+
+const locationRoutes: RouteDoc[] = [
+  {
+    method: 'GET', path: '/table-locations/:id',
+    desc: 'List all locations for a game table.',
+    resBody: JSON.stringify([{ id: 'loc_001', name: 'Shadowbrook Village', region: 'Misty Valley', description: 'A quiet village...', address: '123 Main St', map_coordinates: '45.5,-73.5' }], null, 2)
   },
+  {
+    method: 'GET', path: '/table-location/:id',
+    desc: 'Get a single location by ID.',
+    resBody: JSON.stringify({ id: 'loc_001', table_id: 'tbl_001', name: 'Shadowbrook Village', region: 'Misty Valley', description: 'A quiet village...', address: '123 Main St', map_coordinates: '45.5,-73.5' }, null, 2)
+  },
+  {
+    method: 'POST', path: '/table-location',
+    desc: 'Create a new location.',
+    reqBody: JSON.stringify({ table_id: 'tbl_001', name: 'Shadowbrook Village', region: 'Misty Valley', description: 'A quiet village...', address: '123 Main St', map_coordinates: '45.5,-73.5' }, null, 2),
+    resBody: JSON.stringify({ id: 'loc_002', name: 'Shadowbrook Village' }, null, 2)
+  },
+  {
+    method: 'PUT', path: '/table-location',
+    desc: 'Update an existing location.',
+    reqBody: JSON.stringify({ id: 'loc_001', name: 'Shadowbrook Village (Updated)' }, null, 2),
+    resBody: JSON.stringify({ success: true }, null, 2)
+  }
+]
+
+const visibilityRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-visibility/:id',
     desc: 'List all visibility rules for a game table.',
@@ -228,7 +286,10 @@ const rulesRoutes: RouteDoc[] = [
     desc: 'Update a visibility rule.',
     reqBody: JSON.stringify({ id: 'vis_002', visible: false }, null, 2),
     resBody: JSON.stringify({ id: 'vis_002', visible: false }, null, 2)
-  },
+  }
+]
+
+const queueRoutes: RouteDoc[] = [
   {
     method: 'GET', path: '/game-table-queue/:id',
     desc: 'List all queue entries for a game table.',
@@ -268,6 +329,18 @@ const publicRoutes: RouteDoc[] = [
     method: 'GET', path: '/game-table-scenes/:id',
     desc: 'Get all scenes for a game table (with narrations, actions, and modifiers).',
     resBody: JSON.stringify([{ id: 'scn_001', title: 'Session 1', narrations: [{ id: 'nar_001', text: 'The party arrives...', moment: 0 }] }], null, 2)
+  },
+  {
+    method: 'POST', path: '/game-table-scene',
+    desc: 'Create a new scene within a game table.',
+    reqBody: JSON.stringify({ table_id: 'f8a9b0c1-d2e3-4567-fabc-678901234567', title: 'Session 2', description: 'The dungeon crawl', order: 2 }, null, 2),
+    resBody: JSON.stringify({ id: 'scn_002', title: 'Session 2' }, null, 2)
+  },
+  {
+    method: 'POST', path: '/game-table-narration',
+    desc: 'Create a narration block inside a scene.',
+    reqBody: JSON.stringify({ scene_id: 'scn_002', text: 'The door creaks open...', moment: 0 }, null, 2),
+    resBody: JSON.stringify({ id: 'nar_002', text: 'The door creaks open...' }, null, 2)
   },
   {
     method: 'POST', path: '/game-table-action',
@@ -340,18 +413,88 @@ export function apiDocs(tablesHtml?: string): string {
       <div class="mb-8">
         <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
           <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          Rules
+          Skills
         </h2>
-        <p class="text-xs text-zinc-500 mb-3">Routes from the GameTableRules interface: skills, advantages, peculiarities, items, visibility, queue.</p>
         <div class="space-y-2">
-          ${renderRoutes(rulesRoutes)}
+          ${renderRoutes(skillRoutes)}
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Advantages
+        </h2>
+        <div class="space-y-2">
+          ${renderRoutes(advantageRoutes)}
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          Disadvantages
+        </h2>
+        <div class="space-y-2">
+          ${renderRoutes(disadvantageRoutes)}
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          Quirks (Peculiarities)
+        </h2>
+        <div class="space-y-2">
+          ${renderRoutes(quirkRoutes)}
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          Items
+        </h2>
+        <p class="text-xs text-zinc-500 mb-3">Weapons (type=1), Armor (type=2), Equipment (type=3). Damage/Armor data auto-created and JOINed.</p>
+        <div class="space-y-2">
+          ${renderRoutes(itemRoutes)}
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Locations
+        </h2>
+        <div class="space-y-2">
+          ${renderRoutes(locationRoutes)}
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          Visibility
+        </h2>
+        <div class="space-y-2">
+          ${renderRoutes(visibilityRoutes)}
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+          Queue (Turn Order)
+        </h2>
+        <div class="space-y-2">
+          ${renderRoutes(queueRoutes)}
         </div>
       </div>
 
       <div>
         <h2 class="text-xl font-bold text-zinc-200 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          All
+          <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          Scenes & Narrations
         </h2>
         <div class="space-y-2">
           ${renderRoutes(publicRoutes)}
