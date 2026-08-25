@@ -17,6 +17,12 @@ export class UserRepository implements IUserRepository {
     )
   }
 
+  async findById(id: string): Promise<PublicUser | null> {
+    const row = db.prepare(`SELECT * FROM users WHERE id = ?`).get(id) as any
+    if (!row) return null
+    return new PublicUser(row.id, row.type, row.username, row.phone, row.email)
+  }
+
   async findAll(): Promise<User[]> {
     const rows = db.prepare(`SELECT * FROM users`).all() as any[]
 

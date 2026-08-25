@@ -258,6 +258,27 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     })
   }
 
+  async findGameDisadvantages(id: any): Promise<any> {
+    const disadvantage = db.prepare(`
+      SELECT * FROM game_table_disadvantages WHERE id = ?
+    `).get(id) as any
+    return disadvantage
+  }
+
+  async findGameLocation(id: any): Promise<any> {
+    const location = db.prepare(`
+      SELECT tl.*, gt.id AS table_id, gt.title AS table_title
+      FROM table_locations tl
+      LEFT JOIN narration_locations nl ON nl.location_id = tl.id
+      LEFT JOIN narrations n ON n.id = nl.narrations_id
+      LEFT JOIN scenes gs ON gs.id = n.scene_id
+      LEFT JOIN game_tables gt ON gt.id = gs.table_id
+      WHERE tl.id = ?
+      LIMIT 1
+    `).get(id) as any
+    return location
+  }
+
   /* =============== */
   /*   PECULIARITES  */
   /* =============== */
@@ -411,9 +432,32 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   }
   async findGameItems(id: any): Promise<any> {
     const gameTableItem = db.prepare(`
-      SELECT *
-      FROM game_table_items
-      WHERE id = ?
+      SELECT
+        i.*,
+        d.id AS damage_id,
+        d.name AS damage_name,
+        d.description AS damage_description,
+        d.type AS damage_type,
+        d.subtype AS damage_subtype,
+        d.value AS damage_value,
+        d.range AS damage_range,
+        a.id AS armor_id,
+        a.name AS armor_name,
+        a.description AS armor_description,
+        a.type AS armor_type,
+        a.subtype AS armor_subtype,
+        a.value AS armor_value,
+        a.fit AS armor_fit,
+        ou.username AS owner_username,
+        hu.username AS holder_username,
+        su.username AS skill_user_username
+      FROM game_table_items i
+      LEFT JOIN game_table_damages d ON d.item_id = i.id
+      LEFT JOIN game_table_armors a ON a.item_id = i.id
+      LEFT JOIN users ou ON ou.id = i.owner_id
+      LEFT JOIN users hu ON hu.id = i.holder_id
+      LEFT JOIN users su ON su.id = i.skill_user_id
+      WHERE i.id = ?
     `).get(id) as any
     return gameTableItem
   }

@@ -61,6 +61,9 @@ import { CreateGameQueueUseCase } from '../../application/use-cases/table-game-r
 import { EditGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameQueueUseCase'
 import { FindGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameQueueUseCase'
 import { FindAllGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameQueueUseCase'
+import { FindGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableDisadvantageUseCase'
+import { FindTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/FindTableLocationUseCase'
+import { FindUserByIdUseCase } from '../../application/use-cases/users-use-cases/FindUserByIdUseCase'
 
 const router = Router()
 
@@ -71,6 +74,7 @@ const gameTableRulesRepo = new GameTableRulesRepository()
 
 /* USERS */
 const findAllUsersUseCase = new FindAllUsersUseCase(repo)
+const findUserByIdUseCase = new FindUserByIdUseCase(repo)
 const createUserUseCase = new CreateUserUseCase(repo, narratorRepo)
 const findByStringUserUseCase = new FindByStringUserUseCase(repo)
 const editUsersUseCase = new EditUsersUseCase(repo) 
@@ -80,6 +84,7 @@ const userController =
     new UserController(
         createUserUseCase, 
         findAllUsersUseCase , 
+        findUserByIdUseCase,
         findByStringUserUseCase, 
         editUsersUseCase
     );  
@@ -135,6 +140,8 @@ const createGameQueueUseCase = new CreateGameQueueUseCase(gameTableRulesRepo)
 const editGameQueueUseCase = new EditGameQueueUseCase(gameTableRulesRepo)
 const findGameQueueUseCase = new FindGameQueueUseCase(gameTableRulesRepo)
 const findAllGameQueueUseCase = new FindAllGameQueueUseCase(gameTableRulesRepo)
+const findGameTableDisadvantageUseCase = new FindGameTableDisadvantageUseCase(gameTableRulesRepo)
+const findTableLocationUseCase = new FindTableLocationUseCase(gameTableRulesRepo)
 
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(
@@ -175,13 +182,16 @@ const gameTableRulesController = new GameTableRulesController(
     createGameQueueUseCase,
     editGameQueueUseCase,
     findGameQueueUseCase,
-    findAllGameQueueUseCase)
+    findAllGameQueueUseCase,
+    findGameTableDisadvantageUseCase,
+    findTableLocationUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
 router.post('/create-user', (req, res) => userController.create(req, res))
 router.get('/users', (req, res) => userController.findAll(req, res))
 router.get('/users/search/:searchTerm', (req, res) => userController.findByString(req, res))
+router.get('/users/:id', (req, res) => userController.findById(req, res))
 router.put('/users/edit/:id', (req, res) => userController.editUser(req, res))
 
 /* ===== GAME TABLES ===== */
@@ -195,8 +205,11 @@ router.post('/game-table-narration', (req, res) => gameTableController.createNar
 router.post('/game-table-action', (req, res) => gameTableController.createNarrationAction(req, res))
 
 router.get('/game-table-skills/:id', (req, res) => gameTableRulesController.findAllSkills(req, res))
+router.get('/game-table-skill/:id', (req, res) => gameTableRulesController.findSkill(req, res))
 router.get('/game-table-advantages/:id', (req, res) => gameTableRulesController.findAllAdvantages(req, res))
+router.get('/game-table-advantage/:id', (req, res) => gameTableRulesController.findAdvantage(req, res))
 router.get('/game-table-disadvantages/:id', (req, res) => gameTableRulesController.findAllDisadvantages(req, res))
+router.get('/game-table-disadvantage/:id', (req, res) => gameTableRulesController.findDisadvantage(req, res))
 router.get('/game-table-peculiarities/:id', (req, res) => gameTableRulesController.findAllPeculiarities(req, res))
 router.get('/game-table-peculiarity/:id', (req, res) => gameTableRulesController.findPeculiarity(req, res))
 router.post('/game-table-peculiarity', (req, res) => gameTableRulesController.createPeculiarity(req, res))
@@ -205,6 +218,7 @@ router.get('/game-table-items/:id', (req, res) => gameTableRulesController.findA
 router.get('/game-table-item/:id', (req, res) => gameTableRulesController.findItem(req, res))
 router.post('/game-table-item', (req, res) => gameTableRulesController.createItem(req, res))
 router.put('/game-table-item', (req, res) => gameTableRulesController.editItem(req, res))
+router.get('/table-location/:id', (req, res) => gameTableRulesController.findLocation(req, res))
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 
