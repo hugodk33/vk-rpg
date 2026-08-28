@@ -88,8 +88,8 @@ export class GameTableRepository implements IGameTableRepository {
                 encumbrance: row.sheet_encumbrance
               }
               : null,
-            damages: [],
             armors: [],
+            equipment: [],
             items: [],
             advantages: [],
             disadvantages: [],
@@ -103,35 +103,26 @@ export class GameTableRepository implements IGameTableRepository {
 
       const character = player.character
 
-      if (row.damage_id && !character.damages.some((item) => item.id === row.damage_id)) {
-        character.damages.push({
-          id: row.damage_id,
-          name: row.damage_name,
-          description: row.damage_description,
-          type: row.damage_type,
-          value: row.damage_value,
-          range: row.damage_range,
-          itemId: row.damage_item_id,
-          skillId: row.damage_skill_id,
-          advantageId: row.damage_advantage_id
-        })
-      }
-
       if (row.item_id && !character.items.some((item) => item.id === row.item_id)) {
         character.items.push({
           id: row.item_id,
           name: row.item_name,
-          type: row.item_type,
+          kind: row.item_kind,
           category: row.item_category,
           weight: row.item_weight,
-          dimensions: row.item_dimensions,
+          cost: row.item_cost,
           description: row.item_description,
           quality: row.item_quality,
           condition: row.item_condition,
-          holderId: row.item_holder_id,
-          ownerId: row.item_owner_id,
-          skillUserId: row.item_skill_user_id,
-          skillLevel: row.item_skill_level
+          weaponId: row.weapon_id,
+          armorId: row.armor_id,
+          equipment: {
+            id: row.item_equipment_id,
+            quantity: row.item_equipment_quantity,
+            status: row.item_equipment_status,
+            location: row.item_equipment_location,
+            renderedSt: row.item_equipment_rendered_st
+          }
         })
       }
 
@@ -219,8 +210,8 @@ export class GameTableRepository implements IGameTableRepository {
                 encumbrance: row.sheet_encumbrance
               }
               : null,
-            damages: [],
             armors: [],
+            equipment: [],
             items: [],
             advantages: [],
             disadvantages: [],
@@ -234,35 +225,26 @@ export class GameTableRepository implements IGameTableRepository {
 
       const character = player.character
 
-      if (row.damage_id && !character.damages.some((item) => item.id === row.damage_id)) {
-        character.damages.push({
-          id: row.damage_id,
-          name: row.damage_name,
-          description: row.damage_description,
-          type: row.damage_type,
-          value: row.damage_value,
-          range: row.damage_range,
-          itemId: row.damage_item_id,
-          skillId: row.damage_skill_id,
-          advantageId: row.damage_advantage_id
-        })
-      }
-
       if (row.item_id && !character.items.some((item) => item.id === row.item_id)) {
         character.items.push({
           id: row.item_id,
           name: row.item_name,
-          type: row.item_type,
+          kind: row.item_kind,
           category: row.item_category,
           weight: row.item_weight,
-          dimensions: row.item_dimensions,
+          cost: row.item_cost,
           description: row.item_description,
           quality: row.item_quality,
           condition: row.item_condition,
-          holderId: row.item_holder_id,
-          ownerId: row.item_owner_id,
-          skillUserId: row.item_skill_user_id,
-          skillLevel: row.item_skill_level
+          weaponId: row.weapon_id,
+          armorId: row.armor_id,
+          equipment: {
+            id: row.item_equipment_id,
+            quantity: row.item_equipment_quantity,
+            status: row.item_equipment_status,
+            location: row.item_equipment_location,
+            renderedSt: row.item_equipment_rendered_st
+          }
         })
       }
 

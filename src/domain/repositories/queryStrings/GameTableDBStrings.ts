@@ -172,32 +172,26 @@ export const GameTableDBStrings:any = {
         cs.ht AS sheet_ht,
         cs.fatigue AS sheet_fatigue,
         cs.encumbrance AS sheet_encumbrance,
-        d.id AS damage_id,
-        d.name AS damage_name,
-        d.description AS damage_description,
-        d.type AS damage_type,
-        d.value AS damage_value,
-        d.range AS damage_range,
-        d.item_id AS damage_item_id,
-        d.skill_id AS damage_skill_id,
-        d.advantage_id AS damage_advantage_id,
+        ce.id AS item_equipment_id,
+        ce.quantity AS item_equipment_quantity,
+        ce.status AS item_equipment_status,
+        ce.location AS item_equipment_location,
+        ce.rendered_st AS item_equipment_rendered_st,
         i.id AS item_id,
         i.name AS item_name,
-        i.type AS item_type,
+        i.kind AS item_kind,
         i.category AS item_category,
-        i.weight AS item_weight,
-        i.dimensions AS item_dimensions,
+        i.weight_lb AS item_weight,
+        i.cost AS item_cost,
         i.description AS item_description,
         i.quality AS item_quality,
         i.condition AS item_condition,
-        i.holder_id AS item_holder_id,
-        i.owner_id AS item_owner_id,
-        i.skill_user_id AS item_skill_user_id,
-        i.skill_level AS item_skill_level,
-        a.id AS advantage_id,
-        a.name AS advantage_name,
-        a.cost_points AS advantage_cost_points,
-        a.effect AS advantage_effect,
+        w.id AS weapon_id,
+        a.id AS armor_id,
+        ca2.id AS advantage_id,
+        ca2.name AS advantage_name,
+        ca2.cost_points AS advantage_cost_points,
+        ca2.effect AS advantage_effect,
         csk.id AS character_skill_id,
         csk.skill_id AS character_skill_skill_id,
         csk.cost_points AS character_skill_cost_points,
@@ -212,9 +206,11 @@ export const GameTableDBStrings:any = {
       LEFT JOIN game_table_players p ON p.table_id = g.id
       LEFT JOIN game_table_characters c ON c.table_id = g.id AND c.user_id = p.user_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
-      LEFT JOIN game_table_damages d ON d.character_id = c.id
-      LEFT JOIN game_table_items i ON i.holder_id = p.user_id
-      LEFT JOIN game_table_character_advantages a ON a.character_id = c.id
+      LEFT JOIN character_equipment ce ON ce.character_id = c.id
+      LEFT JOIN game_table_items i ON i.id = ce.item_id
+      LEFT JOIN game_table_weapons w ON w.item_id = i.id
+      LEFT JOIN game_table_armors a ON a.item_id = i.id
+      LEFT JOIN game_table_character_advantages ca2 ON ca2.character_id = c.id
       LEFT JOIN game_table_character_skills csk ON csk.character_id = c.id
       LEFT JOIN game_table_characters_quirks pec ON pec.character_id = c.id
     `,
@@ -247,28 +243,22 @@ export const GameTableDBStrings:any = {
         cs.ht AS sheet_ht,
         cs.fatigue AS sheet_fatigue,
         cs.encumbrance AS sheet_encumbrance,
-        d.id AS damage_id,
-        d.name AS damage_name,
-        d.description AS damage_description,
-        d.type AS damage_type,
-        d.value AS damage_value,
-        d.range AS damage_range,
-        d.item_id AS damage_item_id,
-        d.skill_id AS damage_skill_id,
-        d.advantage_id AS damage_advantage_id,
+        ce.id AS item_equipment_id,
+        ce.quantity AS item_equipment_quantity,
+        ce.status AS item_equipment_status,
+        ce.location AS item_equipment_location,
+        ce.rendered_st AS item_equipment_rendered_st,
         i.id AS item_id,
         i.name AS item_name,
-        i.type AS item_type,
+        i.kind AS item_kind,
         i.category AS item_category,
-        i.weight AS item_weight,
-        i.dimensions AS item_dimensions,
+        i.weight_lb AS item_weight,
+        i.cost AS item_cost,
         i.description AS item_description,
         i.quality AS item_quality,
         i.condition AS item_condition,
-        i.holder_id AS item_holder_id,
-        i.owner_id AS item_owner_id,
-        i.skill_user_id AS item_skill_user_id,
-        i.skill_level AS item_skill_level,
+        w.id AS weapon_id,
+        ar.id AS armor_id,
         a.id AS advantage_id,
         a.name AS advantage_name,
         a.cost_points AS advantage_cost_points,
@@ -287,8 +277,10 @@ export const GameTableDBStrings:any = {
       LEFT JOIN game_table_players p ON p.table_id = g.id
       LEFT JOIN game_table_characters c ON c.table_id = g.id AND c.user_id = p.user_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
-      LEFT JOIN game_table_damages d ON d.character_id = c.id
-      LEFT JOIN game_table_items i ON i.holder_id = p.user_id
+      LEFT JOIN character_equipment ce ON ce.character_id = c.id
+      LEFT JOIN game_table_items i ON i.id = ce.item_id
+      LEFT JOIN game_table_weapons w ON w.item_id = i.id
+      LEFT JOIN game_table_armors ar ON ar.item_id = i.id
       LEFT JOIN game_table_character_advantages a ON a.character_id = c.id
       LEFT JOIN game_table_character_skills csk ON csk.character_id = c.id
       LEFT JOIN game_table_characters_quirks pec ON pec.character_id = c.id
