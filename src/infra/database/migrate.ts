@@ -170,28 +170,35 @@ CREATE TABLE IF NOT EXISTS narration_locations (
   FOREIGN KEY (narrations_id) REFERENCES narrations(id)
 );
 
--- =========================
--- ITEMS
--- =========================
+-- =====================================================================
+-- ITEMS (GURPS)
+-- ---------------------------------------------------------------------
+-- Separação conceitual (REGRA GERAL):
+--   DATABASE  = dados e parâmetros das regras
+--   ENGINE    = cálculos (dano final, skill, vantagens, combate)
+-- Não armazenamos o DANO FINAL de uma arma. A arma guarda parâmetros e
+-- a engine combina com ST/THR/SW do personagem para calcular o resultado.
+-- =====================================================================
+
+-- ---------------------------------------------------------------
+-- game_table_items  : dados GENÉRICOS do objeto
+-- 'kind' discrimina a especialização (weapon/armor/shield/equipment)
+-- 'holder_id'/'owner_id' NÃO ficam aqui: estado do personagem vive em
+-- character_equipment.
+-- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS game_table_items (
   id TEXT PRIMARY KEY,
-  table_id TEXT ,
+  table_id TEXT,
   name TEXT,
-  type INTEGER,
-  category TEXT,
-  weight INTEGER,
+  kind TEXT,            -- 'weapon' | 'armor' | 'shield' | 'equipment'
+  category TEXT,        -- domínio: melee | ranged | clothing | ...
+  weight_lb REAL,       -- peso em libras (GURPS)
+  cost INTEGER,         -- custo em $ (GURPS)
   dimensions TEXT,
   description TEXT,
-  quality TEXT,
-  condition TEXT,
-  holder_id TEXT,
-  owner_id TEXT,
-  skill_user_id TEXT,
-  skill_level TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id),
-  FOREIGN KEY (holder_id) REFERENCES users(id),
-  FOREIGN KEY (owner_id) REFERENCES users(id),
-  FOREIGN KEY (skill_user_id) REFERENCES users(id)
+  quality TEXT,         -- domínio: cheap | standard | fine | very_fine
+  condition TEXT,       -- domínio: new | worn | damaged | broken
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
 CREATE TABLE IF NOT EXISTS item_images (
@@ -208,43 +215,96 @@ CREATE TABLE IF NOT EXISTS table_images (
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
--- =========================
--- DAMAGES
--- =========================
-CREATE TABLE IF NOT EXISTS game_table_damages (
+-- ---------------------------------------------------------------
+-- game_table_weapons : características específicas da ARMA
+-- 1 item -> 1 weapon (opcional; só quando kind='weapon' ou 'shield')
+-- min_st / rated_st / reach / parry / block  são parâmetros lidos
+-- pela engine. reach é textual pois pode haver múltiplos (ex: 'C,1').
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS game_table_weapons (
   id TEXT PRIMARY KEY,
-  name TEXT,
-  description TEXT,
-  type TEXT,
-  subtype TEXT,
-  value TEXT,
-  range TEXT,
-  character_id TEXT,
   item_id TEXT,
-  skill_id TEXT,
-  advantage_id TEXT,
-  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (item_id) REFERENCES game_table_items(id),
-  FOREIGN KEY (skill_id) REFERENCES game_table_character_skills(id),
-  FOREIGN KEY (advantage_id) REFERENCES game_table_character_advantages(id)
+  skill TEXT,           -- skill recomendada (ex: 'Shortsword') - domínio/texto
+  min_st INTEGER,       -- requisito mínimo de ST do personagem
+  rated_st INTEGER,     -- Rated ST (essencial para arcos)
+  handedness INTEGER,   -- 1 ou 2 (mãos padrão)
+  reach TEXT,           -- ex: 'C', '1', 'C,1'
+  parry TEXT,           -- ex: '0', '0U', 'No'
+  block TEXT,           -- para escudos: DB genérico textual (ex: '3')
+  FOREIGN KEY (item_id) REFERENCES game_table_items(id)
 );
 
+-- ---------------------------------------------------------------
+-- weapon_attacks : formas de ataque de UMA arma (1 arma -> N ataques)
+-- NÃO guarda dano final. Guarda a FONTE de dano + modificador + tipo.
+--   damage_source: 'st_swing' | 'st_thrust' | 'rated_st_swing' |
+--                  'rated_st_thrust' | 'fixed'
+--   - fontes baseadas em ST são resolvidas pela engine usando a
+--     tabela gurps_damage_table (ST -> THR/SW).
+--   - 'fixed' guarda o dano em dados (ex: pistola '2d+1').
+--   damage_modifier: inteiro aplicado sobre a base (ex: SW+1 -> 1).
+--   damage_dice    : usado só quando source='fixed' (ex: '2d').
+--   damage_type    : tipo de dano GURPS (cut/imp/cr/pi/pi-/pi+/burn/tox...)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS weapon_attacks (
+  id TEXT PRIMARY KEY,
+  weapon_id TEXT,
+  name TEXT,                -- ex: 'Swing', 'Thrust', 'Shot'
+  usage TEXT,               -- ex: 'one-hand' | 'two-hand' | null
+  damage_source TEXT,       -- ver enum acima
+  damage_modifier INTEGER,  -- ex: SW+1 -> +1
+  damage_dice TEXT,         -- ex: '2d' (só p/ source='fixed')
+  damage_type TEXT,         -- ex: 'cut', 'imp', 'cr', 'pi', 'pi-', 'pi+'
+  armor_penetration INTEGER,-- ex: 0 (para piercing avançado), reservado
+  accuracy INTEGER,         -- acurácia (armas de projétil)
+  range TEXT,               -- ex: '1', '150/1600', 'Melee'
+  recoil INTEGER,           -- recuo (armas de fogo)
+  shots INTEGER,            -- capacidade / calibre específico p/ futura munição
+  FOREIGN KEY (weapon_id) REFERENCES game_table_weapons(id)
+);
+
+-- ---------------------------------------------------------------
+-- game_table_armors : características específicas da ARMADURA / escudo
+-- 1 item -> 1 armor (opcional; quando kind='armor' ou 'shield')
+-- dr/flex/locations/fit são lidos pela engine de combate (não há
+-- regra de dano final aqui). locations textual p/ liberdade de domínio.
+-- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS game_table_armors (
   id TEXT PRIMARY KEY,
-  name TEXT,
-  description TEXT,
-  type TEXT,
-  subtype TEXT,
-  value TEXT,
-  fit TEXT,
+  item_id TEXT,
+  dr INTEGER,           -- Damage Resistance
+  flex INTEGER,         -- 1 = flexível (permite camadas)
+  locations TEXT,       -- ex: 'torso', 'arms,legs', 'full_body'
+  fit TEXT,             -- domínio: cheap | normal | tailored | loose
+  FOREIGN KEY (item_id) REFERENCES game_table_items(id)
+);
+
+-- ---------------------------------------------------------------
+-- gurps_damage_table : relação ST -> THR/SW (tabela de regras do GURPS)
+-- Dados de referência usados pela engine para derivar dano básico.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS gurps_damage_table (
+  id TEXT PRIMARY KEY,
+  st INTEGER,
+  thrust TEXT,
+  swing TEXT
+);
+
+-- ---------------------------------------------------------------
+-- character_equipment : ESTADO / EQUIPAMENTO do personagem
+-- Separa o que "existe no mundo" (game_table_items) de quem possui e
+-- como está equipado. 'status' = inventário | equipado | empunhado.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS character_equipment (
+  id TEXT PRIMARY KEY,
   character_id TEXT,
   item_id TEXT,
-  skill_id TEXT,
-  advantage_id TEXT,
+  quantity INTEGER DEFAULT 1,
+  status TEXT,          -- domínio: in_inventory | equipped | wielded
+  location TEXT,        -- ex: 'right_hand', 'torso', 'back', 'none'
+  rendered_st INTEGER,  -- ST efetivo (buff/condição), reservado p/ engine
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (item_id) REFERENCES game_table_items(id),
-  FOREIGN KEY (skill_id) REFERENCES game_table_character_skills(id),
-  FOREIGN KEY (advantage_id) REFERENCES game_table_character_advantages(id)
+  FOREIGN KEY (item_id) REFERENCES game_table_items(id)
 );
 
 -- =========================

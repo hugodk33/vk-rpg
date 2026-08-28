@@ -156,67 +156,32 @@ export const GameTableDBStrings:any = {
         u.email AS user_email,
         u.phone AS user_phone,
         u.type AS user_type,
+        p.id AS player_id,
         p.user_id AS player_user_id,
+        pu.username AS player_username,
         c.id AS character_id,
         c.user_id AS character_user_id,
-        cs.name AS character_name,
         cs.id AS sheet_id,
         cs.name AS sheet_name,
-        cs.bio AS sheet_bio,
-        cs.backstory AS sheet_backstory,
         cs.points AS sheet_points,
         cs.hp AS sheet_hp,
-        cs.st AS sheet_st,
-        cs.dx AS sheet_dx,
-        cs.iq AS sheet_iq,
-        cs.ht AS sheet_ht,
-        cs.fatigue AS sheet_fatigue,
-        cs.encumbrance AS sheet_encumbrance,
-        d.id AS damage_id,
-        d.name AS damage_name,
-        d.description AS damage_description,
-        d.type AS damage_type,
-        d.value AS damage_value,
-        d.range AS damage_range,
-        d.item_id AS damage_item_id,
-        d.skill_id AS damage_skill_id,
-        d.advantage_id AS damage_advantage_id,
-        i.id AS item_id,
-        i.name AS item_name,
-        i.type AS item_type,
-        i.category AS item_category,
-        i.weight AS item_weight,
-        i.dimensions AS item_dimensions,
-        i.description AS item_description,
-        i.quality AS item_quality,
-        i.condition AS item_condition,
-        i.holder_id AS item_holder_id,
-        i.owner_id AS item_owner_id,
-        i.skill_user_id AS item_skill_user_id,
-        i.skill_level AS item_skill_level,
-        a.id AS advantage_id,
-        a.name AS advantage_name,
-        a.cost_points AS advantage_cost_points,
-        a.effect AS advantage_effect,
-        csk.id AS character_skill_id,
-        csk.skill_id AS character_skill_skill_id,
-        csk.cost_points AS character_skill_cost_points,
-        csk.effect AS character_skill_effect,
-        pec.id AS peculiarity_id,
-        pec.name AS peculiarity_name,
-        pec.cost_points AS peculiarity_cost_points,
-        pec.effect AS peculiarity_effect
+        m.id AS modifier_id,
+        m.name AS modifier_name,
+        m.description AS modifier_description,
+        m.mod_hp AS modifier_mod_hp,
+        m.mod_st AS modifier_mod_st,
+        m.mod_dx AS modifier_mod_dx,
+        m.mod_iq AS modifier_mod_iq,
+        m.mod_ht AS modifier_mod_ht,
+        m.mod_fatigue AS modifier_mod_fatigue
       FROM game_tables g
       JOIN narrators n ON g.narrator_id = n.id
       JOIN users u ON n.user_id = u.id
       LEFT JOIN game_table_players p ON p.table_id = g.id
+      LEFT JOIN users pu ON pu.id = p.user_id
       LEFT JOIN game_table_characters c ON c.table_id = g.id AND c.user_id = p.user_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
-      LEFT JOIN game_table_damages d ON d.character_id = c.id
-      LEFT JOIN game_table_items i ON i.holder_id = p.user_id
-      LEFT JOIN game_table_character_advantages a ON a.character_id = c.id
-      LEFT JOIN game_table_character_skills csk ON csk.character_id = c.id
-      LEFT JOIN game_table_characters_quirks pec ON pec.character_id = c.id
+      LEFT JOIN modifiers m ON m.character_id = c.id
     `,
     GameTableFindById:`
       SELECT
@@ -231,7 +196,9 @@ export const GameTableDBStrings:any = {
         u.email AS user_email,
         u.phone AS user_phone,
         u.type AS user_type,
+        p.id AS player_id,
         p.user_id AS player_user_id,
+        pu.username AS player_username,
         c.id AS character_id,
         c.user_id AS character_user_id,
         cs.name AS character_name,
@@ -247,28 +214,22 @@ export const GameTableDBStrings:any = {
         cs.ht AS sheet_ht,
         cs.fatigue AS sheet_fatigue,
         cs.encumbrance AS sheet_encumbrance,
-        d.id AS damage_id,
-        d.name AS damage_name,
-        d.description AS damage_description,
-        d.type AS damage_type,
-        d.value AS damage_value,
-        d.range AS damage_range,
-        d.item_id AS damage_item_id,
-        d.skill_id AS damage_skill_id,
-        d.advantage_id AS damage_advantage_id,
+        ce.id AS item_equipment_id,
+        ce.quantity AS item_equipment_quantity,
+        ce.status AS item_equipment_status,
+        ce.location AS item_equipment_location,
+        ce.rendered_st AS item_equipment_rendered_st,
         i.id AS item_id,
         i.name AS item_name,
-        i.type AS item_type,
+        i.kind AS item_kind,
         i.category AS item_category,
-        i.weight AS item_weight,
-        i.dimensions AS item_dimensions,
+        i.weight_lb AS item_weight,
+        i.cost AS item_cost,
         i.description AS item_description,
         i.quality AS item_quality,
         i.condition AS item_condition,
-        i.holder_id AS item_holder_id,
-        i.owner_id AS item_owner_id,
-        i.skill_user_id AS item_skill_user_id,
-        i.skill_level AS item_skill_level,
+        w.id AS weapon_id,
+        ar.id AS armor_id,
         a.id AS advantage_id,
         a.name AS advantage_name,
         a.cost_points AS advantage_cost_points,
@@ -285,10 +246,13 @@ export const GameTableDBStrings:any = {
       JOIN narrators n ON g.narrator_id = n.id
       JOIN users u ON n.user_id = u.id
       LEFT JOIN game_table_players p ON p.table_id = g.id
+      LEFT JOIN users pu ON pu.id = p.user_id
       LEFT JOIN game_table_characters c ON c.table_id = g.id AND c.user_id = p.user_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
-      LEFT JOIN game_table_damages d ON d.character_id = c.id
-      LEFT JOIN game_table_items i ON i.holder_id = p.user_id
+      LEFT JOIN character_equipment ce ON ce.character_id = c.id
+      LEFT JOIN game_table_items i ON i.id = ce.item_id
+      LEFT JOIN game_table_weapons w ON w.item_id = i.id
+      LEFT JOIN game_table_armors ar ON ar.item_id = i.id
       LEFT JOIN game_table_character_advantages a ON a.character_id = c.id
       LEFT JOIN game_table_character_skills csk ON csk.character_id = c.id
       LEFT JOIN game_table_characters_quirks pec ON pec.character_id = c.id

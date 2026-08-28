@@ -343,126 +343,193 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /* =============== */
   /*      ITEMS      */
   /* =============== */
-  
+
   async createGameItems(data: any): Promise<any> {
     const itemId = crypto.randomUUID()
+    const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
     db.prepare(`
-      INSERT INTO game_table_items (id, table_id, name, type, category, weight, dimensions, description, quality, condition, holder_id, owner_id, skill_user_id, skill_level)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       itemId,
       data.table_id,
       data.name,
-      data.type,
+      kind,
       data.category,
-      data.weight,
+      data.weight_lb ?? data.weight ?? null,
+      data.cost ?? null,
       data.dimensions,
       data.description,
       data.quality,
-      data.condition,
-      data.holder_id,
-      data.owner_id,
-      data.skill_user_id,
-      data.skill_level
+      data.condition
     )
 
-    if (data.type === 1 && data.character_id && data.damage_value) {
+    // ---- WEAPON / SHIELD: atributos de arma + ataques ----
+    if (kind === 'weapon' || kind === 'shield') {
+      const weaponId = crypto.randomUUID()
       db.prepare(`
-        INSERT INTO game_table_damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
-        crypto.randomUUID(), data.name, data.description || '', 'Physical',
-        data.damage_value, data.range || 'Melee',
-        data.character_id, itemId, data.skill_id || null, null
+        weaponId, itemId,
+        data.weapon_skill || (data.skill_level || null),
+        data.min_st ?? null,
+        data.rated_st ?? null,
+        data.handedness ?? 1,
+        data.reach || 'C',
+        data.parry || null,
+        data.block || null
       )
+
+      const attacks = Array.isArray(data.attacks) ? data.attacks : []
+      const insertAttack = db.prepare(`
+        INSERT INTO weapon_attacks (id, weapon_id, name, usage, damage_source, damage_modifier, damage_dice, damage_type, armor_penetration, accuracy, range, recoil, shots)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      for (const atk of attacks) {
+        insertAttack.run(
+          crypto.randomUUID(), weaponId,
+          atk.name || 'Attack', atk.usage || null,
+          atk.damage_source || 'fixed', atk.damage_modifier ?? 0,
+          atk.damage_dice || null, atk.damage_type || 'cr',
+          atk.armor_penetration ?? 0, atk.accuracy ?? null,
+          atk.range || 'Melee', atk.recoil ?? null, atk.shots ?? null
+        )
+      }
     }
 
-    if ((data.type === 2 || data.type === 3) && data.character_id && data.armor_value) {
+    // ---- ARMOR: atributos de armadura ----
+    if (kind === 'armor' || kind === 'shield') {
       db.prepare(`
-        INSERT INTO game_table_armors (id, name, description, type, value, fit, character_id, item_id, skill_id, advantage_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_table_armors (id, item_id, dr, flex, locations, fit)
+        VALUES (?, ?, ?, ?, ?, ?)
       `).run(
-        crypto.randomUUID(), data.name, data.description || '',
-        data.type === 2 ? 'Armor' : 'Clothing',
-        data.armor_value, data.fit || 'Torso',
-        data.character_id, itemId, null, null
+        crypto.randomUUID(), itemId,
+        data.dr ?? data.armor_value ?? null,
+        data.flex ? 1 : 0,
+        data.locations || data.fit || 'torso',
+        data.armor_fit || 'normal'
       )
     }
 
     return { id: itemId }
   }
+
   async editGameItems(data: any): Promise<void> {
+    const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
     db.prepare(`
       UPDATE game_table_items
-      SET name = ?, type = ?, category = ?, weight = ?, dimensions = ?, description = ?, quality = ?, condition = ?, holder_id = ?, owner_id = ?, skill_user_id = ?, skill_level = ?
+      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, dimensions = ?, description = ?, quality = ?, condition = ?
       WHERE id = ?
     `).run(
       data.name,
-      data.type,
+      kind,
       data.category,
-      data.weight,
+      data.weight_lb ?? data.weight ?? null,
+      data.cost ?? null,
       data.dimensions,
       data.description,
       data.quality,
       data.condition,
-      data.holder_id,
-      data.owner_id,
-      data.skill_user_id,
-      data.skill_level,
       data.id
     )
 
-    if (data.type === 1 && data.character_id && data.damage_value) {
-      const existing = db.prepare(`SELECT id FROM game_table_damages WHERE item_id = ?`).get(data.id) as any
-      if (existing) {
-        db.prepare(`UPDATE game_table_damages SET name = ?, value = ?, range = ? WHERE id = ?`).run(data.name, data.damage_value, data.range || 'Melee', existing.id)
+    const existingWeapon = db.prepare(`SELECT id FROM game_table_weapons WHERE item_id = ?`).get(data.id) as any
+
+    // ---- WEAPON / SHIELD ----
+    if (kind === 'weapon' || kind === 'shield') {
+      const weaponId = existingWeapon?.id || crypto.randomUUID()
+      if (existingWeapon) {
+        db.prepare(`
+          UPDATE game_table_weapons SET skill = ?, min_st = ?, rated_st = ?, handedness = ?, reach = ?, parry = ?, block = ?
+          WHERE id = ?
+        `).run(
+          data.weapon_skill || data.skill_level || null,
+          data.min_st ?? null,
+          data.rated_st ?? null,
+          data.handedness ?? 1,
+          data.reach || 'C',
+          data.parry || null,
+          data.block || null,
+          weaponId
+        )
       } else {
-        db.prepare(`INSERT INTO game_table_damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(crypto.randomUUID(), data.name, data.description || '', 'Physical', data.damage_value, data.range || 'Melee', data.character_id, data.id, data.skill_id || null, null)
+        db.prepare(`
+          INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(weaponId, data.id, data.weapon_skill || data.skill_level || null, data.min_st ?? null, data.rated_st ?? null, data.handedness ?? 1, data.reach || 'C', data.parry || null, data.block || null)
       }
+
+      // Substitui os ataques (recreate por simplicidade de edição)
+      db.prepare(`DELETE FROM weapon_attacks WHERE weapon_id = ?`).run(weaponId)
+      const attacks = Array.isArray(data.attacks) ? data.attacks : []
+      const insertAttack = db.prepare(`
+        INSERT INTO weapon_attacks (id, weapon_id, name, usage, damage_source, damage_modifier, damage_dice, damage_type, armor_penetration, accuracy, range, recoil, shots)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      for (const atk of attacks) {
+        insertAttack.run(
+          crypto.randomUUID(), weaponId,
+          atk.name || 'Attack', atk.usage || null,
+          atk.damage_source || 'fixed', atk.damage_modifier ?? 0,
+          atk.damage_dice || null, atk.damage_type || 'cr',
+          atk.armor_penetration ?? 0, atk.accuracy ?? null,
+          atk.range || 'Melee', atk.recoil ?? null, atk.shots ?? null
+        )
+      }
+    } else if (existingWeapon) {
+      // deixou de ser arma: remove ataques e atributos de arma
+      db.prepare(`DELETE FROM weapon_attacks WHERE weapon_id = ?`).run(existingWeapon.id)
+      db.prepare(`DELETE FROM game_table_weapons WHERE id = ?`).run(existingWeapon.id)
     }
 
-    if ((data.type === 2 || data.type === 3) && data.character_id && data.armor_value) {
-      const existing = db.prepare(`SELECT id FROM game_table_armors WHERE item_id = ?`).get(data.id) as any
-      if (existing) {
-        db.prepare(`UPDATE game_table_armors SET name = ?, value = ?, fit = ? WHERE id = ?`).run(data.name, data.armor_value, data.fit || 'Torso', existing.id)
+    // ---- ARMOR ----
+    const existingArmor = db.prepare(`SELECT id FROM game_table_armors WHERE item_id = ?`).get(data.id) as any
+    if (kind === 'armor' || kind === 'shield') {
+      if (existingArmor) {
+        db.prepare(`
+          UPDATE game_table_armors SET dr = ?, flex = ?, locations = ?, fit = ? WHERE id = ?
+        `).run(
+          data.dr ?? data.armor_value ?? null,
+          data.flex ? 1 : 0,
+          data.locations || data.fit || 'torso',
+          data.armor_fit || 'normal',
+          existingArmor.id
+        )
       } else {
-        db.prepare(`INSERT INTO game_table_armors (id, name, description, type, value, fit, character_id, item_id, skill_id, advantage_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(crypto.randomUUID(), data.name, data.description || '', data.type === 2 ? 'Armor' : 'Clothing', data.armor_value, data.fit || 'Torso', data.character_id, data.id, null, null)
+        db.prepare(`
+          INSERT INTO game_table_armors (id, item_id, dr, flex, locations, fit)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).run(crypto.randomUUID(), data.id, data.dr ?? data.armor_value ?? null, data.flex ? 1 : 0, data.locations || data.fit || 'torso', data.armor_fit || 'normal')
       }
+    } else if (existingArmor) {
+      db.prepare(`DELETE FROM game_table_armors WHERE id = ?`).run(existingArmor.id)
     }
   }
+
   async findGameItems(id: any): Promise<any> {
     const gameTableItem = db.prepare(`
-      SELECT
-        i.*,
-        d.id AS damage_id,
-        d.name AS damage_name,
-        d.description AS damage_description,
-        d.type AS damage_type,
-        d.subtype AS damage_subtype,
-        d.value AS damage_value,
-        d.range AS damage_range,
-        a.id AS armor_id,
-        a.name AS armor_name,
-        a.description AS armor_description,
-        a.type AS armor_type,
-        a.subtype AS armor_subtype,
-        a.value AS armor_value,
-        a.fit AS armor_fit,
-        ou.username AS owner_username,
-        hu.username AS holder_username,
-        su.username AS skill_user_username
+      SELECT i.*
       FROM game_table_items i
-      LEFT JOIN game_table_damages d ON d.item_id = i.id
-      LEFT JOIN game_table_armors a ON a.item_id = i.id
-      LEFT JOIN users ou ON ou.id = i.owner_id
-      LEFT JOIN users hu ON hu.id = i.holder_id
-      LEFT JOIN users su ON su.id = i.skill_user_id
       WHERE i.id = ?
     `).get(id) as any
-    return gameTableItem
+    if (!gameTableItem) return gameTableItem
+
+    const weapon = db.prepare(`
+      SELECT * FROM game_table_weapons WHERE item_id = ?
+    `).get(gameTableItem.id) as any
+    if (weapon) {
+      weapon.attacks = db.prepare(`
+        SELECT * FROM weapon_attacks WHERE weapon_id = ? ORDER BY rowid ASC
+      `).all(weapon.id) as any[]
+    }
+
+    const armor = db.prepare(`SELECT * FROM game_table_armors WHERE item_id = ?`).get(gameTableItem.id) as any
+
+    return { ...gameTableItem, weapon: weapon || null, armor: armor || null }
   }
-  async findAllGameItems(id: any, search?: string, category?: string, type?: string): Promise<any> {
-    
+
+  async findAllGameItems(id: any, search?: string, category?: string, kind?: string): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -487,33 +554,27 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       itemParams.push(category)
     }
 
-    if (type != null) {
-      itemClauses.push("\"type\" = ?")
-      itemParams.push(parseInt(type, 10))
+    if (kind) {
+      itemClauses.push("kind = ?")
+      itemParams.push(kind)
     }
 
     const gameTablesItems = db.prepare(`
-      SELECT
-        i.*,
-        d.id AS damage_id,
-        d.name AS damage_name,
-        d.description AS damage_description,
-        d.type AS damage_type,
-        d.subtype AS damage_subtype,
-        d.value AS damage_value,
-        d.range AS damage_range,
-        a.id AS armor_id,
-        a.name AS armor_name,
-        a.description AS armor_description,
-        a.type AS armor_type,
-        a.subtype AS armor_subtype,
-        a.value AS armor_value,
-        a.fit AS armor_fit
-      FROM game_table_items i
-      LEFT JOIN game_table_damages d ON d.item_id = i.id
-      LEFT JOIN game_table_armors a ON a.item_id = i.id
+      SELECT *
+      FROM game_table_items
       WHERE ${itemClauses.join(" AND ")}
     `).all(...itemParams) as any[]
+
+    // Associa cada item ao seu weapon (com ataques) e/ou armor
+    for (const item of gameTablesItems) {
+      const weapon = db.prepare(`SELECT * FROM game_table_weapons WHERE item_id = ?`).get(item.id) as any
+      if (weapon) {
+        weapon.attacks = db.prepare(`SELECT * FROM weapon_attacks WHERE weapon_id = ? ORDER BY rowid ASC`).all(weapon.id) as any[]
+        item.weapon = weapon
+      }
+      const armor = db.prepare(`SELECT * FROM game_table_armors WHERE item_id = ?`).get(item.id) as any
+      if (armor) item.armor = armor
+    }
 
     return ({
       table: table,
@@ -659,17 +720,19 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).all(characterId) as any[]
 
     const items = db.prepare(`
-      SELECT * FROM game_table_items
-      WHERE holder_id = ? OR owner_id = ?
-    `).all(userId, userId) as any[]
+      SELECT
+        i.*,
+        ce.id AS equipment_id,
+        ce.quantity AS equipment_quantity,
+        ce.status AS equipment_status,
+        ce.location AS equipment_location
+      FROM character_equipment ce
+      LEFT JOIN game_table_items i ON i.id = ce.item_id
+      WHERE ce.character_id = ?
+    `).all(characterId) as any[]
 
     const peculiarities = db.prepare(`
       SELECT * FROM game_table_characters_quirks
-      WHERE character_id = ?
-    `).all(characterId) as any[]
-
-    const damages = db.prepare(`
-      SELECT * FROM game_table_damages
       WHERE character_id = ?
     `).all(characterId) as any[]
 
@@ -703,8 +766,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         } : null,
         advantages,
         skills,
-        items,
-        damages
+        items
       },
       table: {
         id: npcData.table_id,
@@ -852,20 +914,13 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         insertSkill.run(crypto.randomUUID(), characterId, sk.skill_id, sk.cost_points ?? 0, sk.effect || '')
       }
 
-      const insertDamage = db.prepare(`
-        INSERT INTO game_table_damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      const insertEquipment = db.prepare(`
+        INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location)
+        VALUES (?, ?, ?, ?, ?, ?)
       `)
-      for (const dmg of (data.damages || [])) {
-        insertDamage.run(crypto.randomUUID(), dmg.name, dmg.description || '', dmg.type || '', dmg.value || '', dmg.range || '', characterId, dmg.item_id || null, dmg.skill_id || null, dmg.advantage_id || null)
-      }
-
-      const insertArmor = db.prepare(`
-        INSERT INTO game_table_armors (id, name, description, type, value, fit, character_id, item_id, skill_id, advantage_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
-      for (const arm of (data.armors || [])) {
-        insertArmor.run(crypto.randomUUID(), arm.name, arm.description || '', arm.type || '', arm.value || '', arm.fit || '', characterId, arm.item_id || null, arm.skill_id || null, arm.advantage_id || null)
+      for (const eq of (data.equipment || [])) {
+        if (!eq.item_id) continue
+        insertEquipment.run(crypto.randomUUID(), characterId, eq.item_id, eq.quantity ?? 1, eq.status || 'in_inventory', eq.location || 'none')
       }
 
       const insertPeculiarity = db.prepare(`
@@ -951,10 +1006,44 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE csk.character_id = ?
     `).all(characterId) as any[]
 
+    // Items do personagem via character_equipment (estado/equipamento)
     const items = db.prepare(`
-      SELECT * FROM game_table_items
-      WHERE holder_id = ? OR owner_id = ?
-    `).all(userId, userId) as any[]
+      SELECT
+        i.*,
+        ce.id AS equipment_id,
+        ce.quantity AS equipment_quantity,
+        ce.status AS equipment_status,
+        ce.location AS equipment_location,
+        ce.rendered_st AS equipment_rendered_st,
+        w.id AS weapon_id,
+        a.id AS armor_id
+      FROM character_equipment ce
+      LEFT JOIN game_table_items i ON i.id = ce.item_id
+      LEFT JOIN game_table_weapons w ON w.item_id = i.id
+      LEFT JOIN game_table_armors a ON a.item_id = i.id
+      WHERE ce.character_id = ?
+    `).all(characterId) as any[]
+
+    // Enriquece cada item com weapon (e ataques) / armor aninhados
+    const weaponByItem = new Map<string, any>()
+    const armorByItem = new Map<string, any>()
+    for (const item of items) {
+      if (item.weapon_id && !weaponByItem.has(item.weapon_id)) {
+        const w = db.prepare(`SELECT * FROM game_table_weapons WHERE id = ?`).get(item.weapon_id) as any
+        if (w) {
+          w.attacks = db.prepare(`SELECT * FROM weapon_attacks WHERE weapon_id = ? ORDER BY rowid ASC`).all(w.id) as any[]
+          weaponByItem.set(item.weapon_id, w)
+        }
+      }
+      if (item.armor_id && !armorByItem.has(item.armor_id)) {
+        const arm = db.prepare(`SELECT * FROM game_table_armors WHERE id = ?`).get(item.armor_id) as any
+        if (arm) armorByItem.set(item.armor_id, arm)
+      }
+    }
+    for (const item of items) {
+      if (item.weapon_id) item.weapon = weaponByItem.get(item.weapon_id) || null
+      if (item.armor_id) item.armor = armorByItem.get(item.armor_id) || null
+    }
 
     const peculiarities = db.prepare(`
       SELECT * FROM game_table_characters_quirks
@@ -966,14 +1055,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE character_id = ?
     `).all(characterId) as any[]
 
+    // Armaduras equipadas pelo personagem (defesa já resolvida pela engine)
     const armors = db.prepare(`
-      SELECT * FROM game_table_armors
-      WHERE character_id = ?
-    `).all(characterId) as any[]
-
-    const damages = db.prepare(`
-      SELECT * FROM game_table_damages
-      WHERE character_id = ?
+      SELECT a.* FROM character_equipment ce
+      INNER JOIN game_table_armors a ON a.item_id = ce.item_id
+      WHERE ce.character_id = ?
     `).all(characterId) as any[]
 
     const moments = db.prepare(`
@@ -1028,7 +1114,10 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     }
 
     const basicSpeed = (currentStats.dx + currentStats.ht) / 4
-    const itemsWeight = items.reduce((total, item) => total + (item.weight as number || 0), 0)
+    const itemsWeight = items.reduce(
+      (total, item) => total + ((item.weight_lb as number || 0) * (item.equipment_quantity || 1)),
+      0
+    )
     const st = currentStats.st;
 
   const encumbranceValue =
@@ -1083,7 +1172,6 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         armors,
         skills,
         items,
-        damages,
         modifiers
       },
       peculiarities,

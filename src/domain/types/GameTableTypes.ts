@@ -10,45 +10,42 @@ export type GameTablePlayer = {
 
 type GameTableCharacterSheet = {
   id: string
-  name: string
-  bio: string
-  backstory: string
-  points: number
-  hp: number
-  st: number
-  dx: number
-  iq: number
-  ht: number
-  fatigue: number
-  encumbrance: string
+  name?: string
+  bio?: string
+  backstory?: string
+  points?: number
+  hp?: number
+  current_hp?: number
+  st?: number
+  dx?: number
+  iq?: number
+  ht?: number
+  fatigue?: number
+  encumbrance?: string
+  modifiers?: GameTableModifier[]
 }
 
-type GameTableDamage = {
+type GameTableEquipment = {
   id: string
-  name: string
-  description: string
-  type: string
-  value: string
-  range: string
-  itemId: string | null
-  skillId: string | null
-  advantageId: string | null
+  quantity: number
+  status: string
+  location: string
+  renderedSt: number | null
 }
 
 type GameTableItem = {
   id: string
   name: string
-  type: number
+  kind: string
   category: string
   weight: number
-  dimensions: string
+  cost: number
   description: string
   quality: string
   condition: string
-  holderId: string | null
-  ownerId: string | null
-  skillUserId: string | null
-  skillLevel: string
+  weaponId: string | null
+  armorId: string | null
+  equipment: GameTableEquipment | null
 }
 
 type GameTableAdvantage = {
@@ -72,6 +69,7 @@ type GameTableArmor = {
   type: string
   value: string
   fit: string
+  itemId: string | null
 }
 
 type GameTablePeculiarity = {
@@ -93,8 +91,8 @@ type GameTableCharacter = {
   userId: string
   name: string
   sheet: GameTableCharacterSheet | null
-  damages: GameTableDamage[]
   armors: GameTableArmor[]
+  equipment: GameTableEquipment[]
   items: GameTableItem[]
   advantages: GameTableAdvantage[]
   disadvantages: GameTableDisadvantage[]
@@ -103,7 +101,9 @@ type GameTableCharacter = {
 }
 
 export type GameTablePlayerWithCharacter = {
-  character: GameTableCharacter
+  userId: string
+  username: string | null
+  character: GameTableCharacter | null
 }
 
 export type GameTableSceneNarration = {
@@ -135,6 +135,7 @@ export type GameTableWithNarrator = {
   narratorId: string
   intro: string
   title: string
+  system?: string
   narrator: {
     id: string
     userId: string

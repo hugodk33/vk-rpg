@@ -1,14 +1,24 @@
 // src/infra/database/seed.ts
 import { db } from './database'
 import './migrate'
+
+const allTables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all() as { name: string }[]
+db.exec('PRAGMA foreign_keys = OFF')
+for (const { name } of allTables) {
+  db.exec(`DELETE FROM "${name}"`)
+}
+db.exec('PRAGMA foreign_keys = ON')
+
 import { narrators  , gameTables , gameTablePlayers  } from '../variables/varGameTable'
 import { modifierNarrationsActions , modifierNarrationsLocations , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierSeedEntries } from '../variables/varModifiers'
 import { skills } from '../variables/varSkills'
-import { items } from '../variables/varItems'
+import { items, weapons, weaponAttacks, armors } from '../variables/varItems'
+import { gurpsDamageTable } from '../variables/varGurpsDamage'
+import { characterEquipment } from '../variables/varEquipment'
 import { advantages } from '../variables/varAdvantages'
 import { disadvantages } from '../variables/varDisadvantage'
 import { users } from '../variables/varUsers'
-import { characters , characterSheets , damages , armors , characterSkills , characterAdvantages , characterDisadvantages } from '../variables/varCharacters'
+import { characters , characterSheets , characterSkills , characterAdvantages , characterDisadvantages } from '../variables/varCharacters'
 import { newNpcs } from '../variables/varNPC'
 import { peculiarities } from '../variables/varPeculiarites'
 import { scenes } from '../variables/varScenes'
@@ -155,8 +165,8 @@ for (const npcSheet of newNpcs) {
 
 // insert items
 const itemStmt = db.prepare(`
-  INSERT INTO game_table_items (id, table_id , name, type, category, weight, dimensions, description, quality, condition, holder_id, owner_id, skill_user_id, skill_level)
-  VALUES (?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO game_table_items (id, table_id , name, kind, category, weight_lb, cost, dimensions, description, quality, condition)
+  VALUES (?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const item of items) {
@@ -164,40 +174,105 @@ for (const item of items) {
     item.id,
     item.table_id,
     item.name,
-    item.type,
+    item.kind,
     item.category,
-    item.weight,
+    item.weight_lb,
+    item.cost,
     item.dimensions,
     item.description,
     item.quality,
-    item.condition,
-    item.holderId,
-    item.ownerId,
-    item.skillUserId,
-    item.skillLevel
+    item.condition
   )
 }
 
-// // insert damages
-// const damageStmt = db.prepare(`
-//   INSERT INTO game_table_damages (id, name, description, type, value, range, character_id, item_id, skill_id, advantage_id)
-//   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-// `)
+// insert weapons (específico de arma)
+const weaponStmt = db.prepare(`
+  INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+`)
 
-// for (const damage of damages) {
-//   damageStmt.run(
-//     damage.id,
-//     damage.name,
-//     damage.description,
-//     damage.type,
-//     damage.value,
-//     damage.range,
-//     damage.characterId,
-//     damage.itemId ?? null,
-//     damage.skillId ?? null,
-//     damage.advantageId ?? null
-//   )
-// }
+for (const weapon of weapons) {
+  weaponStmt.run(
+    weapon.id,
+    weapon.item_id,
+    weapon.skill,
+    weapon.min_st,
+    weapon.rated_st,
+    weapon.handedness,
+    weapon.reach,
+    weapon.parry,
+    weapon.block
+  )
+}
+
+// insert weapon attacks (formas de ataque por arma)
+const weaponAttackStmt = db.prepare(`
+  INSERT INTO weapon_attacks (id, weapon_id, name, usage, damage_source, damage_modifier, damage_dice, damage_type, armor_penetration, accuracy, range, recoil, shots)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const attack of weaponAttacks) {
+  weaponAttackStmt.run(
+    attack.id,
+    attack.weapon_id,
+    attack.name,
+    attack.usage,
+    attack.damage_source,
+    attack.damage_modifier,
+    attack.damage_dice,
+    attack.damage_type,
+    attack.armor_penetration,
+    attack.accuracy,
+    attack.range,
+    attack.recoil,
+    attack.shots
+  )
+}
+
+// insert armors (específico de armadura, agora ancorado no item)
+const armorStmt = db.prepare(`
+  INSERT INTO game_table_armors (id, item_id, dr, flex, locations, fit)
+  VALUES (?, ?, ?, ?, ?, ?)
+`)
+
+for (const armor of armors) {
+  armorStmt.run(
+    armor.id,
+    armor.item_id,
+    armor.dr,
+    armor.flex,
+    armor.locations,
+    armor.fit
+  )
+}
+
+// insert gurps damage table (ST -> THR/SW)
+const gurpsDamageStmt = db.prepare(`
+  INSERT INTO gurps_damage_table (id, st, thrust, swing)
+  VALUES (?, ?, ?, ?)
+`)
+
+for (const row of gurpsDamageTable) {
+  gurpsDamageStmt.run(row.id, row.st, row.thrust, row.swing)
+}
+
+// insert character equipment (estado do personagem)
+const equipmentStmt = db.prepare(`
+  INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location, rendered_st)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const eq of characterEquipment) {
+  equipmentStmt.run(
+    eq.id,
+    eq.character_id,
+    eq.item_id,
+    eq.quantity,
+    eq.status,
+    eq.location,
+    eq.rendered_st
+  )
+}
 
 // insert character skills
 const characterSkillStmt = db.prepare(`
@@ -336,37 +411,6 @@ for (const modifierGameTableSkillDependency of modifierGameTableSkillsPreDetermi
   )
 }
 
-const modifierGameTableDamagetmt = db.prepare(`
-  INSERT INTO game_table_damages(
-    id,
-    name,
-    description,
-    type,
-    value,
-    range,
-    character_id,
-    item_id,
-    skill_id,
-    advantage_id
-  )
-  VALUES (?, ?, ? , ? , ?, ?, ?, ?, ?, ?)
-`)
-
-for (const damage of damages) {
-  modifierGameTableDamagetmt.run(
-    damage.id,
-    damage.name,
-    damage.description,
-    damage.type,
-    damage.value,
-    damage.range,
-    damage.character_id,
-    damage.item_id,
-    damage.skill_id,
-    damage.advantage_id
-  )
-}
-
 const modifierGameTableCharacterAdvantagestmt = db.prepare(`
   INSERT INTO game_table_character_advantages(
   id,
@@ -410,37 +454,6 @@ for (const modifierGameTableCharacterDisadvantage of characterDisadvantages) {
     modifierGameTableCharacterDisadvantage.character_id,
     modifierGameTableCharacterDisadvantage.cost_points,
     modifierGameTableCharacterDisadvantage.effect
-  )
-}
-
-const modifierGameTableCharacterArmorstmt = db.prepare(`
-  INSERT INTO game_table_armors(
-    id,
-    name,
-    description,
-    type,
-    value,
-    fit,
-    character_id,
-    item_id,
-    skill_id,
-    advantage_id
-  )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`)
-
-for (const modifierGameTableCharacterArmor of armors) {
-  modifierGameTableCharacterArmorstmt.run(
-    modifierGameTableCharacterArmor.id,
-    modifierGameTableCharacterArmor.name,
-    modifierGameTableCharacterArmor.description,
-    modifierGameTableCharacterArmor.type,
-    modifierGameTableCharacterArmor.value,
-    modifierGameTableCharacterArmor.fit,
-    modifierGameTableCharacterArmor.character_id,
-    modifierGameTableCharacterArmor.item_id,
-    modifierGameTableCharacterArmor.skill_id,
-    modifierGameTableCharacterArmor.advantage_id
   )
 }
 

@@ -45,6 +45,7 @@ export class GameTableRepository implements IGameTableRepository {
           narratorId: row.table_narrator_id,
           intro: row.table_intro,
           title: row.table_title,
+          system: row.table_system || undefined,
           narrator: {
             id: row.narrator_id,
             userId: row.narrator_user_id,
@@ -60,110 +61,76 @@ export class GameTableRepository implements IGameTableRepository {
         tables.set(row.table_id, table)
       }
 
-      if (!row.character_id) {
+      if (!row.player_user_id) {
         continue
       }
 
-      let player = table.players.find((entry) => entry.character.id === row.character_id)
+      let player = table.players.find((entry) => entry.userId === row.player_user_id)
 
       if (!player) {
         player = {
-          character: {
-            id: row.character_id,
-            userId: row.character_user_id,
-            name: row.character_name,
-            sheet: row.sheet_id
-              ? {
-                id: row.sheet_id,
-                name: row.sheet_name,
-                bio: row.sheet_bio,
-                backstory: row.sheet_backstory,
-                points: row.sheet_points,
-                hp: row.sheet_hp,
-                st: row.sheet_st,
-                dx: row.sheet_dx,
-                iq: row.sheet_iq,
-                ht: row.sheet_ht,
-                fatigue: row.sheet_fatigue,
-                encumbrance: row.sheet_encumbrance
-              }
-              : null,
-            damages: [],
-            armors: [],
-            items: [],
-            advantages: [],
-            disadvantages: [],
-            skills: [],
-            peculiarities: []
-          }
+          userId: row.player_user_id,
+          username: row.player_username ?? null,
+          character: null
         }
 
         table.players.push(player)
       }
 
-      const character = player.character
-
-      if (row.damage_id && !character.damages.some((item) => item.id === row.damage_id)) {
-        character.damages.push({
-          id: row.damage_id,
-          name: row.damage_name,
-          description: row.damage_description,
-          type: row.damage_type,
-          value: row.damage_value,
-          range: row.damage_range,
-          itemId: row.damage_item_id,
-          skillId: row.damage_skill_id,
-          advantageId: row.damage_advantage_id
-        })
+      if (row.character_id && !player.character) {
+        player.character = {
+          id: row.character_id,
+          userId: row.character_user_id,
+          name: row.sheet_name ?? '',
+          sheet: row.sheet_id
+            ? {
+                id: row.sheet_id,
+                name: row.sheet_name ?? undefined,
+                points: row.sheet_points ?? undefined,
+                hp: row.sheet_hp ?? undefined,
+                current_hp: row.sheet_hp ?? undefined,
+                modifiers: []
+              }
+            : null,
+          armors: [],
+          equipment: [],
+          items: [],
+          advantages: [],
+          disadvantages: [],
+          skills: [],
+          peculiarities: []
+        }
       }
 
-      if (row.item_id && !character.items.some((item) => item.id === row.item_id)) {
-        character.items.push({
-          id: row.item_id,
-          name: row.item_name,
-          type: row.item_type,
-          category: row.item_category,
-          weight: row.item_weight,
-          dimensions: row.item_dimensions,
-          description: row.item_description,
-          quality: row.item_quality,
-          condition: row.item_condition,
-          holderId: row.item_holder_id,
-          ownerId: row.item_owner_id,
-          skillUserId: row.item_skill_user_id,
-          skillLevel: row.item_skill_level
-        })
-      }
+      const sheet = player.character?.sheet
 
-      if (row.advantage_id && !character.advantages.some((adv) => adv.id === row.advantage_id)) {
-        character.advantages.push({
-          id: row.advantage_id,
-          name: row.advantage_name,
-          costPoints: row.advantage_cost_points,
-          effect: row.advantage_effect
-        })
-      }
-
-      if (row.character_skill_id && !character.skills.some((skill) => skill.id === row.character_skill_id)) {
-        character.skills.push({
-          id: row.character_skill_id,
-          skillId: row.character_skill_skill_id,
-          costPoints: row.character_skill_cost_points,
-          effect: row.character_skill_effect
-        })
-      }
-
-      if (row.peculiarity_id && !character.peculiarities.some((item) => item.id === row.peculiarity_id)) {
-        character.peculiarities.push({
-          id: row.peculiarity_id,
-          name: row.peculiarity_name,
-          costPoints: row.peculiarity_cost_points,
-          effect: row.peculiarity_effect
+      if (sheet && row.modifier_id && !sheet.modifiers!.some((mod) => mod.id === row.modifier_id)) {
+        sheet.modifiers!.push({
+          id: row.modifier_id,
+          name: row.modifier_name ?? undefined,
+          description: row.modifier_description ?? undefined,
+          mod_hp: row.modifier_mod_hp ?? undefined,
+          mod_st: row.modifier_mod_st ?? undefined,
+          mod_dx: row.modifier_mod_dx ?? undefined,
+          mod_iq: row.modifier_mod_iq ?? undefined,
+          mod_ht: row.modifier_mod_ht ?? undefined,
+          mod_fatigue: row.modifier_mod_fatigue ?? undefined
         })
       }
     }
 
-    return Array.from(tables.values())
+    const result = Array.from(tables.values())
+
+    for (const table of result) {
+      for (const player of table.players) {
+        const sheet = player.character?.sheet
+        if (!sheet) continue
+        const totalMod = (sheet.modifiers ?? []).reduce((acc, mod) => acc + (mod.mod_hp ?? 0), 0)
+        sheet.current_hp = (sheet.hp ?? 0) + totalMod
+      }
+    }
+
+    return result
   }
 
   async findById(id: string): Promise<GameTableWithNarrator | null> {
@@ -191,78 +158,77 @@ export class GameTableRepository implements IGameTableRepository {
     }
 
     for (const row of rows) {
-      if (!row.character_id) {
+      if (!row.player_user_id) {
         continue
       }
 
-      let player = result.players.find((entry) => entry.character.id === row.character_id)
+      let player = result.players.find((entry) => entry.userId === row.player_user_id)
 
       if (!player) {
         player = {
-          character: {
-            id: row.character_id,
-            userId: row.character_user_id,
-            name: row.character_name,
-            sheet: row.sheet_id
-              ? {
-                id: row.sheet_id,
-                name: row.sheet_name,
-                bio: row.sheet_bio,
-                backstory: row.sheet_backstory,
-                points: row.sheet_points,
-                hp: row.sheet_hp,
-                st: row.sheet_st,
-                dx: row.sheet_dx,
-                iq: row.sheet_iq,
-                ht: row.sheet_ht,
-                fatigue: row.sheet_fatigue,
-                encumbrance: row.sheet_encumbrance
-              }
-              : null,
-            damages: [],
-            armors: [],
-            items: [],
-            advantages: [],
-            disadvantages: [],
-            skills: [],
-            peculiarities: []
-          }
+          userId: row.player_user_id,
+          username: row.player_username ?? null,
+          character: null
         }
 
         result.players.push(player)
       }
 
-      const character = player.character
-
-      if (row.damage_id && !character.damages.some((item) => item.id === row.damage_id)) {
-        character.damages.push({
-          id: row.damage_id,
-          name: row.damage_name,
-          description: row.damage_description,
-          type: row.damage_type,
-          value: row.damage_value,
-          range: row.damage_range,
-          itemId: row.damage_item_id,
-          skillId: row.damage_skill_id,
-          advantageId: row.damage_advantage_id
-        })
+      if (!row.character_id || player.character) {
+        continue
       }
+
+      player.character = {
+        id: row.character_id,
+        userId: row.character_user_id,
+        name: row.character_name ?? '',
+        sheet: row.sheet_id
+          ? {
+            id: row.sheet_id,
+            name: row.sheet_name,
+            bio: row.sheet_bio,
+            backstory: row.sheet_backstory,
+            points: row.sheet_points,
+            hp: row.sheet_hp,
+            st: row.sheet_st,
+            dx: row.sheet_dx,
+            iq: row.sheet_iq,
+            ht: row.sheet_ht,
+            fatigue: row.sheet_fatigue,
+            encumbrance: row.sheet_encumbrance
+          }
+          : null,
+        armors: [],
+        equipment: [],
+        items: [],
+        advantages: [],
+        disadvantages: [],
+        skills: [],
+        peculiarities: []
+      }
+
+      const character = player.character
 
       if (row.item_id && !character.items.some((item) => item.id === row.item_id)) {
         character.items.push({
           id: row.item_id,
           name: row.item_name,
-          type: row.item_type,
+          kind: row.item_kind,
           category: row.item_category,
           weight: row.item_weight,
-          dimensions: row.item_dimensions,
+          cost: row.item_cost,
           description: row.item_description,
           quality: row.item_quality,
           condition: row.item_condition,
-          holderId: row.item_holder_id,
-          ownerId: row.item_owner_id,
-          skillUserId: row.item_skill_user_id,
-          skillLevel: row.item_skill_level
+          weaponId: row.weapon_id,
+          armorId: row.armor_id,
+          equipment: {
+            id: row.item_equipment_id,
+            quantity: row.item_equipment_quantity,
+            status: row.item_equipment_status,
+            location: row.item_equipment_location,
+            renderedSt: row.item_equipment_rendered_st
+          }
         })
       }
 
