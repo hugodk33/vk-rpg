@@ -10,17 +10,19 @@ export type GameTablePlayer = {
 
 type GameTableCharacterSheet = {
   id: string
-  name: string
-  bio: string
-  backstory: string
-  points: number
-  hp: number
-  st: number
-  dx: number
-  iq: number
-  ht: number
-  fatigue: number
-  encumbrance: string
+  name?: string
+  bio?: string
+  backstory?: string
+  points?: number
+  hp?: number
+  current_hp?: number
+  st?: number
+  dx?: number
+  iq?: number
+  ht?: number
+  fatigue?: number
+  encumbrance?: string
+  modifiers?: GameTableModifier[]
 }
 
 type GameTableEquipment = {
@@ -99,7 +101,9 @@ type GameTableCharacter = {
 }
 
 export type GameTablePlayerWithCharacter = {
-  character: GameTableCharacter
+  userId: string
+  username: string | null
+  character: GameTableCharacter | null
 }
 
 export type GameTableSceneNarration = {
@@ -131,6 +135,7 @@ export type GameTableWithNarrator = {
   narratorId: string
   intro: string
   title: string
+  system?: string
   narrator: {
     id: string
     userId: string

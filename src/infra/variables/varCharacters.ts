@@ -29,6 +29,16 @@ export const characters: SeedCharacter[] = [
     userId: users[5].id,
     tableId: mainGameTableId
   },
+  {
+    id: characterGarrickId,
+    userId: users[2].id,
+    tableId: mainGameTableId
+  },
+  {
+    id: characterKasumiId,
+    userId: users[3].id,
+    tableId: mainGameTableId
+  },
   { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId },
   { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: mainGameTableId },
   { id: characterNPCsIds[2] as string, userId: users[0]?.id, tableId: mainGameTableId },
@@ -100,6 +110,36 @@ export const characterSheets: SeedCharacterSheet[] = [
     st: 10,
     dx: 14,
     iq: 12,
+    ht: 11,
+    fatigue: 0,
+    encumbrance: 'None'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterGarrickId,
+    name: 'Garrick Stonewall',
+    bio: 'A veteran sergeant whose shield has turned aside more blades than he can count.',
+    backstory: 'After years guarding the kingdom\u2019s caravans, Garrick now stands at the party\u2019s front line.',
+    points: 150,
+    hp: 13,
+    st: 13,
+    dx: 11,
+    iq: 10,
+    ht: 12,
+    fatigue: 0,
+    encumbrance: 'Medium'
+  },
+  {
+    id: crypto.randomUUID(),
+    characterId: characterKasumiId,
+    name: 'Kasumi Swiftblade',
+    bio: 'A scout who moves like the wind and strikes before shadows settle.',
+    backstory: 'Raised in the saddle of frontier trails, Kasumi reads the land the way others read a map.',
+    points: 150,
+    hp: 10,
+    st: 10,
+    dx: 14,
+    iq: 11,
     ht: 11,
     fatigue: 0,
     encumbrance: 'None'
