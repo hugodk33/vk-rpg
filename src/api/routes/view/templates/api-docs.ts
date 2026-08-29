@@ -95,11 +95,20 @@ const characterRoutes: RouteDoc[] = [
         name: 'Elric Galrhorn Denmark',
         user: { id: '5af72edc-aef3-4af0-a494-27c4926d1c45', username: 'John Doe', email: 'john.doe@email.com', phone: '85888888888', type: 1 },
         sheet: { id: '9000c81a-ca73-4a4e-9fb2-91107da645c2', name: 'Elric Galrhorn Denmark', bio: 'A streetwise duelist.', backstory: 'Former city watch.', points: 150, hp: 8, st: 11, dx: 12, iq: 13, ht: 10, fatigue: 0, encumbrance: 'Light', basic_speed: 5.5, move: 4.5, base_hp: 11, base_st: 11, base_dx: 12, base_iq: 13, base_ht: 10, base_fatigue: 0 },
-        advantages: [], disadvantages: [], skills: [], items: [], damages: [], armors: [], modifiers: []
+        advantages: [], disadvantages: [], skills: [], items: [], damages: [], armors: [], active_effects: [{ id: '5ea0a4bb-127a-4e9a-b644-77beec334685', name: 'Blunt trauma', description: "Thorne's heavy overhand blows bruised Elric through his guard", mod_hp: -3 }]
       },
       peculiarities: [],
       moments: [0, 1],
       selected_moment: null
+    }, null, 2)
+  },
+  {
+    method: 'GET', path: '/game-table-character/:id/history',
+    desc: 'Get the character journey: every modifier event with its chapter, moment, scene, narration, and action provenance.',
+    resBody: JSON.stringify({
+      character: { id: 'dc60499b-829f-4763-983f-9b7a22f3c00a', name: 'Elric Galrhorn Denmark', user: { id: '5af72edc-aef3-4af0-a494-27c4926d1c45', username: 'John Doe' } },
+      table: { id: 'f8a9b0c1-d2e3-4567-fabc-678901234567', title: 'A Noite do Lobisomem', system: 'GURPS' },
+      events: [{ id: '5ea0a4bb-127a-4e9a-b644-77beec334685', name: 'Blunt trauma', mod_hp: -3, chapter: 1, narration_moment: 1, scene_title: 'The Ambush', narration_title: 'Thorne closes in', action_description: 'Thorne lands a heavy overhand blow', action_result: 'Success' }]
     }, null, 2)
   },
   {
