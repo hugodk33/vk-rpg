@@ -196,7 +196,7 @@ function playerCharNav(tableId: string, chId: string): string {
 function bottomPanel(data: any, chId: string, basePath: string): string {
   const ch = data.character
   const moments = data.moments ?? []
-  const modifiers = ch.modifiers ?? []
+  const modifiers = ch.active_effects ?? []
   const hasContent = moments.length > 0 || modifiers.length > 0
   if (!hasContent) return ''
 

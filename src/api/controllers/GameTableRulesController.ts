@@ -24,6 +24,7 @@ import { FindGameTableNPCVisibilityUseCase } from '../../application/use-cases/t
 import { CreateGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableCharacterUseCase'
 import { EditGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableCharacterUseCase'
 import { FindGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterUseCase'
+import { FindGameTableCharacterHistoryUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterHistoryUseCase'
 import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
 import { CreateGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameModifierUseCase'
 import { EditGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameModifierUseCase'
@@ -67,6 +68,7 @@ export class GameTableRulesController {
     private editGameTableCharacterUseCase?: EditGameTableCharacterUseCase,
     private findGameTableCharacterUseCase?: FindGameTableCharacterUseCase,
     private findAllGameTableCharactersUseCase?: FindAllGameTableCharactersUseCase,
+    private findGameTableCharacterHistoryUseCase?: FindGameTableCharacterHistoryUseCase,
     private createGameModifierUseCase?: CreateGameModifierUseCase,
     private editGameModifierUseCase?: EditGameModifierUseCase,
     private findGameModifierUseCase?: FindGameModifierUseCase,
@@ -244,8 +246,15 @@ export class GameTableRulesController {
   }
 
   async findCharacter(req: Request, res: Response) {
-    const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string)
+    const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
+    const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string, moment)
     return res.json(character)
+  }
+
+  async findCharacterHistory(req: Request, res: Response) {
+    const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
+    const history = await this.findGameTableCharacterHistoryUseCase!.execute(req.params.id as string, moment)
+    return res.json(history)
   }
 
   async findAllCharacters(req: Request, res: Response) {

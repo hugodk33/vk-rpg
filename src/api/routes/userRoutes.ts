@@ -45,6 +45,7 @@ import { FindGameTableNPCUseCase } from '../../application/use-cases/table-game-
 import { CreateGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableCharacterUseCase'
 import { EditGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableCharacterUseCase'
 import { FindGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterUseCase'
+import { FindGameTableCharacterHistoryUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterHistoryUseCase'
 import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
 import { FindGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableNPCVisibilityUseCase'
 import { EditGameTableNPCVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableNPCVisibilityUseCase'
@@ -124,6 +125,7 @@ const editGameTableNPCSUseCase = new EditGameTableNPCUseCase(gameTableRulesRepo)
 const createGameTableCharacterUseCase = new CreateGameTableCharacterUseCase(gameTableRulesRepo)
 const editGameTableCharacterUseCase = new EditGameTableCharacterUseCase(gameTableRulesRepo)
 const findGameTableCharacterUseCase = new FindGameTableCharacterUseCase(gameTableRulesRepo)
+const findGameTableCharacterHistoryUseCase = new FindGameTableCharacterHistoryUseCase(gameTableRulesRepo)
 const findAllGameTableCharactersUseCase = new FindAllGameTableCharactersUseCase(gameTableRulesRepo)
 const createGameTableNPCVisibilityUseCase = new CreateGameTableNPCVisibilityUseCase(gameTableRulesRepo)
 const editGameTableNPCVisibilityUseCase = new EditGameTableNPCVisibilityUseCase(gameTableRulesRepo)
@@ -171,6 +173,7 @@ const gameTableRulesController = new GameTableRulesController(
     editGameTableCharacterUseCase,
     findGameTableCharacterUseCase,
     findAllGameTableCharactersUseCase,
+    findGameTableCharacterHistoryUseCase,
     createGameModifierUseCase,
     editGameModifierUseCase,
     findGameModifierUseCase,
@@ -225,6 +228,7 @@ router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC
 router.post('/game-table-npc', (req, res) => gameTableRulesController.createNPC(req, res))
 router.post('/game-table-character', (req, res) => gameTableRulesController.createCharacter(req, res))
 router.put('/game-table-character', (req, res) => gameTableRulesController.editCharacter(req, res))
+router.get('/game-table-character/:id/history', (req, res) => gameTableRulesController.findCharacterHistory(req, res))
 router.get('/game-table-character/:id', (req, res) => gameTableRulesController.findCharacter(req, res))
 router.get('/game-table-characters/:id', (req, res) => gameTableRulesController.findAllCharacters(req, res))
 

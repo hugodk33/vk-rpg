@@ -1086,6 +1086,26 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       `).all(characterId) as any[]
     }
 
+    const activeEffects = modifiers
+      .filter((m) =>
+        m.mod_hp != null || m.mod_st != null || m.mod_dx != null ||
+        m.mod_iq != null || m.mod_ht != null || m.mod_fatigue != null ||
+        m.mod_encumbrance != null || m.hp != null || m.st != null || m.dx != null ||
+        m.iq != null || m.ht != null || m.fatigue != null || m.encumbrance != null)
+      .map((m) => {
+        const e: any = { id: m.id }
+        for (const k of [
+          'name', 'effect', 'description', 'damage_value',
+          'mod_hp', 'mod_st', 'mod_dx', 'mod_iq', 'mod_ht', 'mod_fatigue', 'mod_encumbrance',
+          'hp', 'st', 'dx', 'iq', 'ht', 'fatigue', 'encumbrance',
+          'skill_value', 'advantage_value', 'disadvantage_value', 'armor_value',
+          'item_quantity', 'item_weight'
+        ]) {
+          if (m[k] != null) e[k] = m[k]
+        }
+        return e
+      })
+
     const baseStats = {
       hp: characterData.hp ?? 10,
       st: characterData.st ?? 10,
@@ -1172,11 +1192,91 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         armors,
         skills,
         items,
-        modifiers
+        active_effects: activeEffects
       },
       peculiarities,
       moments: moments.map((r: any) => r.moment).filter((m: any) => m != null),
       selected_moment: moment ?? null
+    }
+  }
+
+  async findGameCharacterHistory(id: any, moment?: number): Promise<any> {
+    const characterData = db.prepare(`
+      SELECT
+        c.id as character_id,
+        c.user_id,
+        c.table_id,
+        cs.name as sheet_name,
+        u.username,
+        g.title as table_title,
+        g.system as table_system
+      FROM game_table_characters c
+      LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
+      LEFT JOIN users u ON u.id = c.user_id
+      LEFT JOIN game_tables g ON g.id = c.table_id
+      WHERE c.id = ?
+    `).get(id) as any
+
+    if (!characterData) return null
+
+    const characterId = characterData.character_id
+
+    const events = (moment != null
+      ? db.prepare(`
+        SELECT
+          m.*,
+          n.moment AS narration_moment,
+          n.title AS narration_title,
+          n.narration AS narration_body,
+          s.title AS scene_title,
+          s.chapter AS chapter,
+          na.queue AS action_queue,
+          na.description AS action_description,
+          na.result AS action_result,
+          na.dice_roll AS action_dice_roll
+        FROM modifiers m
+        LEFT JOIN narrations n ON n.id = m.narration_id
+        LEFT JOIN scenes s ON s.id = n.scene_id
+        LEFT JOIN narration_actions na ON na.id = m.action_id
+        WHERE m.character_id = ?
+          AND (n.moment IS NULL OR n.moment <= ?)
+        ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, m.rowid ASC
+      `).all(characterId, moment) as any[]
+      : db.prepare(`
+        SELECT
+          m.*,
+          n.moment AS narration_moment,
+          n.title AS narration_title,
+          n.narration AS narration_body,
+          s.title AS scene_title,
+          s.chapter AS chapter,
+          na.queue AS action_queue,
+          na.description AS action_description,
+          na.result AS action_result,
+          na.dice_roll AS action_dice_roll
+        FROM modifiers m
+        LEFT JOIN narrations n ON n.id = m.narration_id
+        LEFT JOIN scenes s ON s.id = n.scene_id
+        LEFT JOIN narration_actions na ON na.id = m.action_id
+        WHERE m.character_id = ?
+        ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, m.rowid ASC
+      `).all(characterId) as any[])
+
+    return {
+      character: {
+        id: characterData.character_id,
+        name: characterData.sheet_name,
+        user: {
+          id: characterData.user_id,
+          username: characterData.username
+        }
+      },
+      table: {
+        id: characterData.table_id,
+        title: characterData.table_title,
+        system: characterData.table_system
+      },
+      events
     }
   }
 
