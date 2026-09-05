@@ -368,8 +368,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     if (kind === 'weapon' || kind === 'shield') {
       const weaponId = crypto.randomUUID()
       db.prepare(`
-        INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         weaponId, itemId,
         data.weapon_skill || (data.skill_level || null),
@@ -378,7 +378,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         data.handedness ?? 1,
         data.reach || 'C',
         data.parry || null,
-        data.block || null
+        data.block || null,
+        data.weapon_fit || 'normal'
       )
 
       const attacks = Array.isArray(data.attacks) ? data.attacks : []
@@ -434,14 +435,14 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.id
     )
 
-    const existingWeapon = db.prepare(`SELECT id FROM game_table_weapons WHERE item_id = ?`).get(data.id) as any
+    const existingWeapon = db.prepare(`SELECT id, fit FROM game_table_weapons WHERE item_id = ?`).get(data.id) as any
 
     // ---- WEAPON / SHIELD ----
     if (kind === 'weapon' || kind === 'shield') {
       const weaponId = existingWeapon?.id || crypto.randomUUID()
       if (existingWeapon) {
         db.prepare(`
-          UPDATE game_table_weapons SET skill = ?, min_st = ?, rated_st = ?, handedness = ?, reach = ?, parry = ?, block = ?
+          UPDATE game_table_weapons SET skill = ?, min_st = ?, rated_st = ?, handedness = ?, reach = ?, parry = ?, block = ?, fit = ?
           WHERE id = ?
         `).run(
           data.weapon_skill || data.skill_level || null,
@@ -451,13 +452,14 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
           data.reach || 'C',
           data.parry || null,
           data.block || null,
+          data.weapon_fit || existingWeapon.fit || 'normal',
           weaponId
         )
       } else {
         db.prepare(`
-          INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(weaponId, data.id, data.weapon_skill || data.skill_level || null, data.min_st ?? null, data.rated_st ?? null, data.handedness ?? 1, data.reach || 'C', data.parry || null, data.block || null)
+          INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(weaponId, data.id, data.weapon_skill || data.skill_level || null, data.min_st ?? null, data.rated_st ?? null, data.handedness ?? 1, data.reach || 'C', data.parry || null, data.block || null, data.weapon_fit || 'normal')
       }
 
       // Substitui os ataques (recreate por simplicidade de edição)
@@ -790,10 +792,10 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
     const gameTablesNPCS = db.prepare(`
       SELECT 
-        npc.id as npc_id,
+        npc.id as id,
         npc.status,
         npc.character_id,
-        cs.name as sheet_name,
+        cs.name as name,
         cs.points,
         cs.hp,
         cs.st,
@@ -948,6 +950,41 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     )
   }
 
+  async editGameCharacterEquipment(data: any): Promise<any> {
+    const characterId = data.character_id
+    const itemId = data.item_id
+    if (!characterId || !itemId) return { success: false }
+
+    const existing = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(characterId, itemId) as any
+
+    const status = data.status ?? existing?.status ?? 'in_inventory'
+    const location = data.location ?? existing?.location ?? 'none'
+    const quantity = data.quantity ?? existing?.quantity ?? 1
+
+    if (existing) {
+      db.prepare(`
+        UPDATE character_equipment
+        SET status = ?, location = ?, quantity = ?, rendered_st = ?
+        WHERE id = ?
+      `).run(
+        status,
+        location,
+        quantity,
+        data.rendered_st ?? existing.rendered_st ?? null,
+        existing.id
+      )
+    } else {
+      db.prepare(`
+        INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location, rendered_st)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(crypto.randomUUID(), characterId, itemId, quantity, status, location, data.rendered_st ?? null)
+    }
+
+    return { success: true }
+  }
+
 
   async findGameCharacter(id: any, moment?: number): Promise<any> {
     const characterData = db.prepare(`
@@ -1059,7 +1096,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const armors = db.prepare(`
       SELECT a.* FROM character_equipment ce
       INNER JOIN game_table_armors a ON a.item_id = ce.item_id
-      WHERE ce.character_id = ?
+      WHERE ce.character_id = ? AND ce.status = 'equipped'
     `).all(characterId) as any[]
 
     const moments = db.prepare(`
@@ -1295,6 +1332,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       SELECT
         c.id as character_id,
         c.user_id,
+        u.type as user_type,
         cs.id as sheet_id,
         cs.name as sheet_name,
         cs.points,
@@ -1317,7 +1355,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         name: char.sheet_name,
         user: {
           id: char.user_id,
-          username: char.username
+          username: char.username,
+          type: char.user_type
         },
         sheet: char.sheet_id ? {
           id: char.sheet_id,

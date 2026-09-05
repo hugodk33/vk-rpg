@@ -187,8 +187,8 @@ for (const item of items) {
 
 // insert weapons (específico de arma)
 const weaponStmt = db.prepare(`
-  INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const weapon of weapons) {
@@ -201,7 +201,8 @@ for (const weapon of weapons) {
     weapon.handedness,
     weapon.reach,
     weapon.parry,
-    weapon.block
+    weapon.block,
+    weapon.fit
   )
 }
 

@@ -36,6 +36,7 @@ type SeedWeapon = {
   reach: string
   parry: string
   block: string | null
+  fit: string
 }
 
 type SeedAttack = {
@@ -190,37 +191,37 @@ export const weapons: SeedWeapon[] = [
   {
     id: itemsIds.shortSwordWeaponId, item_id: itemsIds.shortSwordId,
     skill: 'Shortsword', min_st: 7, rated_st: null, handedness: 1,
-    reach: '1', parry: '0', block: null
+    reach: '1', parry: '0', block: null, fit: 'tailored'
   },
   {
     id: itemsIds.handAxeWeaponId, item_id: itemsIds.handAxeId,
     skill: 'Axe', min_st: 11, rated_st: null, handedness: 1,
-    reach: '1', parry: '0U', block: null
+    reach: '1', parry: '0U', block: null, fit: 'normal'
   },
   {
     id: itemsIds.daggerWeaponId, item_id: itemsIds.daggerId,
     skill: 'Knife', min_st: 5, rated_st: null, handedness: 1,
-    reach: 'C', parry: '-1', block: null
+    reach: 'C', parry: '-1', block: null, fit: 'normal'
   },
   {
     id: itemsIds.mediumShieldWeaponId, item_id: itemsIds.mediumShieldId,
     skill: 'Shield', min_st: null, rated_st: null, handedness: 1,
-    reach: 'C', parry: 'No', block: '3'
+    reach: 'C', parry: 'No', block: '3', fit: 'normal'
   },
   {
     id: itemsIds.pistolWeaponId, item_id: itemsIds.pistolId,
     skill: 'Guns (Pistol)', min_st: null, rated_st: null, handedness: 1,
-    reach: 'C', parry: 'No', block: null
+    reach: 'C', parry: 'No', block: null, fit: 'normal'
   },
   {
     id: itemsIds.recurveBowWeaponId, item_id: itemsIds.recurveBowId,
     skill: 'Bow', min_st: 7, rated_st: 10, handedness: 2,
-    reach: 'C', parry: 'No', block: null
+    reach: 'C', parry: 'No', block: null, fit: 'tailored'
   },
   {
     id: itemsIds.wizardStaffWeaponId, item_id: itemsIds.wizardStaffId,
     skill: 'Staff', min_st: 5, rated_st: null, handedness: 2,
-    reach: 'C,1', parry: '2', block: null
+    reach: 'C,1', parry: '2', block: null, fit: 'normal'
   }
 ]
 

@@ -231,6 +231,7 @@ CREATE TABLE IF NOT EXISTS game_table_weapons (
   reach TEXT,           -- ex: 'C', '1', 'C,1'
   parry TEXT,           -- ex: '0', '0U', 'No'
   block TEXT,           -- para escudos: DB genérico textual (ex: '3')
+  fit TEXT DEFAULT 'normal', -- domínio: cheap | normal | tailored | loose
   FOREIGN KEY (item_id) REFERENCES game_table_items(id)
 );
 
@@ -515,6 +516,12 @@ CREATE TABLE IF NOT EXISTS log (
 );
 
 `)
+
+// Backfills para bases já existentes (CREATE TABLE IF NOT EXISTS não altera esquema)
+const weaponCols = (db.prepare("PRAGMA table_info(game_table_weapons)").all() as any[]).map((c) => c.name)
+if (!weaponCols.includes('fit')) {
+  db.exec("ALTER TABLE game_table_weapons ADD COLUMN fit TEXT DEFAULT 'normal'")
+}
 
 console.log('✅ Full database migrated!')
 
