@@ -2,7 +2,22 @@ import { db } from '../../infra/database/database'
 import crypto from 'crypto'
 import { IGameTableRulesRepository } from '../irepositories/IGameTableRulesRepository'
 import  {Skill} from '../entities/GURPS/Skill_GURPS'
-import { shapeCharacterForViewer } from '../services/CharacterVisibility'
+import { shapeCatalogForViewer, shapeCharacterForViewer } from '../services/CharacterVisibility'
+
+/** Rules an observer holds (any target) — the "knowledge" set that gates
+    catalogs and locations. Catalog/location rows are observer-global, but
+    any visible item rule (even target-scoped) counts as knowing the item. */
+function viewerRules(viewerId: string): any[] {
+  return db.prepare(`SELECT * FROM visibility WHERE character_id = ?`)
+    .all(viewerId) as any[]
+}
+
+function possessedItemIds(characterId: string): Set<string> {
+  const rows = db.prepare(
+    `SELECT DISTINCT item_id FROM character_equipment WHERE character_id = ?`
+  ).all(characterId) as any[]
+  return new Set(rows.map((r: any) => String(r.item_id)).filter(Boolean))
+}
 
 export class GameTableRulesRepository implements IGameTableRulesRepository {
   /* =============== */
@@ -42,7 +57,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return gameTableSkill
   }
 
-  async findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string): Promise<any> {
+  async findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any): Promise<any> {
 
     const table = db.prepare(`
       SELECT
@@ -154,7 +169,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
     return {
       table,
-      skills: formattedSkills
+      skills: viewer
+        ? shapeCatalogForViewer(formattedSkills, viewerRules(viewer), 'skill')
+        : formattedSkills
     }
   }
 
@@ -199,7 +216,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return gameTableAdvantage
   }
 
-  async findAllGameAdvantages(id: any, search?: string, category?: string): Promise<any> {
+  async findAllGameAdvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -225,11 +242,13 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).all(...advParams) as any[]
     return ({
       table: table,
-      advantages: gameTablesAdvantages
+      advantages: viewer
+        ? shapeCatalogForViewer(gameTablesAdvantages, viewerRules(viewer), 'advantage')
+        : gameTablesAdvantages
     })
   }
 
-  async findAllGameDisadvantages(id: any, search?: string, category?: string): Promise<any> {
+  async findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -255,7 +274,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).all(...disParams) as any[]
     return ({
       table: table,
-      disadvantages: gameTablesDisadvantages
+      disadvantages: viewer
+        ? shapeCatalogForViewer(gameTablesDisadvantages, viewerRules(viewer), 'disadvantage')
+        : gameTablesDisadvantages
     })
   }
 
@@ -532,7 +553,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { ...gameTableItem, weapon: weapon || null, armor: armor || null }
   }
 
-  async findAllGameItems(id: any, search?: string, category?: string, kind?: string): Promise<any> {
+  async findAllGameItems(id: any, search?: string, category?: string, kind?: string, viewer?: any): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -579,12 +600,58 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       if (armor) item.armor = armor
     }
 
+    const shapedItems = viewer
+      ? shapeCatalogForViewer(gameTablesItems, viewerRules(viewer), 'item', possessedItemIds(viewer))
+      : gameTablesItems
+
     return ({
       table: table,
-      items: gameTablesItems
+      items: shapedItems
     })
   }
-  
+
+  /* =============== */
+  /*    LOCATIONS    */
+  /* =============== */
+
+  async findAllGameLocations(id: any, viewer?: any): Promise<any> {
+    const table = db.prepare(`
+      SELECT
+        id,
+        narrator_id,
+        intro,
+        title
+      FROM game_tables
+      WHERE id = ?
+    `).get(id as string)
+
+    const locations = (db.prepare(`
+      SELECT *
+      FROM table_locations
+      WHERE table_id = ?
+      ORDER BY name ASC
+    `).all(id as string) as any[]).map((l: any) => ({
+      id: l.id,
+      name: l.name,
+      region: l.region,
+      subRegion: l.sub_region,
+      address: l.address,
+      isIndoor: !!l.is_indoor,
+      country: l.country,
+      area: l.area,
+      dimensions: l.dimensions,
+      description: l.description,
+      other: l.other,
+    }))
+
+    return ({
+      table: table,
+      locations: viewer
+        ? shapeCatalogForViewer(locations, viewerRules(viewer), 'location')
+        : locations
+    })
+  }
+
   /* =============== */
   /*       NPCS      */
   /* =============== */
@@ -1573,8 +1640,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async createGameVisibility(data: any): Promise<any> {
     const id = crypto.randomUUID()
     db.prepare(`
-      INSERT INTO visibility (id, character_id, other_character_id, skill_id, advantage_id, disadvantage_id, attribute, additionals_attributes, item_id, value, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO visibility (id, character_id, other_character_id, skill_id, advantage_id, disadvantage_id, attribute, additionals_attributes, item_id, location_id, value, status, scene_id, narration_id, moment, previous_status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
@@ -1585,17 +1652,37 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.attribute || null,
       data.additionals_attributes || null,
       data.item_id || null,
+      data.location_id || null,
       data.value || '',
-      data.status || 'unknown'
+      data.status || 'unknown',
+      data.scene_id || null,
+      data.narration_id || null,
+      data.moment ?? null,
+      data.previous_status ?? null
     )
     return { id }
   }
 
   async editGameVisibility(data: any): Promise<void> {
+    const existing = data.id
+      ? db.prepare(`SELECT * FROM visibility WHERE id = ?`).get(data.id) as any
+      : null
+    const statusChanged =
+      !!existing && !!data.status && existing.status !== data.status
+    // Ao mudar de status, registra o estado anterior (delta de descoberta);
+    // o contexto cena/narração/momento acompanha a mudança (ou o atual).
+    const previousStatus = statusChanged
+      ? (existing.status ?? null)
+      : (existing?.previous_status ?? null)
+    const sceneId = data.scene_id || (existing?.scene_id ?? null)
+    const narrationId = data.narration_id || (existing?.narration_id ?? null)
+    const moment = data.moment != null ? data.moment : (existing?.moment ?? null)
+
     db.prepare(`
       UPDATE visibility SET
         character_id = ?, other_character_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
-        attribute = ?, additionals_attributes = ?, item_id = ?, value = ?, status = ?
+        attribute = ?, additionals_attributes = ?, item_id = ?, location_id = ?, value = ?, status = ?,
+        scene_id = ?, narration_id = ?, moment = ?, previous_status = ?
       WHERE id = ?
     `).run(
       data.character_id || null,
@@ -1606,8 +1693,13 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.attribute || null,
       data.additionals_attributes || null,
       data.item_id || null,
+      data.location_id || null,
       data.value || '',
       data.status || 'unknown',
+      sceneId,
+      narrationId,
+      moment,
+      previousStatus,
       data.id
     )
   }

@@ -2,16 +2,17 @@ export interface IGameTableRulesRepository {
   createGameTableSkills(id: any): Promise<void>
   editGameTableSkills(id: any): Promise<void>
   findGameTableSkill(id: any): Promise<void>
-  findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string): Promise<any[] | void>
+  findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any): Promise<any[] | void>
 
   createGameAdvantages(id: any): Promise<void>
   editGameAdvantages(id: any): Promise<void>
   findGameAdvantages(id: any): Promise<void>
-  findAllGameAdvantages(id: any, search?: string, category?: string): Promise<any[] | void>
-  findAllGameDisadvantages(id: any, search?: string, category?: string): Promise<any[] | void>
+  findAllGameAdvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any[] | void>
+  findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any[] | void>
   findGameDisadvantages(id: any): Promise<void>
   
   findGameLocation(id: any): Promise<void>
+  findAllGameLocations(id: any, viewer?: any): Promise<any[] | void>
   
   createGamePeculiarites(id: any): Promise<void>
   editGamePeculiarites(id: any): Promise<void>
@@ -21,7 +22,7 @@ export interface IGameTableRulesRepository {
   createGameItems(id: any): Promise<any>
   editGameItems(id: any): Promise<void>
   findGameItems(id: any): Promise<void>
-  findAllGameItems(id: any, search?: string, category?: string, type?: string): Promise<any[] | void>
+  findAllGameItems(id: any, search?: string, category?: string, type?: string, viewer?: any): Promise<any[] | void>
 
   createGameCharacter(data: any): Promise<any>
   editGameCharacter(id: any): Promise<void>

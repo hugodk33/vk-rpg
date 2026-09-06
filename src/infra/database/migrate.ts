@@ -494,11 +494,17 @@ CREATE TABLE IF NOT EXISTS visibility (
   attribute TEXT,
   additionals_attributes TEXT,
   item_id TEXT,
+  location_id TEXT,
   value TEXT,
   status TEXT,
+  scene_id TEXT,
+  narration_id TEXT,
+  moment INTEGER,
+  previous_status TEXT,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (other_character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id)
+  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
+  FOREIGN KEY (location_id) REFERENCES table_locations(id)
 );
 
 CREATE TABLE IF NOT EXISTS queue (
@@ -533,6 +539,22 @@ if (!weaponCols.includes('fit')) {
 const visibilityCols = (db.prepare("PRAGMA table_info(visibility)").all() as any[]).map((c) => c.name)
 if (visibilityCols.length && !visibilityCols.includes('other_character_id')) {
   db.exec("ALTER TABLE visibility ADD COLUMN other_character_id TEXT")
+}
+// visibility.location_id + rastros de descoberta (cena/narração/momento) para bases antigas
+if (visibilityCols.length && !visibilityCols.includes('location_id')) {
+  db.exec("ALTER TABLE visibility ADD COLUMN location_id TEXT")
+}
+if (visibilityCols.length && !visibilityCols.includes('scene_id')) {
+  db.exec("ALTER TABLE visibility ADD COLUMN scene_id TEXT")
+}
+if (visibilityCols.length && !visibilityCols.includes('narration_id')) {
+  db.exec("ALTER TABLE visibility ADD COLUMN narration_id TEXT")
+}
+if (visibilityCols.length && !visibilityCols.includes('moment')) {
+  db.exec("ALTER TABLE visibility ADD COLUMN moment INTEGER")
+}
+if (visibilityCols.length && !visibilityCols.includes('previous_status')) {
+  db.exec("ALTER TABLE visibility ADD COLUMN previous_status TEXT")
 }
 
 // queue.test_* para o teste controlado pelo narrador (bases criadas antes das colunas)

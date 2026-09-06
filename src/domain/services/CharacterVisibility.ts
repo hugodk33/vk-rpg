@@ -18,6 +18,15 @@
      specialist → full real values
      absent rule ⇒ unknown (default). type-0 viewers keep the full
      payload and never reach this module.
+
+   A rule row scopes by observer (`character_id`) and, optionally, a
+   target character (`other_character_id`). Location and catalog rows
+   are observer-global (other_character_id NULL) — a place or the bare
+   knowledge that an item exists isn't bound to a single target sheet.
+
+   Discovery tracers (`scene_id`/`narration_id`/`moment`/`previous_status`)
+   are stored per rule so a timeline can later show when each observer
+   learned (or lost) knowledge of an entity.
    ============================================================ */
 
 export type VisStatus = 'known' | 'specialist' | 'unknown'
@@ -69,6 +78,7 @@ interface RuleMap {
   skills: Map<string, VisRule>
   advantages: Map<string, VisRule>
   disadvantages: Map<string, VisRule>
+  locations: Map<string, VisRule>
 }
 
 function buildRuleMap(rules: any[]): RuleMap {
@@ -78,6 +88,7 @@ function buildRuleMap(rules: any[]): RuleMap {
     skills: new Map(),
     advantages: new Map(),
     disadvantages: new Map(),
+    locations: new Map(),
   }
   for (const r of rules ?? []) {
     if (!r) continue
@@ -98,6 +109,7 @@ function buildRuleMap(rules: any[]): RuleMap {
     if (r.skill_id) map.skills.set(String(r.skill_id), rule)
     if (r.advantage_id) map.advantages.set(String(r.advantage_id), rule)
     if (r.disadvantage_id) map.disadvantages.set(String(r.disadvantage_id), rule)
+    if (r.location_id) map.locations.set(String(r.location_id), rule)
   }
   return map
 }
@@ -129,6 +141,73 @@ function maskItem(item: any, rule: VisRule): any {
   for (const k of ITEM_MASK_KEYS) masked[k] = null
   masked.name = rule.value || '?'
   return masked
+}
+
+/** Location fields a reader who only "knows of" the place shouldn't see. */
+const LOCATION_MASK_KEYS = [
+  'region',
+  'sub_region',
+  'subRegion',
+  'address',
+  'is_indoor',
+  'isIndoor',
+  'country',
+  'area',
+  'dimensions',
+  'description',
+  'other',
+]
+
+function maskLocation(loc: any, rule: VisRule): any {
+  const masked = { ...loc }
+  for (const k of LOCATION_MASK_KEYS) masked[k] = null
+  masked.name = rule.value || '?'
+  return masked
+}
+
+export type CatalogKind = 'item' | 'skill' | 'advantage' | 'disadvantage' | 'location'
+
+/** Shape a whole catalog (items/skills/advantages/disadvantages/locations)
+    for a viewer. Knowledge rules are observer-global: any visible rule for
+    `rules` counts. Possessed items stay accessible even with no rule, but
+    read as unidentified until the narrator marks them specialist. */
+export function shapeCatalogForViewer(
+  entities: any[],
+  rules: any[],
+  kind: CatalogKind,
+  possessedIds?: Set<string>
+): any[] {
+  const map = buildRuleMap(rules)
+  return (entities ?? []).filter((e: any) => {
+    if (kind === 'item') {
+      if (possessedIds?.has(String(e?.id))) return true
+      return isVisible(map.items.get(String(e?.id)))
+    }
+    if (kind === 'location') return isVisible(map.locations.get(String(e?.id)))
+    if (kind === 'skill') return isVisible(map.skills.get(String(e?.id)))
+    if (kind === 'advantage') return isVisible(map.advantages.get(String(e?.id)))
+    if (kind === 'disadvantage') return isVisible(map.disadvantages.get(String(e?.id)))
+    return true
+  }).map((e: any) => {
+    if (kind === 'item') {
+      const rule = map.items.get(String(e?.id))
+      const possessed = possessedIds?.has(String(e?.id))
+      if (rule?.status === 'specialist') return e
+      if (rule?.status === 'known') return maskItem(e, rule)
+      if (possessed) {
+        const unidentified: VisRule = { status: 'unknown', value: '' }
+        return maskItem(e, unidentified)
+      }
+      return e
+    }
+    if (kind === 'location') {
+      const rule = map.locations.get(String(e?.id))
+      if (rule?.status === 'specialist') return e
+      if (rule?.status === 'known') return maskLocation(e, rule)
+      return e
+    }
+    return e
+  })
 }
 
 export function shapeCharacterForViewer(character: any, rules: any[]): any {
