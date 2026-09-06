@@ -2,6 +2,7 @@ import { db } from '../../infra/database/database'
 import crypto from 'crypto'
 import { IGameTableRulesRepository } from '../irepositories/IGameTableRulesRepository'
 import  {Skill} from '../entities/GURPS/Skill_GURPS'
+import { shapeCharacterForViewer } from '../services/CharacterVisibility'
 
 export class GameTableRulesRepository implements IGameTableRulesRepository {
   /* =============== */
@@ -986,7 +987,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   }
 
 
-  async findGameCharacter(id: any, moment?: number): Promise<any> {
+  async findGameCharacter(id: any, moment?: number, viewer?: any): Promise<any> {
     const characterData = db.prepare(`
       SELECT
         c.id as character_id,
@@ -1185,7 +1186,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       itemsWeight <= st * 20 ? 4 :
       0;
 
-    return {
+    const result: any = {
       table: {
         id: characterData.table_id,
         title: characterData.table_title,
@@ -1235,6 +1236,27 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       moments: moments.map((r: any) => r.moment).filter((m: any) => m != null),
       selected_moment: moment ?? null
     }
+
+    // Visibilidade — se um observador (type 1) de outro personagem pede,
+    // molde o payload pelas regras de visibilidade desse observador.
+    if (viewer && viewer !== characterId) {
+      const viewerRow = db.prepare(`
+        SELECT u.type as t
+        FROM game_table_characters c
+        LEFT JOIN users u ON u.id = c.user_id
+        WHERE c.id = ?
+      `).get(viewer) as any
+      if (viewerRow && viewerRow.t !== 0) {
+        const rules = db.prepare(`
+          SELECT * FROM visibility
+          WHERE character_id = ?
+            AND (other_character_id IS NULL OR other_character_id = ?)
+        `).all(viewer, characterId) as any[]
+        shapeCharacterForViewer(result.character, rules)
+      }
+    }
+
+    return result
   }
 
   async findGameCharacterHistory(id: any, moment?: number): Promise<any> {
@@ -1513,11 +1535,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async createGameVisibility(data: any): Promise<any> {
     const id = crypto.randomUUID()
     db.prepare(`
-      INSERT INTO visibility (id, character_id, skill_id, advantage_id, disadvantage_id, attribute, additionals_attributes, item_id, value, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO visibility (id, character_id, other_character_id, skill_id, advantage_id, disadvantage_id, attribute, additionals_attributes, item_id, value, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
+      data.other_character_id || null,
       data.skill_id || null,
       data.advantage_id || null,
       data.disadvantage_id || null,
@@ -1525,7 +1548,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.additionals_attributes || null,
       data.item_id || null,
       data.value || '',
-      data.status || 'hidden'
+      data.status || 'unknown'
     )
     return { id }
   }
@@ -1533,11 +1556,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async editGameVisibility(data: any): Promise<void> {
     db.prepare(`
       UPDATE visibility SET
-        character_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
+        character_id = ?, other_character_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
         attribute = ?, additionals_attributes = ?, item_id = ?, value = ?, status = ?
       WHERE id = ?
     `).run(
       data.character_id || null,
+      data.other_character_id || null,
       data.skill_id || null,
       data.advantage_id || null,
       data.disadvantage_id || null,
@@ -1545,7 +1569,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.additionals_attributes || null,
       data.item_id || null,
       data.value || '',
-      data.status || 'hidden',
+      data.status || 'unknown',
       data.id
     )
   }

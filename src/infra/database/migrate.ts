@@ -487,6 +487,7 @@ CREATE TABLE IF NOT EXISTS modifiers (
 CREATE TABLE IF NOT EXISTS visibility (
   id TEXT PRIMARY KEY,
   character_id TEXT,
+  other_character_id TEXT,
   skill_id TEXT,
   advantage_id TEXT,
   disadvantage_id TEXT,
@@ -496,6 +497,7 @@ CREATE TABLE IF NOT EXISTS visibility (
   value TEXT,
   status TEXT,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
+  FOREIGN KEY (other_character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (skill_id) REFERENCES game_table_skills(id)
 );
 
@@ -521,6 +523,12 @@ CREATE TABLE IF NOT EXISTS log (
 const weaponCols = (db.prepare("PRAGMA table_info(game_table_weapons)").all() as any[]).map((c) => c.name)
 if (!weaponCols.includes('fit')) {
   db.exec("ALTER TABLE game_table_weapons ADD COLUMN fit TEXT DEFAULT 'normal'")
+}
+
+// visibility.other_character_id para bases criadas antes da coluna
+const visibilityCols = (db.prepare("PRAGMA table_info(visibility)").all() as any[]).map((c) => c.name)
+if (visibilityCols.length && !visibilityCols.includes('other_character_id')) {
+  db.exec("ALTER TABLE visibility ADD COLUMN other_character_id TEXT")
 }
 
 console.log('✅ Full database migrated!')

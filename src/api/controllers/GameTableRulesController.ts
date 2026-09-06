@@ -254,7 +254,8 @@ export class GameTableRulesController {
 
   async findCharacter(req: Request, res: Response) {
     const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
-    const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string, moment)
+    const viewer = req.query.viewer as string | undefined
+    const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string, moment, viewer)
     return res.json(character)
   }
 
