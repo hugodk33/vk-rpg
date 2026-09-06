@@ -1591,27 +1591,35 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async createGameQueue(data: any): Promise<any> {
     const id = crypto.randomUUID()
     db.prepare(`
-      INSERT INTO queue (id, character_id, action_id, queue, status)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO queue (id, character_id, action_id, queue, status, test_dice, test_count, test_mod, test_attr)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
       data.action_id || null,
       data.queue || '',
-      data.status || 'pending'
+      data.status || 'pending',
+      data.test_dice || '6',
+      data.test_count ?? 3,
+      data.test_mod ?? 0,
+      data.test_attr || 'dx'
     )
     return { id }
   }
 
   async editGameQueue(data: any): Promise<void> {
     db.prepare(`
-      UPDATE queue SET character_id = ?, action_id = ?, queue = ?, status = ?
+      UPDATE queue SET character_id = ?, action_id = ?, queue = ?, status = ?, test_dice = ?, test_count = ?, test_mod = ?, test_attr = ?
       WHERE id = ?
     `).run(
       data.character_id || null,
       data.action_id || null,
       data.queue || '',
       data.status || 'pending',
+      data.test_dice || '6',
+      data.test_count ?? 3,
+      data.test_mod ?? 0,
+      data.test_attr || 'dx',
       data.id
     )
   }

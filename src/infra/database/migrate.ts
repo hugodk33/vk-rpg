@@ -506,7 +506,11 @@ CREATE TABLE IF NOT EXISTS queue (
   character_id TEXT,
   action_id TEXT,
   queue TEXT,
-  status TEXT
+  status TEXT,
+  test_dice TEXT DEFAULT '6',
+  test_count INTEGER DEFAULT 3,
+  test_mod INTEGER DEFAULT 0,
+  test_attr TEXT DEFAULT 'dx'
 );
 
 CREATE TABLE IF NOT EXISTS log (
@@ -529,6 +533,15 @@ if (!weaponCols.includes('fit')) {
 const visibilityCols = (db.prepare("PRAGMA table_info(visibility)").all() as any[]).map((c) => c.name)
 if (visibilityCols.length && !visibilityCols.includes('other_character_id')) {
   db.exec("ALTER TABLE visibility ADD COLUMN other_character_id TEXT")
+}
+
+// queue.test_* para o teste controlado pelo narrador (bases criadas antes das colunas)
+const queueCols = (db.prepare("PRAGMA table_info(queue)").all() as any[]).map((c) => c.name)
+if (queueCols.length && !queueCols.includes('test_dice')) {
+  db.exec("ALTER TABLE queue ADD COLUMN test_dice TEXT DEFAULT '6'")
+  db.exec("ALTER TABLE queue ADD COLUMN test_count INTEGER DEFAULT 3")
+  db.exec("ALTER TABLE queue ADD COLUMN test_mod INTEGER DEFAULT 0")
+  db.exec("ALTER TABLE queue ADD COLUMN test_attr TEXT DEFAULT 'dx'")
 }
 
 console.log('✅ Full database migrated!')
