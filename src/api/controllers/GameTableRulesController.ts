@@ -25,6 +25,7 @@ import { CreateGameTableCharacterUseCase } from '../../application/use-cases/tab
 import { EditGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableCharacterUseCase'
 import { FindGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterUseCase'
 import { FindGameTableCharacterHistoryUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterHistoryUseCase'
+import { EditGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameCharacterEquipmentUseCase'
 import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
 import { CreateGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameModifierUseCase'
 import { EditGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameModifierUseCase'
@@ -69,6 +70,7 @@ export class GameTableRulesController {
     private findGameTableCharacterUseCase?: FindGameTableCharacterUseCase,
     private findAllGameTableCharactersUseCase?: FindAllGameTableCharactersUseCase,
     private findGameTableCharacterHistoryUseCase?: FindGameTableCharacterHistoryUseCase,
+    private editGameCharacterEquipmentUseCase?: EditGameCharacterEquipmentUseCase,
     private createGameModifierUseCase?: CreateGameModifierUseCase,
     private editGameModifierUseCase?: EditGameModifierUseCase,
     private findGameModifierUseCase?: FindGameModifierUseCase,
@@ -245,9 +247,15 @@ export class GameTableRulesController {
     return res.json({ success: true })
   }
 
+  async editCharacterEquipment(req: Request, res: Response) {
+    const result = await this.editGameCharacterEquipmentUseCase!.execute(req.body)
+    return res.json(result)
+  }
+
   async findCharacter(req: Request, res: Response) {
     const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
-    const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string, moment)
+    const viewer = req.query.viewer as string | undefined
+    const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string, moment, viewer)
     return res.json(character)
   }
 

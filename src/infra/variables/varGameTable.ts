@@ -61,8 +61,8 @@ type SeedGameTablePlayer = {
 
 export const  gameTablePlayers: SeedGameTablePlayer[] = [
   { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[1].id },
-  { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[2].id },
-  { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[3].id },
-  { id: crypto.randomUUID(), tableId: gameTables[1].id, userId: users[4].id },
-  { id: crypto.randomUUID(), tableId: gameTables[1].id, userId: users[5].id }
+  { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[4].id },
+  { id: crypto.randomUUID(), tableId: mainGameTableId, userId: users[5].id },
+  { id: crypto.randomUUID(), tableId: gameTables[1].id, userId: users[2].id },
+  { id: crypto.randomUUID(), tableId: gameTables[1].id, userId: users[3].id }
 ]
