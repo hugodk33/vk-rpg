@@ -6,11 +6,18 @@
      character_id       = the OBSERVING character
      other_character_id = the TARGET character (NULL = any target)
      skill/advantage/disadvantage/item_id/attribute = entity switched
+     attribute          = 'name' or a sheet field
      status  = 'known' | 'specialist' | 'unknown'  (legacy 'hidden' → unknown)
-     value   = alias/placeholder shown in place of the real value
+     value   = alias/masked value shown in place of the real value
 
-   Absent rule ⇒ hidden (default). type-0 viewers keep the full
-   payload and never reach this module.
+   Three-tier ladder (the narrator decides what each reader knows):
+     unknown    → hidden (name '???', attrs null, entity absent)
+     known      → masked: you know the entity *as something* —
+                  the `value` field is shown (masked name for a
+                  character, an unidentified item, a partial stat)
+     specialist → full real values
+     absent rule ⇒ unknown (default). type-0 viewers keep the full
+     payload and never reach this module.
    ============================================================ */
 
 export type VisStatus = 'known' | 'specialist' | 'unknown'
@@ -46,6 +53,14 @@ const HIDEABLE_SHEET_TEXT = ['bio', 'backstory']
 
 function isVisible(r?: VisRule): boolean {
   return !!r && (r.status === 'known' || r.status === 'specialist')
+}
+
+/** Masks an entity/name per the ladder: known (and unknown) show the
+    alias `value`, specialist (or no rule) shows the real value. */
+function maskedLabel(r: VisRule | undefined, real: string): string {
+  if (!r) return '???'
+  if (r.status === 'specialist') return real
+  return r.value || '???'
 }
 
 interface RuleMap {
@@ -87,6 +102,35 @@ function buildRuleMap(rules: any[]): RuleMap {
   return map
 }
 
+/** Item-specific fields a carrying character would not know for an
+    unidentified item. Same list also covers armor rows. */
+const ITEM_MASK_KEYS = [
+  'weapon',
+  'armor',
+  'cost',
+  'weight_lb',
+  'dimensions',
+  'description',
+  'category',
+  'quality',
+  'condition',
+  'kind',
+  'dr',
+  'locations',
+  'fit',
+  'flex',
+  'weight',
+]
+
+/** For a 'known' (unidentified) item/armor: keep the presence and the
+    equipment facts, mask the name, blank everything you wouldn't know. */
+function maskItem(item: any, rule: VisRule): any {
+  const masked = { ...item }
+  for (const k of ITEM_MASK_KEYS) masked[k] = null
+  masked.name = rule.value || '?'
+  return masked
+}
+
 export function shapeCharacterForViewer(character: any, rules: any[]): any {
   if (!character) return character
   const map = buildRuleMap(rules)
@@ -94,7 +138,9 @@ export function shapeCharacterForViewer(character: any, rules: any[]): any {
 
   if (character.user) {
     const nameRule = map.attrs.get('name')
-    if (!nameRule || !isVisible(nameRule)) {
+    // Account identity only fully naked at specialist; a masked name
+    // (known) still hides the account behind it.
+    if (nameRule?.status !== 'specialist') {
       character.user.username = null
       character.user.email = null
       character.user.phone = null
@@ -103,11 +149,7 @@ export function shapeCharacterForViewer(character: any, rules: any[]): any {
 
   if (sheet) {
     const nameRule = map.attrs.get('name')
-    const shownName = nameRule
-      ? isVisible(nameRule)
-        ? sheet.name
-        : nameRule.value || '???'
-      : '???'
+    const shownName = maskedLabel(nameRule, sheet.name)
     sheet.name = shownName
     character.name = shownName
 
@@ -127,9 +169,15 @@ export function shapeCharacterForViewer(character: any, rules: any[]): any {
     }
   }
 
-  character.items = (character.items ?? []).filter((it: any) =>
-    isVisible(map.items.get(String(it?.item_id ?? it?.id)))
-  )
+  character.items = (character.items ?? []).map((it: any) => ({
+    it,
+    rule: map.items.get(String(it?.item_id ?? it?.id)),
+  }))
+    .filter(({ rule }: any) => isVisible(rule))
+    .map(({ it, rule }: any) => {
+      if (rule.status === 'specialist') return it
+      return maskItem(it, rule)
+    })
   character.skills = (character.skills ?? []).filter((sk: any) =>
     isVisible(map.skills.get(String(sk?.skill_id ?? sk?.id)))
   )
@@ -139,9 +187,15 @@ export function shapeCharacterForViewer(character: any, rules: any[]): any {
   character.disadvantages = (character.disadvantages ?? []).filter((d: any) =>
     isVisible(map.disadvantages.get(String(d?.disadvantage_id ?? d?.id)))
   )
-  character.armors = (character.armors ?? []).filter((a: any) =>
-    isVisible(map.items.get(String(a?.item_id)))
-  )
+  character.armors = (character.armors ?? []).map((a: any) => ({
+    a,
+    rule: map.items.get(String(a?.item_id)),
+  }))
+    .filter(({ rule }: any) => isVisible(rule))
+    .map(({ a, rule }: any) => {
+      if (rule.status === 'specialist') return a
+      return maskItem(a, rule)
+    })
 
   return character
 }

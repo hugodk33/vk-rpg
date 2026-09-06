@@ -1339,7 +1339,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     }
   }
 
-  async findAllGameCharacters(tableId: any): Promise<any> {
+  async findAllGameCharacters(tableId: any, viewer?: any): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -1363,34 +1363,72 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         cs.dx,
         cs.iq,
         cs.ht,
-        u.username
+        u.username,
+        CASE WHEN npc.id IS NOT NULL THEN 1 ELSE 0 END as is_npc
       FROM game_table_characters c
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       LEFT JOIN users u ON u.id = c.user_id
+      LEFT JOIN game_table_npcs npc ON npc.character_id = c.id
       WHERE c.table_id = ?
     `).all(tableId) as any[]
 
+    const rows = characters.map(char => ({
+      id: char.character_id,
+      name: char.sheet_name,
+      isNpc: !!char.is_npc,
+      user: {
+        id: char.user_id,
+        username: char.username,
+        type: char.user_type
+      },
+      sheet: char.sheet_id ? {
+        id: char.sheet_id,
+        name: char.sheet_name,
+        points: char.points,
+        hp: char.hp,
+        st: char.st,
+        dx: char.dx,
+        iq: char.iq,
+        ht: char.ht
+      } : null
+    }))
+
+    /* Visibilidade — se um observador (type 1) de outro personagem
+       pede a lista, molde cada linha pelas regras desse observador
+       (mesma semântica do findGameCharacter com ?viewer). type-0
+       (narrator) ou a própria personagem mantêm o payload completo.
+       `known` = existe ao menos uma regra de visibilidade escopada
+       ao alvo (global ou específica). */
+    if (viewer) {
+      const viewerRow = db.prepare(`
+        SELECT u.type as t
+        FROM game_table_characters c
+        LEFT JOIN users u ON u.id = c.user_id
+        WHERE c.id = ?
+      `).get(viewer) as any
+      if (viewerRow && viewerRow.t !== 0) {
+        const shaped = rows.map((ch: any) => {
+          if (ch.id === viewer) {
+            return { ...ch, known: true }
+          }
+          const rules = db.prepare(`
+            SELECT * FROM visibility
+            WHERE character_id = ?
+              AND (other_character_id IS NULL OR other_character_id = ?)
+          `).all(viewer, ch.id) as any[]
+          const shapedChar = shapeCharacterForViewer(
+            { ...ch, items: [], skills: [], advantages: [], disadvantages: [], armors: [] },
+            rules
+          )
+          return { ...shapedChar, known: rules.length > 0 }
+        })
+        return { table, characters: shaped }
+      }
+    }
+
     return {
       table,
-      characters: characters.map(char => ({
-        id: char.character_id,
-        name: char.sheet_name,
-        user: {
-          id: char.user_id,
-          username: char.username,
-          type: char.user_type
-        },
-        sheet: char.sheet_id ? {
-          id: char.sheet_id,
-          name: char.sheet_name,
-          points: char.points,
-          hp: char.hp,
-          st: char.st,
-          dx: char.dx,
-          iq: char.iq,
-          ht: char.ht
-        } : null
-      }))
+      characters: rows.map((ch: any) => ({ ...ch, known: true }))
     }
   }
 

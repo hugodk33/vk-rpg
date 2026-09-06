@@ -27,7 +27,7 @@ export interface IGameTableRulesRepository {
   editGameCharacter(id: any): Promise<void>
   findGameCharacter(id: any, moment?: number, viewer?: any): Promise<void>
   findGameCharacterHistory(id: any, moment?: number): Promise<any>
-  findAllGameCharacters(id: any): Promise<any[] | void>
+  findAllGameCharacters(id: any, viewer?: any): Promise<any[] | void>
 
   editGameCharacterEquipment(data: any): Promise<any>
 

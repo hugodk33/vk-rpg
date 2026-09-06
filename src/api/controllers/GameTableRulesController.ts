@@ -266,7 +266,8 @@ export class GameTableRulesController {
   }
 
   async findAllCharacters(req: Request, res: Response) {
-    const characters = await this.findAllGameTableCharactersUseCase!.execute(req.params.id as string)
+    const viewer = req.query.viewer as string | undefined
+    const characters = await this.findAllGameTableCharactersUseCase!.execute(req.params.id as string, viewer)
     return res.json(characters)
   }
 
