@@ -2,8 +2,8 @@ import { IGameTableRulesRepository } from '../../../domain/irepositories/IGameTa
 
 export class FindAllGameTableCharactersUseCase {
   constructor(private repo: IGameTableRulesRepository) {}
-  async execute(tableId: any) {
-    const characters = await this.repo.findAllGameCharacters(tableId)
+  async execute(tableId: any, viewer?: any) {
+    const characters = await this.repo.findAllGameCharacters(tableId, viewer)
     return characters
   }
 }

@@ -65,6 +65,7 @@ import { FindGameQueueUseCase } from '../../application/use-cases/table-game-rul
 import { FindAllGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameQueueUseCase'
 import { FindGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableDisadvantageUseCase'
 import { FindTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/FindTableLocationUseCase'
+import { FindAllTableLocationsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllTableLocationsUseCase'
 import { FindUserByIdUseCase } from '../../application/use-cases/users-use-cases/FindUserByIdUseCase'
 
 const router = Router()
@@ -146,6 +147,7 @@ const findGameQueueUseCase = new FindGameQueueUseCase(gameTableRulesRepo)
 const findAllGameQueueUseCase = new FindAllGameQueueUseCase(gameTableRulesRepo)
 const findGameTableDisadvantageUseCase = new FindGameTableDisadvantageUseCase(gameTableRulesRepo)
 const findTableLocationUseCase = new FindTableLocationUseCase(gameTableRulesRepo)
+const findAllTableLocationsUseCase = new FindAllTableLocationsUseCase(gameTableRulesRepo)
 
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(
@@ -190,7 +192,8 @@ const gameTableRulesController = new GameTableRulesController(
     findGameQueueUseCase,
     findAllGameQueueUseCase,
     findGameTableDisadvantageUseCase,
-    findTableLocationUseCase)
+    findTableLocationUseCase,
+    findAllTableLocationsUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -225,6 +228,7 @@ router.get('/game-table-item/:id', (req, res) => gameTableRulesController.findIt
 router.post('/game-table-item', (req, res) => gameTableRulesController.createItem(req, res))
 router.put('/game-table-item', (req, res) => gameTableRulesController.editItem(req, res))
 router.get('/table-location/:id', (req, res) => gameTableRulesController.findLocation(req, res))
+router.get('/game-table-locations/:id', (req, res) => gameTableRulesController.findAllLocations(req, res))
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 

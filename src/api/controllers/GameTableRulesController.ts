@@ -41,6 +41,7 @@ import { FindGameQueueUseCase } from '../../application/use-cases/table-game-rul
 import { FindAllGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameQueueUseCase'
 import { FindGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableDisadvantageUseCase'
 import { FindTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/FindTableLocationUseCase'
+import { FindAllTableLocationsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllTableLocationsUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -84,7 +85,8 @@ export class GameTableRulesController {
     private findGameQueueUseCase?: FindGameQueueUseCase,
     private findAllGameQueueUseCase?: FindAllGameQueueUseCase,
     private findGameTableDisadvantageUseCase?: FindGameTableDisadvantageUseCase,
-    private findTableLocationUseCase?: FindTableLocationUseCase
+    private findTableLocationUseCase?: FindTableLocationUseCase,
+    private findAllTableLocationsUseCase?: FindAllTableLocationsUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -93,43 +95,47 @@ export class GameTableRulesController {
   }
   
   async findAllSkills(req: Request, res: Response) {
-    const { search, type, difficulty } = req.query
+    const { search, type, difficulty, viewer } = req.query
     const skills = await this.findAllGameTableSkillsUseCase.execute(
       req.params.id as string,
       search as string | undefined,
       type as string | undefined,
-      difficulty as string | undefined
+      difficulty as string | undefined,
+      viewer as string | undefined
     )
     return res.json(skills)
   }
   
   async findAllAdvantages(req: Request, res: Response) {
-    const { search, category } = req.query
+    const { search, category, viewer } = req.query
     const advantages = await this.findAllGameTableAdvantagesUseCase.execute(
       req.params.id as string,
       search as string | undefined,
-      category as string | undefined
+      category as string | undefined,
+      viewer as string | undefined
     )
     return res.json(advantages)
   }
 
   async findAllDisadvantages(req: Request, res: Response) {
-    const { search, category } = req.query
+    const { search, category, viewer } = req.query
     const disadvantages = await this.findAllGameTableDisadvantagesUseCase.execute(
       req.params.id as string,
       search as string | undefined,
-      category as string | undefined
+      category as string | undefined,
+      viewer as string | undefined
     )
     return res.json(disadvantages)
   }
 
   async findAllItems(req: Request, res: Response) {
-    const { search, category, type } = req.query
+    const { search, category, type, viewer } = req.query
     const Items = await this.findAllGameTableItemsUseCase.execute(
       req.params.id as string,
       search as string | undefined,
       category as string | undefined,
-      type as string | undefined
+      type as string | undefined,
+      viewer as string | undefined
     )
     return res.json(Items)
   }
@@ -199,6 +205,15 @@ export class GameTableRulesController {
     return res.json(location)
   }
 
+  async findAllLocations(req: Request, res: Response) {
+    const { viewer } = req.query
+    const locations = await this.findAllTableLocationsUseCase!.execute(
+      req.params.id as string,
+      viewer as string | undefined
+    )
+    return res.json(locations)
+  }
+
   async createNPC(req: Request, res: Response) {
     const result = await this.createGameTableNPCSUseCase!.execute(req.body)
     return res.json({ success: true, ...result })
@@ -266,7 +281,8 @@ export class GameTableRulesController {
   }
 
   async findAllCharacters(req: Request, res: Response) {
-    const characters = await this.findAllGameTableCharactersUseCase!.execute(req.params.id as string)
+    const viewer = req.query.viewer as string | undefined
+    const characters = await this.findAllGameTableCharactersUseCase!.execute(req.params.id as string, viewer)
     return res.json(characters)
   }
 
