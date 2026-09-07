@@ -214,6 +214,18 @@ export function shapeCharacterForViewer(character: any, rules: any[]): any {
   if (!character) return character
   const map = buildRuleMap(rules)
   const sheet = character.sheet
+  const isNpc = !!character.isNpc
+
+  // NPC liberado como specialist revela a ficha inteira (nome e atributos),
+  // sem depender de regras individuais de cada stat.
+  if (isNpc) {
+    const nameRule = map.attrs.get('name')
+    if (nameRule?.status === 'specialist') {
+      if (sheet) sheet.name = character.sheet.name
+      if (sheet && character.name) character.name = sheet.name
+      return character
+    }
+  }
 
   if (character.user) {
     const nameRule = map.attrs.get('name')

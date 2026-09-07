@@ -1078,15 +1078,15 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         u.type as user_type,
         g.title as table_title,
         g.intro as table_intro,
-        g.system as table_system
+        g.system as table_system,
+        CASE WHEN npc.id IS NOT NULL THEN 1 ELSE 0 END as is_npc
       FROM game_table_characters c
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       LEFT JOIN users u ON u.id = c.user_id
       LEFT JOIN game_tables g ON g.id = c.table_id
+      LEFT JOIN game_table_npcs npc ON npc.character_id = c.id
       WHERE c.id = ?
     `).get(id) as any
-
-    if (!characterData) return null
 
     const characterId = characterData.character_id
     const tableId = characterData.table_id
@@ -1262,6 +1262,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       },
       character: {
         id: characterData.character_id,
+        isNpc: !!characterData.is_npc,
         name: characterData.sheet_name,
         user: {
           id: characterData.user_id,
@@ -1487,7 +1488,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
             { ...ch, items: [], skills: [], advantages: [], disadvantages: [], armors: [] },
             rules
           )
-          return { ...shapedChar, known: rules.length > 0 }
+          // `known` = existe regra de status VISÍVEL (not unknown) para o alvo.
+          // NPCs sem regra visível ficam ocultos das listas do jogador até o
+          // mestre liberá-los (seguindo a lógica "mestre vai liberando").
+          const known = rules.some((r: any) => r.status === 'known' || r.status === 'specialist')
+          return { ...shapedChar, known }
         })
         return { table, characters: shaped }
       }
