@@ -288,9 +288,9 @@ export const modifierSeedEntries: SeedModifierEntry[] = [
     action_id: modifierNarrationsActions[2]!.id,
     character_id: characterLyraId,
     narration_id: narration1,
-    name: 'Cantrip fatigue',
-    description: 'Lyra expended energy casting a divination cantrip',
-    mod_fatigue: -1,
+    name: 'Cantrip surge',
+    description: 'Lyra channels residual arcane energy to recover spent fatigue',
+    mod_fatigue: 1,
   },
   {
     id: crypto.randomUUID(),

@@ -184,6 +184,43 @@ export const items: SeedItem[] = [
     kind: 'equipment', category: 'Clothing', weight_lb: 2, cost: 15,
     dimensions: 'Shoulders', description: 'A simple travel cloak for weather protection.',
     quality: 'standard', condition: 'good'
+  },
+  // ---- Mage items (Lyra & Kael) ----
+  {
+    id: itemsIds.arcanistStaffId, table_id: mainGameTableId, name: 'Arcanist Staff',
+    kind: 'weapon', category: 'Melee', weight_lb: 4, cost: 60,
+    dimensions: '1.8m', description: 'A staff carved from elderwood, humming with stored arcane charge.',
+    quality: 'fine', condition: 'good'
+  },
+  {
+    id: itemsIds.arcaneDaggerId, table_id: mainGameTableId, name: 'Arcane Dagger',
+    kind: 'weapon', category: 'Melee', weight_lb: 0.75, cost: 300,
+    dimensions: '28cm', description: 'A dagger engraved with runes that flare as the wielder channels magic.',
+    quality: 'very_fine', condition: 'new'
+  },
+  {
+    id: itemsIds.arcaneFocusCrystalId, table_id: mainGameTableId, name: 'Arcane Focus Crystal',
+    kind: 'equipment', category: 'Equipment', weight_lb: 0.25, cost: 200,
+    dimensions: '5cm', description: 'A fist-sized crystal that anchors spellcasting and glows faintly in the presence of magic.',
+    quality: 'fine', condition: 'good'
+  },
+  {
+    id: itemsIds.elixirMinorHealingId, table_id: mainGameTableId, name: 'Elixir of Minor Healing',
+    kind: 'equipment', category: 'Consumable', weight_lb: 0.5, cost: 120,
+    dimensions: '12cm', description: 'A glowing red elixir that soothes wounds and restores spent energy.',
+    quality: 'fine', condition: 'new'
+  },
+  {
+    id: itemsIds.shadowAmuletId, table_id: mainGameTableId, name: 'Shadow Amulet',
+    kind: 'equipment', category: 'Clothing', weight_lb: 0.2, cost: 150,
+    dimensions: 'Neck', description: 'A smoky amulet that muffles steps and hides the bearer\'s magical presence.',
+    quality: 'fine', condition: 'good'
+  },
+  {
+    id: itemsIds.smokeBombPouchId, table_id: mainGameTableId, name: 'Smoke Bomb Pouch',
+    kind: 'equipment', category: 'Equipment', weight_lb: 1, cost: 60,
+    dimensions: 'Waist', description: 'A pouch full of small pellets that burst into concealing smoke.',
+    quality: 'standard', condition: 'good'
   }
 ]
 
@@ -222,6 +259,16 @@ export const weapons: SeedWeapon[] = [
     id: itemsIds.wizardStaffWeaponId, item_id: itemsIds.wizardStaffId,
     skill: 'Staff', min_st: 5, rated_st: null, handedness: 2,
     reach: 'C,1', parry: '2', block: null, fit: 'normal'
+  },
+  {
+    id: itemsIds.arcanistStaffWeaponId, item_id: itemsIds.arcanistStaffId,
+    skill: 'Staff', min_st: 6, rated_st: null, handedness: 2,
+    reach: 'C,1', parry: '2', block: null, fit: 'tailored'
+  },
+  {
+    id: itemsIds.arcaneDaggerWeaponId, item_id: itemsIds.arcaneDaggerId,
+    skill: 'Knife', min_st: 5, rated_st: null, handedness: 1,
+    reach: 'C', parry: '0', block: null, fit: 'normal'
   }
 ]
 
@@ -297,6 +344,32 @@ export const weaponAttacks: SeedAttack[] = [
     id: itemsIds.wizardStaffThrustId, weapon_id: itemsIds.wizardStaffWeaponId,
     name: 'Thrust', usage: null, damage_source: 'st_thrust', damage_modifier: 1,
     damage_dice: null, damage_type: 'cr', armor_penetration: 0,
+    accuracy: null, range: 'C', recoil: null, shots: null
+  },
+  // Cajado do Arcanista: Swing SW+2 CR | Thrust THR+1 CR
+  {
+    id: itemsIds.arcanistStaffSwingId, weapon_id: itemsIds.arcanistStaffWeaponId,
+    name: 'Swing', usage: null, damage_source: 'st_swing', damage_modifier: 2,
+    damage_dice: null, damage_type: 'cr', armor_penetration: 0,
+    accuracy: null, range: 'C,1', recoil: null, shots: null
+  },
+  {
+    id: itemsIds.arcanistStaffThrustId, weapon_id: itemsIds.arcanistStaffWeaponId,
+    name: 'Thrust', usage: null, damage_source: 'st_thrust', damage_modifier: 1,
+    damage_dice: null, damage_type: 'cr', armor_penetration: 0,
+    accuracy: null, range: 'C', recoil: null, shots: null
+  },
+  // Adaga Arcana: Swing SW-3 CUT | Thrust THR+1 IMP
+  {
+    id: itemsIds.arcaneDaggerSwingId, weapon_id: itemsIds.arcaneDaggerWeaponId,
+    name: 'Swing', usage: null, damage_source: 'st_swing', damage_modifier: -3,
+    damage_dice: null, damage_type: 'cut', armor_penetration: 0,
+    accuracy: null, range: 'C', recoil: null, shots: null
+  },
+  {
+    id: itemsIds.arcaneDaggerThrustId, weapon_id: itemsIds.arcaneDaggerWeaponId,
+    name: 'Thrust', usage: null, damage_source: 'st_thrust', damage_modifier: 1,
+    damage_dice: null, damage_type: 'imp', armor_penetration: 0,
     accuracy: null, range: 'C', recoil: null, shots: null
   }
 ]

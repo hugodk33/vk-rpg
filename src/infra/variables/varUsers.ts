@@ -30,10 +30,10 @@ export const  users: [
   {
     id: playerOneId,
     type: 1,
-    username: 'John Doe',
+    username: 'João Pedro',
     password: '123456',
     phone: '85888888888',
-    email: 'john.doe@email.com'
+    email: 'joao.pedro@email.com'
   },
   {
     id: crypto.randomUUID(),
@@ -54,18 +54,18 @@ export const  users: [
   {
     id: crypto.randomUUID(),
     type: 1,
-    username: 'Daniela Homenick',
+    username: 'Daniela Souza',
     password: '123456',
     phone: '85555555555',
-    email: 'daniela.homenick@email.com'
+    email: 'daniela.souza@email.com'
   },
   {
     id: crypto.randomUUID(),
     type: 1,
-    username: 'Denzel Kihn',
+    username: 'Danilo Nascimento',
     password: '123456',
     phone: '85444444444',
-    email: 'denzel.kihn@email.com'
+    email: 'danilo.nascimento@email.com'
   },
   {
     id: crypto.randomUUID(),

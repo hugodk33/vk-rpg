@@ -22,6 +22,14 @@ export const leatherBootsId = crypto.randomUUID()
 export const travelCloakId = crypto.randomUUID()
 export const kaelLeatherArmorId = crypto.randomUUID()
 
+/* ---- mage items (Lyra & Kael) ---- */
+export const arcanistStaffId = crypto.randomUUID()
+export const arcaneDaggerId = crypto.randomUUID()
+export const arcaneFocusCrystalId = crypto.randomUUID()
+export const elixirMinorHealingId = crypto.randomUUID()
+export const shadowAmuletId = crypto.randomUUID()
+export const smokeBombPouchId = crypto.randomUUID()
+
 /* ---- weapons (game_table_weapons) ---- */
 export const shortSwordWeaponId = crypto.randomUUID()
 export const daggerWeaponId = crypto.randomUUID()
@@ -30,6 +38,8 @@ export const mediumShieldWeaponId = crypto.randomUUID()
 export const pistolWeaponId = crypto.randomUUID()
 export const recurveBowWeaponId = crypto.randomUUID()
 export const wizardStaffWeaponId = crypto.randomUUID()
+export const arcanistStaffWeaponId = crypto.randomUUID()
+export const arcaneDaggerWeaponId = crypto.randomUUID()
 
 /* ---- attacks (weapon_attacks) ---- */
 export const shortSwordSwingId = crypto.randomUUID()
@@ -43,6 +53,10 @@ export const pistolShotId = crypto.randomUUID()
 export const recurveBowShotId = crypto.randomUUID()
 export const wizardStaffSwingId = crypto.randomUUID()
 export const wizardStaffThrustId = crypto.randomUUID()
+export const arcanistStaffSwingId = crypto.randomUUID()
+export const arcanistStaffThrustId = crypto.randomUUID()
+export const arcaneDaggerSwingId = crypto.randomUUID()
+export const arcaneDaggerThrustId = crypto.randomUUID()
 
 /* ---- armors (game_table_armors) ---- */
 export const leatherArmorDefId = crypto.randomUUID()

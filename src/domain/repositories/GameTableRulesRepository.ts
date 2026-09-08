@@ -1253,6 +1253,28 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       itemsWeight <= st * 20 ? 4 :
       0;
 
+    // Regra de Fadiga (GURPS 4e adaptada): a barra de FP guarda o cansaço
+    // acumulado. Zerada (0) o personagem está descansado; conforme o FP
+    // enche em direção ao máximo (HT), ele vai cansando. Quando resta menos
+    // de 1/3 do FP máximo (remaining < fatigueThreshold), ST, Move e Dodge
+    // caem pela metade (arredondando para cima). No topo (0 restante) ele
+    // está à beira do colapso: cada FP a mais custa 1 HP de injúria e
+    // qualquer ação exige um teste de Vontade.
+    const fatigueMax = Math.max(1, baseStats.fatigue > 0 ? baseStats.fatigue : baseStats.ht)
+    const fatigueThreshold = Math.ceil(fatigueMax / 3)
+    const remainingFatigue = fatigueMax - currentStats.fatigue
+    const fatigueState = remainingFatigue <= 0
+      ? 'exhausted'
+      : remainingFatigue < fatigueThreshold
+        ? 'tired'
+        : 'active'
+    const fatiguedPenalty = fatigueState === 'tired' || fatigueState === 'exhausted'
+    const move = basicSpeed - encumbranceValue
+    const dodge = Math.round((basicSpeed + 3) * 10) / 10
+    const effectiveSt = fatiguedPenalty ? Math.ceil(currentStats.st / 2) : currentStats.st
+    const effectiveMove = fatiguedPenalty ? Math.ceil(move / 2) : move
+    const effectiveDodge = fatiguedPenalty ? Math.ceil(dodge / 2) : dodge
+
     const result: any = {
       table: {
         id: characterData.table_id,
@@ -1283,9 +1305,16 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
           iq: currentStats.iq,
           ht: currentStats.ht,
           fatigue: currentStats.fatigue,
+          fatigue_max: fatigueMax,
+          fatigue_threshold: fatigueThreshold,
+          fatigue_state: fatigueState,
           encumbrance: characterData.encumbrance,
           basic_speed: basicSpeed,
-          move: basicSpeed - encumbranceValue,
+          move,
+          dodge,
+          effective_st: effectiveSt,
+          effective_move: effectiveMove,
+          effective_dodge: effectiveDodge,
           base_hp: baseStats.hp,
           base_st: baseStats.st,
           base_dx: baseStats.dx,
