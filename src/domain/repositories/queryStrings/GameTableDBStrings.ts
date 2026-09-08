@@ -52,6 +52,7 @@ export const GameTableDBStrings:any = {
       m.id AS modifier_id,
       m.name AS modifier_name,
       m.description AS modifier_description,
+      m.effect AS modifier_effect,
       m.hp AS modifier_hp,
       m.st AS modifier_st,
       m.dx AS modifier_dx,

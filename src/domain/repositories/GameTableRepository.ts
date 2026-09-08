@@ -400,6 +400,7 @@ export class GameTableRepository implements IGameTableRepository {
               id: row.modifier_id,
               name: row.modifier_name,
               description: row.modifier_description,
+              effect: row.modifier_effect,
               hp: row.modifier_hp,
               st: row.modifier_st,
               dx: row.modifier_dx,
