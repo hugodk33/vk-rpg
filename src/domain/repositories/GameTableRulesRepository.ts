@@ -1223,6 +1223,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const currentStats = { ...baseStats }
 
     for (const mod of modifiers) {
+      if (mod.apply_on_roll === 1) continue
       if (mod.hp != null) currentStats.hp = mod.hp
       if (mod.st != null) currentStats.st = mod.st
       if (mod.dx != null) currentStats.dx = mod.dx
@@ -1540,8 +1541,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async createGameModifier(data: any): Promise<any> {
     const id = crypto.randomUUID()
     db.prepare(`
-      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
@@ -1579,7 +1580,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.item_dimension || null,
       data.item_weight ?? null,
       data.item_range || null,
-      data.item_status || null
+      data.item_status || null,
+      data.apply_on_roll ?? 0
     )
     return { id }
   }
@@ -1593,7 +1595,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         fatigue = ?, encumbrance = ?, mod_hp = ?, mod_st = ?, mod_dx = ?, mod_iq = ?,
         mod_ht = ?, mod_fatigue = ?, mod_encumbrance = ?, skill_value = ?,
         advantage_value = ?, disadvantage_value = ?, armor_value = ?, damage_value = ?,
-        item_quantity = ?, item_dimension = ?, item_weight = ?, item_range = ?, item_status = ?
+        item_quantity = ?, item_dimension = ?, item_weight = ?, item_range = ?, item_status = ?,
+        apply_on_roll = ?
       WHERE id = ?
     `).run(
       data.character_id || null,
@@ -1632,6 +1635,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.item_weight ?? null,
       data.item_range || null,
       data.item_status || null,
+      data.apply_on_roll ?? 0,
       data.id
     )
   }
@@ -1665,6 +1669,76 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).all(tableId, tableId, tableId, tableId, tableId, tableId, tableId, tableId) as any[]
 
     return { table, modifiers }
+  }
+
+  /* Consequência automática de skill (por rolagem): quando o teste
+     baseado na skill passa, cada modifier do ator marcado com
+     apply_on_roll=1 é materializado como um efeito ativo (cópia com
+     apply_on_roll=0), que passa a alterar HP/fadiga/atributos do sheet.
+     Assim o dano/cura/custo persiste e o máximo de HP/FP não muda. */
+  async applyGameSkillEffect(characterId: string, skillId: string): Promise<any[]> {
+    const templates = db.prepare(`
+      SELECT * FROM modifiers
+      WHERE character_id = ? AND skill_id = ? AND apply_on_roll = 1
+    `).all(characterId, skillId) as any[]
+
+    let applied: any[] = []
+    for (const t of templates) {
+      const id = crypto.randomUUID()
+      db.prepare(`
+        INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        t.character_id || null,
+        t.item_id || null,
+        t.skill_id || null,
+        t.advantage_id || null,
+        t.disadvantage_id || null,
+        t.action_id || null,
+        t.narration_id || null,
+        t.scene_id || null,
+        t.name || '',
+        t.cost_points ?? null,
+        t.effect || '',
+        t.description || '',
+        t.hp ?? null,
+        t.st ?? null,
+        t.dx ?? null,
+        t.iq ?? null,
+        t.ht ?? null,
+        t.fatigue ?? null,
+        t.encumbrance || null,
+        t.mod_hp ?? null,
+        t.mod_st ?? null,
+        t.mod_dx ?? null,
+        t.mod_iq ?? null,
+        t.mod_ht ?? null,
+        t.mod_fatigue ?? null,
+        t.mod_encumbrance || null,
+        t.skill_value || null,
+        t.advantage_value || null,
+        t.disadvantage_value || null,
+        t.armor_value || null,
+        t.damage_value || null,
+        t.item_quantity ?? null,
+        t.item_dimension || null,
+        t.item_weight ?? null,
+        t.item_range || null,
+        t.item_status || null,
+        0
+      )
+      applied.push({
+        id,
+        name: t.name || 'Effect',
+        effect: t.effect || '',
+        mod_hp: t.mod_hp ?? null,
+        mod_fatigue: t.mod_fatigue ?? null,
+        damage_value: t.damage_value ?? null
+      })
+    }
+
+    return applied
   }
 
   /* =============== */
@@ -1755,8 +1829,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async createGameQueue(data: any): Promise<any> {
     const id = crypto.randomUUID()
     db.prepare(`
-      INSERT INTO queue (id, character_id, action_id, queue, status, test_dice, test_count, test_mod, test_attr)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO queue (id, character_id, action_id, queue, status, test_dice, test_count, test_mod, test_attr, test_kind, test_skill)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
@@ -1766,14 +1840,16 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.test_dice || '6',
       data.test_count ?? 3,
       data.test_mod ?? 0,
-      data.test_attr || 'dx'
+      data.test_attr || 'dx',
+      data.test_kind || 'attr',
+      data.test_skill || null
     )
     return { id }
   }
 
   async editGameQueue(data: any): Promise<void> {
     db.prepare(`
-      UPDATE queue SET character_id = ?, action_id = ?, queue = ?, status = ?, test_dice = ?, test_count = ?, test_mod = ?, test_attr = ?
+      UPDATE queue SET character_id = ?, action_id = ?, queue = ?, status = ?, test_dice = ?, test_count = ?, test_mod = ?, test_attr = ?, test_kind = ?, test_skill = ?
       WHERE id = ?
     `).run(
       data.character_id || null,
@@ -1784,6 +1860,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.test_count ?? 3,
       data.test_mod ?? 0,
       data.test_attr || 'dx',
+      data.test_kind || 'attr',
+      data.test_skill || null,
       data.id
     )
   }

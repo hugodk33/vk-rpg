@@ -63,6 +63,7 @@ import { CreateGameQueueUseCase } from '../../application/use-cases/table-game-r
 import { EditGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameQueueUseCase'
 import { FindGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameQueueUseCase'
 import { FindAllGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameQueueUseCase'
+import { ApplyGameSkillEffectUseCase } from '../../application/use-cases/table-game-rules-use-case/ApplyGameSkillEffectUseCase'
 import { FindGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableDisadvantageUseCase'
 import { FindTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/FindTableLocationUseCase'
 import { FindAllTableLocationsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllTableLocationsUseCase'
@@ -145,6 +146,7 @@ const createGameQueueUseCase = new CreateGameQueueUseCase(gameTableRulesRepo)
 const editGameQueueUseCase = new EditGameQueueUseCase(gameTableRulesRepo)
 const findGameQueueUseCase = new FindGameQueueUseCase(gameTableRulesRepo)
 const findAllGameQueueUseCase = new FindAllGameQueueUseCase(gameTableRulesRepo)
+const applyGameSkillEffectUseCase = new ApplyGameSkillEffectUseCase(gameTableRulesRepo)
 const findGameTableDisadvantageUseCase = new FindGameTableDisadvantageUseCase(gameTableRulesRepo)
 const findTableLocationUseCase = new FindTableLocationUseCase(gameTableRulesRepo)
 const findAllTableLocationsUseCase = new FindAllTableLocationsUseCase(gameTableRulesRepo)
@@ -191,6 +193,7 @@ const gameTableRulesController = new GameTableRulesController(
     editGameQueueUseCase,
     findGameQueueUseCase,
     findAllGameQueueUseCase,
+    applyGameSkillEffectUseCase,
     findGameTableDisadvantageUseCase,
     findTableLocationUseCase,
     findAllTableLocationsUseCase)
@@ -245,6 +248,7 @@ router.get('/game-table-modifiers/:id', (req, res) => gameTableRulesController.f
 router.get('/game-table-modifier/:id', (req, res) => gameTableRulesController.findModifier(req, res))
 router.post('/game-table-modifier', (req, res) => gameTableRulesController.createModifier(req, res))
 router.put('/game-table-modifier', (req, res) => gameTableRulesController.editModifier(req, res))
+router.post('/game-table-roll-effect', (req, res) => gameTableRulesController.applySkillEffect(req, res))
 
 /* ===== VISIBILITY ===== */
 router.get('/game-table-visibility/:id', (req, res) => gameTableRulesController.findAllVisibility(req, res))

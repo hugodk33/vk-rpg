@@ -46,6 +46,7 @@ export interface IGameTableRulesRepository {
   editGameModifier(data: any): Promise<void>
   findGameModifier(id: any): Promise<any>
   findAllGameModifiers(tableId: any): Promise<any>
+  applyGameSkillEffect(characterId: string, skillId: string): Promise<any[]>
 
   createGameVisibility(data: any): Promise<any>
   editGameVisibility(data: any): Promise<void>

@@ -474,6 +474,7 @@ CREATE TABLE IF NOT EXISTS modifiers (
   item_weight INTEGER,
   item_range TEXT,
   item_status TEXT,
+  apply_on_roll INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (item_id) REFERENCES game_table_items(id),
   FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
@@ -516,7 +517,9 @@ CREATE TABLE IF NOT EXISTS queue (
   test_dice TEXT DEFAULT '6',
   test_count INTEGER DEFAULT 3,
   test_mod INTEGER DEFAULT 0,
-  test_attr TEXT DEFAULT 'dx'
+  test_attr TEXT DEFAULT 'dx',
+  test_kind TEXT DEFAULT 'attr',
+  test_skill TEXT
 );
 
 CREATE TABLE IF NOT EXISTS log (
@@ -564,6 +567,19 @@ if (queueCols.length && !queueCols.includes('test_dice')) {
   db.exec("ALTER TABLE queue ADD COLUMN test_count INTEGER DEFAULT 3")
   db.exec("ALTER TABLE queue ADD COLUMN test_mod INTEGER DEFAULT 0")
   db.exec("ALTER TABLE queue ADD COLUMN test_attr TEXT DEFAULT 'dx'")
+}
+// queue.test_kind/test_skill — teste baseado em skill (jogada montada por skill)
+if (queueCols.length && !queueCols.includes('test_kind')) {
+  db.exec("ALTER TABLE queue ADD COLUMN test_kind TEXT DEFAULT 'attr'")
+}
+if (queueCols.length && !queueCols.includes('test_skill')) {
+  db.exec("ALTER TABLE queue ADD COLUMN test_skill TEXT")
+}
+
+// modifiers.apply_on_roll — efeito de skill que só é aplicado quando o teste passa
+const modifierCols = (db.prepare("PRAGMA table_info(modifiers)").all() as any[]).map((c) => c.name)
+if (modifierCols.length && !modifierCols.includes('apply_on_roll')) {
+  db.exec("ALTER TABLE modifiers ADD COLUMN apply_on_roll INTEGER NOT NULL DEFAULT 0")
 }
 
 console.log('✅ Full database migrated!')
