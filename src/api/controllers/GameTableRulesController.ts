@@ -39,9 +39,13 @@ import { CreateGameQueueUseCase } from '../../application/use-cases/table-game-r
 import { EditGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameQueueUseCase'
 import { FindGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameQueueUseCase'
 import { FindAllGameQueueUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameQueueUseCase'
+import { ApplyGameSkillEffectUseCase } from '../../application/use-cases/table-game-rules-use-case/ApplyGameSkillEffectUseCase'
 import { FindGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableDisadvantageUseCase'
 import { FindTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/FindTableLocationUseCase'
 import { FindAllTableLocationsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllTableLocationsUseCase'
+import { CreateTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateTableLocationUseCase'
+import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
+import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -84,9 +88,13 @@ export class GameTableRulesController {
     private editGameQueueUseCase?: EditGameQueueUseCase,
     private findGameQueueUseCase?: FindGameQueueUseCase,
     private findAllGameQueueUseCase?: FindAllGameQueueUseCase,
+    private applyGameSkillEffectUseCase?: ApplyGameSkillEffectUseCase,
     private findGameTableDisadvantageUseCase?: FindGameTableDisadvantageUseCase,
     private findTableLocationUseCase?: FindTableLocationUseCase,
-    private findAllTableLocationsUseCase?: FindAllTableLocationsUseCase
+    private findAllTableLocationsUseCase?: FindAllTableLocationsUseCase,
+    private createTableLocationUseCase?: CreateTableLocationUseCase,
+    private editTableLocationUseCase?: EditTableLocationUseCase,
+    private deleteTableLocationUseCase?: DeleteTableLocationUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -201,7 +209,11 @@ export class GameTableRulesController {
   }
 
   async findLocation(req: Request, res: Response) {
-    const location = await this.findTableLocationUseCase!.execute(req.params.id as string)
+    const { viewer } = req.query
+    const location = await this.findTableLocationUseCase!.execute(
+      req.params.id as string,
+      viewer as string | undefined
+    )
     return res.json(location)
   }
 
@@ -212,6 +224,25 @@ export class GameTableRulesController {
       viewer as string | undefined
     )
     return res.json(locations)
+  }
+
+  async createLocation(req: Request, res: Response) {
+    const location = await this.createTableLocationUseCase!.execute(req.body)
+    return res.json(location)
+  }
+
+  async editLocation(req: Request, res: Response) {
+    await this.editTableLocationUseCase!.execute({ id: req.params.id, ...req.body })
+    return res.json({ success: true })
+  }
+
+  async deleteLocation(req: Request, res: Response) {
+    try {
+      const result = await this.deleteTableLocationUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
   }
 
   async createNPC(req: Request, res: Response) {
@@ -356,5 +387,15 @@ export class GameTableRulesController {
   async findAllQueue(req: Request, res: Response) {
     const queueItems = await this.findAllGameQueueUseCase!.execute(req.params.id as string)
     return res.json(queueItems)
+  }
+
+  /* Efeito de skill aplicado na rolagem (só quando o teste passou). */
+  async applySkillEffect(req: Request, res: Response) {
+    const { character_id, skill_id } = req.body as { character_id?: string; skill_id?: string }
+    if (!character_id || !skill_id) {
+      return res.status(400).json({ success: false, error: 'character_id and skill_id are required' })
+    }
+    const applied = await this.applyGameSkillEffectUseCase!.execute(character_id, skill_id)
+    return res.json({ success: true, applied })
   }
 }

@@ -19,6 +19,126 @@ function possessedItemIds(characterId: string): Set<string> {
   return new Set(rows.map((r: any) => String(r.item_id)).filter(Boolean))
 }
 
+/* ================================================================
+   LOCATIONS — hierarquia de território + grade hexagonal (GURPS)
+   ----------------------------------------------------------------
+   A `table_locations` é uma árvore: um local ENVELOPA os filhos
+   (world > continent > nation > region > city > district > site >
+   battlemap). `path` é o caminho materializado `/pai/filho/` (permite
+   subárvore e ordenação por O(log n)); `level` é a profundidade.
+   A geometria de cada local é uma grade hexagonal:
+     size_m      = metros por lado de hex (escala da grade)
+     q,r         = coords axiais do CENTRO do local dentro do pai
+     width/height= pegada em hexes
+   Um local vira MAPA DE BATALHA quando a escala chega em ~metros
+   (hex_size_m <= 2) — é o ponto onde o narrador monta o grid tático.
+   ================================================================ */
+
+/** Escala "em metros por hex" recomendada por divisão. Raiz herda do sistema. */
+export const LOCATION_KIND_RANK: Record<string, number> = {
+  world: 0,
+  continent: 10,
+  nation: 20,
+  region: 30,
+  biome: 35,
+  province: 40,
+  city: 50,
+  district: 60,
+  locale: 70,
+  site: 80,
+  battlemap: 90,
+  point: 95,
+}
+
+export const LOCATION_KIND_LABELS: Record<string, string> = {
+  world: 'World',
+  continent: 'Continent',
+  nation: 'Nation',
+  region: 'Region',
+  biome: 'Biome',
+  province: 'Province',
+  city: 'City',
+  district: 'District',
+  locale: 'Locale',
+  site: 'Site',
+  battlemap: 'Battle Map',
+  point: 'Point',
+}
+
+function locationIsBattlemap(hexSizeM: unknown, stored?: unknown): boolean {
+  if (stored != null) return !!stored
+  if (hexSizeM == null) return false
+  return (hexSizeM as number) <= 2
+}
+
+function locationToDTO(l: any): any {
+  const hexSizeM = l.hex_size_m ?? null
+  return {
+    id: l.id,
+    tableId: l.table_id ?? null,
+    parentId: l.parent_id ?? null,
+    kind: l.kind ?? 'site',
+    level: l.level ?? 0,
+    path: l.path ?? '/',
+    name: l.name ?? null,
+    region: l.region ?? null,
+    subRegion: l.sub_region ?? l.subRegion ?? null,
+    address: l.address ?? null,
+    isIndoor: !!l.is_indoor,
+    country: l.country ?? null,
+    area: l.area ?? null,
+    dimensions: l.dimensions ?? null,
+    description: l.description ?? null,
+    other: l.other ?? null,
+    hex: {
+      sizeM: hexSizeM,
+      width: l.width_hexes ?? null,
+      height: l.height_hexes ?? null,
+      centerQ: l.center_q ?? 0,
+      centerR: l.center_r ?? 0,
+      orientation: l.orientation ?? 'flat',
+      rotationDeg: l.rotation_deg ?? 0,
+    },
+    isBattlemap: locationIsBattlemap(hexSizeM, l.is_battlemap),
+  }
+}
+
+/** Monta a árvore de locais a partir da lista plana. */
+function buildLocationTree(locations: any[]): any[] {
+  const byParent = new Map<string | null, any[]>()
+  for (const loc of locations) {
+    const pid = loc.parentId ?? null
+    if (!byParent.has(pid)) byParent.set(pid, [])
+    byParent.get(pid)!.push(loc)
+  }
+  const sortSiblings = (a: any, b: any) =>
+    (a.hex?.centerQ ?? 0) - (b.hex?.centerQ ?? 0) ||
+    (a.hex?.centerR ?? 0) - (b.hex?.centerR ?? 0) ||
+    (a.name ?? '').localeCompare(b.name ?? '')
+  const attach = (loc: any): any => ({
+    ...loc,
+    children: (byParent.get(loc.id) ?? []).sort(sortSiblings).map(attach),
+  })
+  return (byParent.get(null) ?? []).sort(sortSiblings).map(attach)
+}
+
+/** Mantém só os nós visíveis (e filhos visíveis) quando há viewer. */
+function filterTreeVisible(tree: any[], visible: Set<string>): any[] {
+  return tree
+    .filter((n) => visible.has(String(n.id)))
+    .map((n) => ({ ...n, children: filterTreeVisible(n.children ?? [], visible) }))
+}
+
+/** level/path materializado. path SEMPRE inclui o próprio id (`/pai/filho/`). */
+function locationAncestry(selfId: string, parentId: string | null): { level: number; path: string } {
+  if (!parentId) return { level: 0, path: `/${selfId}/` }
+  const parent: any = db.prepare('SELECT id, level, path FROM table_locations WHERE id = ?').get(parentId)
+  if (!parent) return { level: 0, path: `/${selfId}/` }
+  let parentPath = parent.path ?? ''
+  if (!parentPath || !parentPath.endsWith('/')) parentPath = parentPath ? `${parentPath}/` : '/'
+  return { level: (parent.level ?? 0) + 1, path: `${parentPath}${selfId}/` }
+}
+
 export class GameTableRulesRepository implements IGameTableRulesRepository {
   /* =============== */
   /*      SKILLS     */
@@ -287,18 +407,64 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return disadvantage
   }
 
-  async findGameLocation(id: any): Promise<any> {
-    const location = db.prepare(`
-      SELECT tl.*, gt.id AS table_id, gt.title AS table_title
+  async findGameLocation(id: any, viewer?: any): Promise<any> {
+    const row: any = db.prepare(`
+      SELECT tl.*, gt.title AS table_title
       FROM table_locations tl
-      LEFT JOIN narration_locations nl ON nl.location_id = tl.id
-      LEFT JOIN narrations n ON n.id = nl.narrations_id
-      LEFT JOIN scenes gs ON gs.id = n.scene_id
-      LEFT JOIN game_tables gt ON gt.id = gs.table_id
+      LEFT JOIN game_tables gt ON gt.id = tl.table_id
       WHERE tl.id = ?
       LIMIT 1
-    `).get(id) as any
-    return location
+    `).get(id)
+    if (!row) return null
+
+    const rules = viewer ? viewerRules(viewer) : null
+
+    const shape = (nodes: any[]) =>
+      rules ? shapeCatalogForViewer(nodes, rules, 'location') : nodes
+
+    const dto = locationToDTO(row)
+
+    // Ancestralidade (cadeia raiz -> pai, sem o próprio nó). Sob viewer, a
+    // cadeia é mascarada pelas mesmas regras do observador (sem filtrar — o
+    // contexto territorial de um local conhecido é "como" o leitor o vê).
+    const ancestors: any[] = []
+    const guard = new Set<string>([row.id])
+    let curId: string | null = row.parent_id ?? null
+    while (curId) {
+      if (guard.has(curId)) break
+      guard.add(curId)
+      const parentRow: any = db.prepare('SELECT * FROM table_locations WHERE id = ?').get(curId)
+      if (!parentRow) break
+      ancestors.unshift(locationToDTO(parentRow))
+      curId = parentRow.parent_id ?? null
+    }
+
+    // Filhos — sob viewer, só permanecem os visíveis para o observador.
+    const children = shape((db.prepare(`
+      SELECT * FROM table_locations
+      WHERE parent_id = ?
+      ORDER BY hex_size_m IS NULL, hex_size_m ASC, name ASC
+    `).all(id) as any[]).map(locationToDTO))
+
+    if (rules) {
+      const [self] = shape([dto])
+      if (!self) return null
+      return {
+        ...self,
+        table_id: row.table_id,
+        table_title: row.table_title,
+        ancestors: shape(ancestors),
+        children,
+      }
+    }
+
+    return {
+      ...dto,
+      table_id: row.table_id,
+      table_title: row.table_title,
+      ancestors,
+      children,
+    }
   }
 
   /* =============== */
@@ -629,27 +795,165 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       SELECT *
       FROM table_locations
       WHERE table_id = ?
-      ORDER BY name ASC
-    `).all(id as string) as any[]).map((l: any) => ({
-      id: l.id,
-      name: l.name,
-      region: l.region,
-      subRegion: l.sub_region,
-      address: l.address,
-      isIndoor: !!l.is_indoor,
-      country: l.country,
-      area: l.area,
-      dimensions: l.dimensions,
-      description: l.description,
-      other: l.other,
-    }))
+      ORDER BY path ASC, name ASC
+    `).all(id as string) as any[]).map(locationToDTO)
+
+    const shaped = viewer
+      ? shapeCatalogForViewer(locations, viewerRules(viewer), 'location')
+      : locations
 
     return ({
       table: table,
-      locations: viewer
-        ? shapeCatalogForViewer(locations, viewerRules(viewer), 'location')
-        : locations
+      locations: shaped,
+      tree: viewer
+        ? filterTreeVisible(buildLocationTree(shaped), new Set(shaped.map((x: any) => String(x.id))))
+        : buildLocationTree(locations),
     })
+  }
+
+  /* =============== */
+  /*   LOCATIONS CRUD */
+  /* =============== */
+
+  async createGameLocation(data: any): Promise<any> {
+    const id = data.id ?? crypto.randomUUID()
+    const parentId = data.parent_id ?? data.parentId ?? null
+    const { level, path } = locationAncestry(id, parentId)
+    const isIndoor = data.is_indoor ?? data.isIndoor ? 1 : 0
+    const hexSizeM = data.hex_size_m ?? data.hex?.sizeM ?? null
+    const isBattle = data.is_battlemap !== undefined
+      ? (data.is_battlemap ? 1 : 0)
+      : (locationIsBattlemap(hexSizeM) ? 1 : 0)
+
+    db.prepare(`
+      INSERT INTO table_locations (
+        id, table_id, parent_id, kind, level, path,
+        name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
+        hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      data.table_id,
+      parentId,
+      data.kind ?? 'site',
+      level,
+      path,
+      data.name ?? null,
+      data.region ?? null,
+      data.address ?? null,
+      data.sub_region ?? data.subRegion ?? null,
+      isIndoor,
+      data.other ?? null,
+      data.country ?? null,
+      data.area ?? null,
+      data.dimensions ?? null,
+      data.description ?? null,
+      hexSizeM,
+      data.width_hexes ?? data.hex?.width ?? null,
+      data.height_hexes ?? data.hex?.height ?? null,
+      data.center_q ?? data.hex?.centerQ ?? 0,
+      data.center_r ?? data.hex?.centerR ?? 0,
+      data.orientation ?? data.hex?.orientation ?? 'flat',
+      data.rotation_deg ?? data.hex?.rotationDeg ?? 0,
+      isBattle
+    )
+
+    return this.findGameLocation(id)
+  }
+
+  async editGameLocation(data: any): Promise<void> {
+    const current: any = db.prepare('SELECT * FROM table_locations WHERE id = ?').get(data.id)
+    if (!current) throw new Error('Location not found')
+
+    const parentId = data.parent_id ?? data.parentId ?? current.parent_id ?? null
+    const parentChanged = String(parentId ?? '') !== String(current.parent_id ?? '')
+    const { level, path } = parentChanged
+      ? locationAncestry(data.id, parentId)
+      : { level: current.level, path: current.path }
+
+    const hexSizeM = data.hex_size_m ?? data.hex?.sizeM ?? current.hex_size_m ?? null
+    const isBattle = data.is_battlemap !== undefined
+      ? (data.is_battlemap ? 1 : 0)
+      : (locationIsBattlemap(hexSizeM, current.is_battlemap) ? 1 : 0)
+
+    db.prepare(`
+      UPDATE table_locations SET
+        parent_id = ?, kind = ?, level = ?, path = ?,
+        name = ?, region = ?, address = ?, sub_region = ?, is_indoor = ?,
+        other = ?, country = ?, area = ?, dimensions = ?, description = ?,
+        hex_size_m = ?, width_hexes = ?, height_hexes = ?, center_q = ?, center_r = ?,
+        orientation = ?, rotation_deg = ?, is_battlemap = ?
+      WHERE id = ?
+    `).run(
+      parentId,
+      data.kind ?? current.kind ?? 'site',
+      level,
+      path,
+      data.name ?? current.name ?? null,
+      data.region ?? current.region ?? null,
+      data.address ?? current.address ?? null,
+      data.sub_region ?? data.subRegion ?? current.sub_region ?? null,
+      data.is_indoor !== undefined ? (data.is_indoor ? 1 : 0) : current.is_indoor ?? 0,
+      data.other ?? current.other ?? null,
+      data.country ?? current.country ?? null,
+      data.area ?? current.area ?? null,
+      data.dimensions ?? current.dimensions ?? null,
+      data.description ?? current.description ?? null,
+      hexSizeM,
+      data.width_hexes ?? data.hex?.width ?? current.width_hexes ?? null,
+      data.height_hexes ?? data.hex?.height ?? current.height_hexes ?? null,
+      data.center_q ?? data.hex?.centerQ ?? current.center_q ?? 0,
+      data.center_r ?? data.hex?.centerR ?? current.center_r ?? 0,
+      data.orientation ?? data.hex?.orientation ?? current.orientation ?? 'flat',
+      data.rotation_deg ?? data.hex?.rotationDeg ?? current.rotation_deg ?? 0,
+      isBattle,
+      data.id
+    )
+
+    if (parentChanged) this.recomputeLocationSubtree(data.id)
+  }
+
+  /**
+   * Remove uma folha do território. Recusa se o local tiver subdivisões
+   * (apague os filhos primeiro) e desvincula referências antigas
+   * (narration_locations / visibility) para não violar as FKs.
+   */
+  async deleteGameLocation(id: string): Promise<any> {
+    const row: any = db.prepare('SELECT id, name, parent_id FROM table_locations WHERE id = ?').get(id)
+    if (!row) throw new Error('Location not found')
+
+    const child = db.prepare('SELECT COUNT(*) AS c FROM table_locations WHERE parent_id = ?').get(id) as { c: number }
+    if (child.c > 0) {
+      throw new Error(`Location "${row.name}" has ${child.c} subdivision(s); remove them first`)
+    }
+
+    const tx = db.transaction(() => {
+      db.prepare('UPDATE narration_locations SET location_id = NULL WHERE location_id = ?').run(id)
+      db.prepare('UPDATE visibility SET location_id = NULL WHERE location_id = ?').run(id)
+      db.prepare('DELETE FROM table_locations WHERE id = ?').run(id)
+    })
+    tx()
+
+    return { success: true, id, parent_id: row.parent_id ?? null, name: row.name }
+  }
+
+  /** Recalcula level/path de toda a subárvore (após mover de pai). */
+  private recomputeLocationSubtree(rootId: string): void {
+    const queue: string[] = [rootId]
+    while (queue.length) {
+      const parentId = queue.shift()!
+      const parent: any = db.prepare('SELECT id, level, path FROM table_locations WHERE id = ?').get(parentId)
+      if (!parent) continue
+      const children = db.prepare('SELECT id FROM table_locations WHERE parent_id = ?').all(parentId) as any[]
+      for (const child of children) {
+        let base = parent.path ?? ''
+        if (!base || !base.endsWith('/')) base = base ? `${base}/` : '/'
+        db.prepare('UPDATE table_locations SET level = ?, path = ? WHERE id = ?')
+          .run((parent.level ?? 0) + 1, `${base}${child.id}/`, child.id)
+        queue.push(child.id)
+      }
+    }
   }
 
   /* =============== */
@@ -1223,6 +1527,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const currentStats = { ...baseStats }
 
     for (const mod of modifiers) {
+      if (mod.apply_on_roll === 1) continue
       if (mod.hp != null) currentStats.hp = mod.hp
       if (mod.st != null) currentStats.st = mod.st
       if (mod.dx != null) currentStats.dx = mod.dx
@@ -1540,8 +1845,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async createGameModifier(data: any): Promise<any> {
     const id = crypto.randomUUID()
     db.prepare(`
-      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
@@ -1549,58 +1854,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.skill_id || null,
       data.advantage_id || null,
       data.disadvantage_id || null,
-      data.action_id || null,
-      data.narration_id || null,
-      data.scene_id || null,
-      data.name || '',
-      data.cost_points ?? null,
-      data.effect || '',
-      data.description || '',
-      data.hp ?? null,
-      data.st ?? null,
-      data.dx ?? null,
-      data.iq ?? null,
-      data.ht ?? null,
-      data.fatigue ?? null,
-      data.encumbrance || null,
-      data.mod_hp ?? null,
-      data.mod_st ?? null,
-      data.mod_dx ?? null,
-      data.mod_iq ?? null,
-      data.mod_ht ?? null,
-      data.mod_fatigue ?? null,
-      data.mod_encumbrance || null,
-      data.skill_value || null,
-      data.advantage_value || null,
-      data.disadvantage_value || null,
-      data.armor_value || null,
-      data.damage_value || null,
-      data.item_quantity ?? null,
-      data.item_dimension || null,
-      data.item_weight ?? null,
-      data.item_range || null,
-      data.item_status || null
-    )
-    return { id }
-  }
-
-  async editGameModifier(data: any): Promise<void> {
-    db.prepare(`
-      UPDATE modifiers SET
-        character_id = ?, item_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
-        action_id = ?, narration_id = ?, scene_id = ?, name = ?, cost_points = ?,
-        effect = ?, description = ?, hp = ?, st = ?, dx = ?, iq = ?, ht = ?,
-        fatigue = ?, encumbrance = ?, mod_hp = ?, mod_st = ?, mod_dx = ?, mod_iq = ?,
-        mod_ht = ?, mod_fatigue = ?, mod_encumbrance = ?, skill_value = ?,
-        advantage_value = ?, disadvantage_value = ?, armor_value = ?, damage_value = ?,
-        item_quantity = ?, item_dimension = ?, item_weight = ?, item_range = ?, item_status = ?
-      WHERE id = ?
-    `).run(
-      data.character_id || null,
-      data.item_id || null,
-      data.skill_id || null,
-      data.advantage_id || null,
-      data.disadvantage_id || null,
+      data.location_id || null,
       data.action_id || null,
       data.narration_id || null,
       data.scene_id || null,
@@ -1632,6 +1886,62 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.item_weight ?? null,
       data.item_range || null,
       data.item_status || null,
+      data.apply_on_roll ?? 0
+    )
+    return { id }
+  }
+
+  async editGameModifier(data: any): Promise<void> {
+    db.prepare(`
+      UPDATE modifiers SET
+        character_id = ?, item_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
+        location_id = ?, action_id = ?, narration_id = ?, scene_id = ?, name = ?, cost_points = ?,
+        effect = ?, description = ?, hp = ?, st = ?, dx = ?, iq = ?, ht = ?,
+        fatigue = ?, encumbrance = ?, mod_hp = ?, mod_st = ?, mod_dx = ?, mod_iq = ?,
+        mod_ht = ?, mod_fatigue = ?, mod_encumbrance = ?, skill_value = ?,
+        advantage_value = ?, disadvantage_value = ?, armor_value = ?, damage_value = ?,
+        item_quantity = ?, item_dimension = ?, item_weight = ?, item_range = ?, item_status = ?,
+        apply_on_roll = ?
+      WHERE id = ?
+    `).run(
+      data.character_id || null,
+      data.item_id || null,
+      data.skill_id || null,
+      data.advantage_id || null,
+      data.disadvantage_id || null,
+      data.location_id || null,
+      data.action_id || null,
+      data.narration_id || null,
+      data.scene_id || null,
+      data.name || '',
+      data.cost_points ?? null,
+      data.effect || '',
+      data.description || '',
+      data.hp ?? null,
+      data.st ?? null,
+      data.dx ?? null,
+      data.iq ?? null,
+      data.ht ?? null,
+      data.fatigue ?? null,
+      data.encumbrance || null,
+      data.mod_hp ?? null,
+      data.mod_st ?? null,
+      data.mod_dx ?? null,
+      data.mod_iq ?? null,
+      data.mod_ht ?? null,
+      data.mod_fatigue ?? null,
+      data.mod_encumbrance || null,
+      data.skill_value || null,
+      data.advantage_value || null,
+      data.disadvantage_value || null,
+      data.armor_value || null,
+      data.damage_value || null,
+      data.item_quantity ?? null,
+      data.item_dimension || null,
+      data.item_weight ?? null,
+      data.item_range || null,
+      data.item_status || null,
+      data.apply_on_roll ?? 0,
       data.id
     )
   }
@@ -1654,6 +1964,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       LEFT JOIN game_table_skills gsk ON gsk.id = m.skill_id
       LEFT JOIN game_table_advantages ga ON ga.id = m.advantage_id
       LEFT JOIN game_table_disadvantages gd ON gd.id = m.disadvantage_id
+      LEFT JOIN table_locations tl ON tl.id = m.location_id
       WHERE gc.table_id = ?
          OR s.table_id = ?
          OR n.table_id = ?
@@ -1662,9 +1973,81 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
          OR gsk.table_id = ?
          OR ga.table_id = ?
          OR gd.table_id = ?
-    `).all(tableId, tableId, tableId, tableId, tableId, tableId, tableId, tableId) as any[]
+         OR tl.table_id = ?
+    `).all(tableId, tableId, tableId, tableId, tableId, tableId, tableId, tableId, tableId) as any[]
 
     return { table, modifiers }
+  }
+
+  /* Consequência automática de skill (por rolagem): quando o teste
+     baseado na skill passa, cada modifier do ator marcado com
+     apply_on_roll=1 é materializado como um efeito ativo (cópia com
+     apply_on_roll=0), que passa a alterar HP/fadiga/atributos do sheet.
+     Assim o dano/cura/custo persiste e o máximo de HP/FP não muda. */
+  async applyGameSkillEffect(characterId: string, skillId: string): Promise<any[]> {
+    const templates = db.prepare(`
+      SELECT * FROM modifiers
+      WHERE character_id = ? AND skill_id = ? AND apply_on_roll = 1
+    `).all(characterId, skillId) as any[]
+
+    let applied: any[] = []
+    for (const t of templates) {
+      const id = crypto.randomUUID()
+      db.prepare(`
+        INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        t.character_id || null,
+        t.item_id || null,
+        t.skill_id || null,
+        t.advantage_id || null,
+        t.disadvantage_id || null,
+        t.location_id || null,
+        t.action_id || null,
+        t.narration_id || null,
+        t.scene_id || null,
+        t.name || '',
+        t.cost_points ?? null,
+        t.effect || '',
+        t.description || '',
+        t.hp ?? null,
+        t.st ?? null,
+        t.dx ?? null,
+        t.iq ?? null,
+        t.ht ?? null,
+        t.fatigue ?? null,
+        t.encumbrance || null,
+        t.mod_hp ?? null,
+        t.mod_st ?? null,
+        t.mod_dx ?? null,
+        t.mod_iq ?? null,
+        t.mod_ht ?? null,
+        t.mod_fatigue ?? null,
+        t.mod_encumbrance || null,
+        t.skill_value || null,
+        t.advantage_value || null,
+        t.disadvantage_value || null,
+        t.armor_value || null,
+        t.damage_value || null,
+        t.item_quantity ?? null,
+        t.item_dimension || null,
+        t.item_weight ?? null,
+        t.item_range || null,
+        t.item_status || null,
+        0
+      )
+      applied.push({
+        id,
+        name: t.name || 'Effect',
+        effect: t.effect || '',
+        mod_hp: t.mod_hp ?? null,
+        mod_fatigue: t.mod_fatigue ?? null,
+        damage_value: t.damage_value ?? null
+      })
+    }
+
+    return applied
   }
 
   /* =============== */
@@ -1755,8 +2138,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async createGameQueue(data: any): Promise<any> {
     const id = crypto.randomUUID()
     db.prepare(`
-      INSERT INTO queue (id, character_id, action_id, queue, status, test_dice, test_count, test_mod, test_attr)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO queue (id, character_id, action_id, queue, status, test_dice, test_count, test_mod, test_attr, test_kind, test_skill)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
@@ -1766,14 +2149,16 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.test_dice || '6',
       data.test_count ?? 3,
       data.test_mod ?? 0,
-      data.test_attr || 'dx'
+      data.test_attr || 'dx',
+      data.test_kind || 'attr',
+      data.test_skill || null
     )
     return { id }
   }
 
   async editGameQueue(data: any): Promise<void> {
     db.prepare(`
-      UPDATE queue SET character_id = ?, action_id = ?, queue = ?, status = ?, test_dice = ?, test_count = ?, test_mod = ?, test_attr = ?
+      UPDATE queue SET character_id = ?, action_id = ?, queue = ?, status = ?, test_dice = ?, test_count = ?, test_mod = ?, test_attr = ?, test_kind = ?, test_skill = ?
       WHERE id = ?
     `).run(
       data.character_id || null,
@@ -1784,6 +2169,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.test_count ?? 3,
       data.test_mod ?? 0,
       data.test_attr || 'dx',
+      data.test_kind || 'attr',
+      data.test_skill || null,
       data.id
     )
   }

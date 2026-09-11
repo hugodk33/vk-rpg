@@ -11,8 +11,11 @@ export interface IGameTableRulesRepository {
   findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any[] | void>
   findGameDisadvantages(id: any): Promise<void>
   
-  findGameLocation(id: any): Promise<void>
+  findGameLocation(id: any, viewer?: any): Promise<any>
   findAllGameLocations(id: any, viewer?: any): Promise<any[] | void>
+  createGameLocation(data: any): Promise<any>
+  editGameLocation(data: any): Promise<void>
+  deleteGameLocation(id: any): Promise<any>
   
   createGamePeculiarites(id: any): Promise<void>
   editGamePeculiarites(id: any): Promise<void>
@@ -46,6 +49,7 @@ export interface IGameTableRulesRepository {
   editGameModifier(data: any): Promise<void>
   findGameModifier(id: any): Promise<any>
   findAllGameModifiers(tableId: any): Promise<any>
+  applyGameSkillEffect(characterId: string, skillId: string): Promise<any[]>
 
   createGameVisibility(data: any): Promise<any>
   editGameVisibility(data: any): Promise<void>

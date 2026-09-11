@@ -353,12 +353,51 @@ for (const modifierNarrationsNPC of modifierNarrationsNPCs) {
 }
 
 const modifierTableLocationstmt = db.prepare(`
-  INSERT INTO table_locations(id, table_id, name, region, address, sub_region, is_indoor, other, country, area, dimensions, description )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO table_locations(id, table_id, parent_id, kind, level, path,
+    name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
+    hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const modifierTableLocation of modifierTableLocations) {
-  modifierTableLocationstmt.run(modifierTableLocation.id, modifierTableLocation.table_id, modifierTableLocation.name, modifierTableLocation.region, modifierTableLocation.address, modifierTableLocation.sub_region, modifierTableLocation.is_indoor, modifierTableLocation.other, modifierTableLocation.country, modifierTableLocation.area, modifierTableLocation.dimensions, modifierTableLocation.description)
+  let level = 0
+  let path = `/${modifierTableLocation.id}/`
+  if (modifierTableLocation.parent_id) {
+    const parent = db.prepare('SELECT id, level, path FROM table_locations WHERE id = ?')
+      .get(modifierTableLocation.parent_id) as { id: string; level: number; path: string } | undefined
+    if (parent) {
+      level = (parent.level ?? 0) + 1
+      path = `${parent.path}${modifierTableLocation.id}/`.replace(/\/{2,}/g, '/')
+    }
+  }
+  const hexSizeM = modifierTableLocation.hex_size_m ?? null
+  const isBattlemap = modifierTableLocation.is_battlemap ?? (hexSizeM != null && hexSizeM <= 2 ? 1 : 0)
+  modifierTableLocationstmt.run(
+    modifierTableLocation.id,
+    modifierTableLocation.table_id,
+    modifierTableLocation.parent_id ?? null,
+    modifierTableLocation.kind ?? 'site',
+    level,
+    path,
+    modifierTableLocation.name,
+    modifierTableLocation.region ?? null,
+    modifierTableLocation.address ?? null,
+    modifierTableLocation.sub_region ?? null,
+    modifierTableLocation.is_indoor ?? 0,
+    modifierTableLocation.other ?? null,
+    modifierTableLocation.country ?? null,
+    modifierTableLocation.area ?? null,
+    modifierTableLocation.dimensions ?? null,
+    modifierTableLocation.description ?? null,
+    hexSizeM,
+    modifierTableLocation.width_hexes ?? null,
+    modifierTableLocation.height_hexes ?? null,
+    modifierTableLocation.center_q ?? 0,
+    modifierTableLocation.center_r ?? 0,
+    modifierTableLocation.orientation ?? 'flat',
+    modifierTableLocation.rotation_deg ?? 0,
+    isBattlemap
+  )
 }
 
 const modifierNarrationsLocationstmt = db.prepare(`
