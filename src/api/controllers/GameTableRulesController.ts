@@ -209,7 +209,11 @@ export class GameTableRulesController {
   }
 
   async findLocation(req: Request, res: Response) {
-    const location = await this.findTableLocationUseCase!.execute(req.params.id as string)
+    const { viewer } = req.query
+    const location = await this.findTableLocationUseCase!.execute(
+      req.params.id as string,
+      viewer as string | undefined
+    )
     return res.json(location)
   }
 

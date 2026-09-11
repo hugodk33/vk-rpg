@@ -2,8 +2,8 @@ import { IGameTableRulesRepository } from '../../../domain/irepositories/IGameTa
 
 export class FindTableLocationUseCase {
   constructor(private repo: IGameTableRulesRepository) {}
-  async execute(id: any) {
-    const location = await this.repo.findGameLocation(id)
+  async execute(id: any, viewer?: any) {
+    const location = await this.repo.findGameLocation(id, viewer)
     return location
   }
 }

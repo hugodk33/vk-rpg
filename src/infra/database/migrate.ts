@@ -467,6 +467,7 @@ CREATE TABLE IF NOT EXISTS modifiers (
   skill_id TEXT,
   advantage_id TEXT,
   disadvantage_id TEXT,
+  location_id TEXT,
   action_id TEXT,
   narration_id TEXT,
   scene_id TEXT,
@@ -506,7 +507,8 @@ CREATE TABLE IF NOT EXISTS modifiers (
   FOREIGN KEY (disadvantage_id) REFERENCES game_table_disadvantages(id),
   FOREIGN KEY (action_id) REFERENCES narration_actions(id),
   FOREIGN KEY (narration_id) REFERENCES narrations(id),
-  FOREIGN KEY (scene_id) REFERENCES scenes(id)
+  FOREIGN KEY (scene_id) REFERENCES scenes(id),
+  FOREIGN KEY (location_id) REFERENCES table_locations(id)
 );
 
 CREATE TABLE IF NOT EXISTS visibility (
@@ -604,6 +606,10 @@ if (queueCols.length && !queueCols.includes('test_skill')) {
 const modifierCols = (db.prepare("PRAGMA table_info(modifiers)").all() as any[]).map((c) => c.name)
 if (modifierCols.length && !modifierCols.includes('apply_on_roll')) {
   db.exec("ALTER TABLE modifiers ADD COLUMN apply_on_roll INTEGER NOT NULL DEFAULT 0")
+}
+// modifiers.location_id — condição/evento vinculado a um local (bases antigas)
+if (modifierCols.length && !modifierCols.includes('location_id')) {
+  db.exec("ALTER TABLE modifiers ADD COLUMN location_id TEXT")
 }
 
 // table_locations — hierarquia de território + grade hexagonal (bases pre-existentes)

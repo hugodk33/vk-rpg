@@ -407,7 +407,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return disadvantage
   }
 
-  async findGameLocation(id: any): Promise<any> {
+  async findGameLocation(id: any, viewer?: any): Promise<any> {
     const row: any = db.prepare(`
       SELECT tl.*, gt.title AS table_title
       FROM table_locations tl
@@ -417,9 +417,16 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).get(id)
     if (!row) return null
 
+    const rules = viewer ? viewerRules(viewer) : null
+
+    const shape = (nodes: any[]) =>
+      rules ? shapeCatalogForViewer(nodes, rules, 'location') : nodes
+
     const dto = locationToDTO(row)
 
-    // Ancestralidade (cadeia raiz -> pai, sem o próprio nó)
+    // Ancestralidade (cadeia raiz -> pai, sem o próprio nó). Sob viewer, a
+    // cadeia é mascarada pelas mesmas regras do observador (sem filtrar — o
+    // contexto territorial de um local conhecido é "como" o leitor o vê).
     const ancestors: any[] = []
     const guard = new Set<string>([row.id])
     let curId: string | null = row.parent_id ?? null
@@ -432,11 +439,24 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       curId = parentRow.parent_id ?? null
     }
 
-    const children = (db.prepare(`
+    // Filhos — sob viewer, só permanecem os visíveis para o observador.
+    const children = shape((db.prepare(`
       SELECT * FROM table_locations
       WHERE parent_id = ?
       ORDER BY hex_size_m IS NULL, hex_size_m ASC, name ASC
-    `).all(id) as any[]).map(locationToDTO)
+    `).all(id) as any[]).map(locationToDTO))
+
+    if (rules) {
+      const [self] = shape([dto])
+      if (!self) return null
+      return {
+        ...self,
+        table_id: row.table_id,
+        table_title: row.table_title,
+        ancestors: shape(ancestors),
+        children,
+      }
+    }
 
     return {
       ...dto,
@@ -1825,8 +1845,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async createGameModifier(data: any): Promise<any> {
     const id = crypto.randomUUID()
     db.prepare(`
-      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
@@ -1834,6 +1854,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.skill_id || null,
       data.advantage_id || null,
       data.disadvantage_id || null,
+      data.location_id || null,
       data.action_id || null,
       data.narration_id || null,
       data.scene_id || null,
@@ -1874,7 +1895,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     db.prepare(`
       UPDATE modifiers SET
         character_id = ?, item_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
-        action_id = ?, narration_id = ?, scene_id = ?, name = ?, cost_points = ?,
+        location_id = ?, action_id = ?, narration_id = ?, scene_id = ?, name = ?, cost_points = ?,
         effect = ?, description = ?, hp = ?, st = ?, dx = ?, iq = ?, ht = ?,
         fatigue = ?, encumbrance = ?, mod_hp = ?, mod_st = ?, mod_dx = ?, mod_iq = ?,
         mod_ht = ?, mod_fatigue = ?, mod_encumbrance = ?, skill_value = ?,
@@ -1888,6 +1909,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.skill_id || null,
       data.advantage_id || null,
       data.disadvantage_id || null,
+      data.location_id || null,
       data.action_id || null,
       data.narration_id || null,
       data.scene_id || null,
@@ -1942,6 +1964,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       LEFT JOIN game_table_skills gsk ON gsk.id = m.skill_id
       LEFT JOIN game_table_advantages ga ON ga.id = m.advantage_id
       LEFT JOIN game_table_disadvantages gd ON gd.id = m.disadvantage_id
+      LEFT JOIN table_locations tl ON tl.id = m.location_id
       WHERE gc.table_id = ?
          OR s.table_id = ?
          OR n.table_id = ?
@@ -1950,7 +1973,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
          OR gsk.table_id = ?
          OR ga.table_id = ?
          OR gd.table_id = ?
-    `).all(tableId, tableId, tableId, tableId, tableId, tableId, tableId, tableId) as any[]
+         OR tl.table_id = ?
+    `).all(tableId, tableId, tableId, tableId, tableId, tableId, tableId, tableId, tableId) as any[]
 
     return { table, modifiers }
   }
@@ -1970,8 +1994,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     for (const t of templates) {
       const id = crypto.randomUUID()
       db.prepare(`
-        INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id,
         t.character_id || null,
@@ -1979,6 +2003,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         t.skill_id || null,
         t.advantage_id || null,
         t.disadvantage_id || null,
+        t.location_id || null,
         t.action_id || null,
         t.narration_id || null,
         t.scene_id || null,
