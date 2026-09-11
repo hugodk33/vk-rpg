@@ -120,10 +120,25 @@ CREATE TABLE IF NOT EXISTS narrations (
 
 -- =========================
 -- LOCATIONS
+-- -------------------------
+-- Cada location é uma DIVISÃO DE TERRENO num funil:
+--   world > continent > nation > region > city > district > site > battlemap
+-- parent_id fecha a árvore (level/path são derivados e mantidos pela app).
+-- Geometria = grade hexagonal (GURPS):
+--   hex_size_m    lado de um hex nesta grade (escala; metro = mapa tático)
+--   center_q/r    posição (coords axiais q,r) do CENTRO deste local
+--                 dentro da grade do pai
+--   width/height  pegada em hexes (redondos: díametro ao longo do eixo)
+--   orientation   'flat' (GURPS) | 'pointy' | 'square' (sem hex)
+--   is_battlemap  1 quando hex_size_m <= 2 (escala tática -> mapa de batalha)
 -- =========================
 CREATE TABLE IF NOT EXISTS table_locations (
   id TEXT PRIMARY KEY,
   table_id TEXT,
+  parent_id TEXT,
+  kind TEXT,
+  level INTEGER,
+  path TEXT,
   name TEXT,
   region TEXT,
   address TEXT,
@@ -134,7 +149,16 @@ CREATE TABLE IF NOT EXISTS table_locations (
   area TEXT,
   dimensions TEXT,
   description TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  hex_size_m REAL,
+  width_hexes INTEGER,
+  height_hexes INTEGER,
+  center_q INTEGER,
+  center_r INTEGER,
+  orientation TEXT DEFAULT 'flat',
+  rotation_deg INTEGER DEFAULT 0,
+  is_battlemap INTEGER DEFAULT 0,
+  FOREIGN KEY (table_id) REFERENCES game_tables(id),
+  FOREIGN KEY (parent_id) REFERENCES table_locations(id)
 );
 
 CREATE TABLE IF NOT EXISTS narration_actions (
@@ -580,6 +604,30 @@ if (queueCols.length && !queueCols.includes('test_skill')) {
 const modifierCols = (db.prepare("PRAGMA table_info(modifiers)").all() as any[]).map((c) => c.name)
 if (modifierCols.length && !modifierCols.includes('apply_on_roll')) {
   db.exec("ALTER TABLE modifiers ADD COLUMN apply_on_roll INTEGER NOT NULL DEFAULT 0")
+}
+
+// table_locations — hierarquia de território + grade hexagonal (bases pre-existentes)
+const locationCols = (db.prepare("PRAGMA table_info(table_locations)").all() as any[]).map((c) => c.name)
+if (locationCols.length) {
+  const locationAdds: { col: string; ddl: string }[] = [
+    { col: 'parent_id', ddl: 'TEXT' },
+    { col: 'kind', ddl: "TEXT DEFAULT 'site'" },
+    { col: 'level', ddl: 'INTEGER DEFAULT 0' },
+    { col: 'path', ddl: "TEXT DEFAULT '/'" },
+    { col: 'hex_size_m', ddl: 'REAL' },
+    { col: 'width_hexes', ddl: 'INTEGER' },
+    { col: 'height_hexes', ddl: 'INTEGER' },
+    { col: 'center_q', ddl: 'INTEGER DEFAULT 0' },
+    { col: 'center_r', ddl: 'INTEGER DEFAULT 0' },
+    { col: 'orientation', ddl: "TEXT DEFAULT 'flat'" },
+    { col: 'rotation_deg', ddl: 'INTEGER DEFAULT 0' },
+    { col: 'is_battlemap', ddl: 'INTEGER DEFAULT 0' },
+  ]
+  for (const { col, ddl } of locationAdds) {
+    if (!locationCols.includes(col)) {
+      db.exec(`ALTER TABLE table_locations ADD COLUMN ${col} ${ddl}`)
+    }
+  }
 }
 
 console.log('✅ Full database migrated!')

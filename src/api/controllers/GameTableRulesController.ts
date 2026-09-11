@@ -43,6 +43,9 @@ import { ApplyGameSkillEffectUseCase } from '../../application/use-cases/table-g
 import { FindGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableDisadvantageUseCase'
 import { FindTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/FindTableLocationUseCase'
 import { FindAllTableLocationsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllTableLocationsUseCase'
+import { CreateTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateTableLocationUseCase'
+import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
+import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -88,7 +91,10 @@ export class GameTableRulesController {
     private applyGameSkillEffectUseCase?: ApplyGameSkillEffectUseCase,
     private findGameTableDisadvantageUseCase?: FindGameTableDisadvantageUseCase,
     private findTableLocationUseCase?: FindTableLocationUseCase,
-    private findAllTableLocationsUseCase?: FindAllTableLocationsUseCase
+    private findAllTableLocationsUseCase?: FindAllTableLocationsUseCase,
+    private createTableLocationUseCase?: CreateTableLocationUseCase,
+    private editTableLocationUseCase?: EditTableLocationUseCase,
+    private deleteTableLocationUseCase?: DeleteTableLocationUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -214,6 +220,25 @@ export class GameTableRulesController {
       viewer as string | undefined
     )
     return res.json(locations)
+  }
+
+  async createLocation(req: Request, res: Response) {
+    const location = await this.createTableLocationUseCase!.execute(req.body)
+    return res.json(location)
+  }
+
+  async editLocation(req: Request, res: Response) {
+    await this.editTableLocationUseCase!.execute({ id: req.params.id, ...req.body })
+    return res.json({ success: true })
+  }
+
+  async deleteLocation(req: Request, res: Response) {
+    try {
+      const result = await this.deleteTableLocationUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
   }
 
   async createNPC(req: Request, res: Response) {

@@ -13,6 +13,9 @@ export interface IGameTableRulesRepository {
   
   findGameLocation(id: any): Promise<void>
   findAllGameLocations(id: any, viewer?: any): Promise<any[] | void>
+  createGameLocation(data: any): Promise<any>
+  editGameLocation(data: any): Promise<void>
+  deleteGameLocation(id: any): Promise<any>
   
   createGamePeculiarites(id: any): Promise<void>
   editGamePeculiarites(id: any): Promise<void>

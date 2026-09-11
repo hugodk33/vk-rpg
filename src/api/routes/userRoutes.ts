@@ -67,6 +67,9 @@ import { ApplyGameSkillEffectUseCase } from '../../application/use-cases/table-g
 import { FindGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableDisadvantageUseCase'
 import { FindTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/FindTableLocationUseCase'
 import { FindAllTableLocationsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllTableLocationsUseCase'
+import { CreateTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateTableLocationUseCase'
+import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
+import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
 import { FindUserByIdUseCase } from '../../application/use-cases/users-use-cases/FindUserByIdUseCase'
 
 const router = Router()
@@ -150,6 +153,9 @@ const applyGameSkillEffectUseCase = new ApplyGameSkillEffectUseCase(gameTableRul
 const findGameTableDisadvantageUseCase = new FindGameTableDisadvantageUseCase(gameTableRulesRepo)
 const findTableLocationUseCase = new FindTableLocationUseCase(gameTableRulesRepo)
 const findAllTableLocationsUseCase = new FindAllTableLocationsUseCase(gameTableRulesRepo)
+const createTableLocationUseCase = new CreateTableLocationUseCase(gameTableRulesRepo)
+const editTableLocationUseCase = new EditTableLocationUseCase(gameTableRulesRepo)
+const deleteTableLocationUseCase = new DeleteTableLocationUseCase(gameTableRulesRepo)
 
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(
@@ -196,7 +202,10 @@ const gameTableRulesController = new GameTableRulesController(
     applyGameSkillEffectUseCase,
     findGameTableDisadvantageUseCase,
     findTableLocationUseCase,
-    findAllTableLocationsUseCase)
+    findAllTableLocationsUseCase,
+    createTableLocationUseCase,
+    editTableLocationUseCase,
+    deleteTableLocationUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -232,6 +241,9 @@ router.post('/game-table-item', (req, res) => gameTableRulesController.createIte
 router.put('/game-table-item', (req, res) => gameTableRulesController.editItem(req, res))
 router.get('/table-location/:id', (req, res) => gameTableRulesController.findLocation(req, res))
 router.get('/game-table-locations/:id', (req, res) => gameTableRulesController.findAllLocations(req, res))
+router.post('/table-location', (req, res) => gameTableRulesController.createLocation(req, res))
+router.put('/table-location/:id', (req, res) => gameTableRulesController.editLocation(req, res))
+router.delete('/table-location/:id', (req, res) => gameTableRulesController.deleteLocation(req, res))
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 
