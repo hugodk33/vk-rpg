@@ -137,19 +137,24 @@ export class GameTableRulesController {
   }
 
   async findAllItems(req: Request, res: Response) {
-    const { search, category, type, viewer } = req.query
+    const { search, category, type, viewer, location } = req.query
     const Items = await this.findAllGameTableItemsUseCase.execute(
       req.params.id as string,
       search as string | undefined,
       category as string | undefined,
       type as string | undefined,
-      viewer as string | undefined
+      viewer as string | undefined,
+      location as string | undefined
     )
     return res.json(Items)
   }
 
   async findAllNPCS(req: Request, res: Response) {
-    const NPCS = await this.findAllGameTableNPCSUseCase.execute(req.params.id as string)
+    const { location } = req.query
+    const NPCS = await this.findAllGameTableNPCSUseCase.execute(
+      req.params.id as string,
+      location as string | undefined
+    )
     return res.json(NPCS)
   }
 

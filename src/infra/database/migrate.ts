@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS table_locations (
   orientation TEXT DEFAULT 'flat',
   rotation_deg INTEGER DEFAULT 0,
   is_battlemap INTEGER DEFAULT 0,
+  shop_name TEXT,
   FOREIGN KEY (table_id) REFERENCES game_tables(id),
   FOREIGN KEY (parent_id) REFERENCES table_locations(id)
 );
@@ -213,6 +214,7 @@ CREATE TABLE IF NOT EXISTS narration_locations (
 CREATE TABLE IF NOT EXISTS game_table_items (
   id TEXT PRIMARY KEY,
   table_id TEXT,
+  location_id TEXT,     -- vínculo opcional a um local (ex: estoque de uma loja)
   name TEXT,
   kind TEXT,            -- 'weapon' | 'armor' | 'shield' | 'equipment'
   category TEXT,        -- domínio: melee | ranged | clothing | ...
@@ -222,7 +224,8 @@ CREATE TABLE IF NOT EXISTS game_table_items (
   description TEXT,
   quality TEXT,         -- domínio: cheap | standard | fine | very_fine
   condition TEXT,       -- domínio: new | worn | damaged | broken
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  FOREIGN KEY (table_id) REFERENCES game_tables(id),
+  FOREIGN KEY (location_id) REFERENCES table_locations(id)
 );
 
 CREATE TABLE IF NOT EXISTS item_images (
@@ -339,7 +342,9 @@ CREATE TABLE IF NOT EXISTS game_table_npcs (
   id TEXT PRIMARY KEY,
   character_id TEXT,
   status TEXT,
-  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
+  location_id TEXT,     -- vínculo opcional a um local (ex: equipe de uma loja)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
+  FOREIGN KEY (location_id) REFERENCES table_locations(id)
 );
 
 CREATE TABLE IF NOT EXISTS narration_npcs (
@@ -628,12 +633,25 @@ if (locationCols.length) {
     { col: 'orientation', ddl: "TEXT DEFAULT 'flat'" },
     { col: 'rotation_deg', ddl: 'INTEGER DEFAULT 0' },
     { col: 'is_battlemap', ddl: 'INTEGER DEFAULT 0' },
+    { col: 'shop_name', ddl: 'TEXT' },
   ]
   for (const { col, ddl } of locationAdds) {
     if (!locationCols.includes(col)) {
       db.exec(`ALTER TABLE table_locations ADD COLUMN ${col} ${ddl}`)
     }
   }
+}
+
+// game_table_items.location_id — vínculo item -> local (estoque de lojas, bases antigas)
+const itemCols = (db.prepare("PRAGMA table_info(game_table_items)").all() as any[]).map((c) => c.name)
+if (itemCols.length && !itemCols.includes('location_id')) {
+  db.exec("ALTER TABLE game_table_items ADD COLUMN location_id TEXT")
+}
+
+// game_table_npcs.location_id — vínculo npc -> local (equipe de lojas, bases antigas)
+const npcCols = (db.prepare("PRAGMA table_info(game_table_npcs)").all() as any[]).map((c) => c.name)
+if (npcCols.length && !npcCols.includes('location_id')) {
+  db.exec("ALTER TABLE game_table_npcs ADD COLUMN location_id TEXT")
 }
 
 console.log('✅ Full database migrated!')

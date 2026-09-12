@@ -100,6 +100,7 @@ function locationToDTO(l: any): any {
       rotationDeg: l.rotation_deg ?? 0,
     },
     isBattlemap: locationIsBattlemap(hexSizeM, l.is_battlemap),
+    shopName: l.shop_name ?? null,
   }
 }
 
@@ -536,8 +537,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const itemId = crypto.randomUUID()
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
     db.prepare(`
-      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       itemId,
       data.table_id,
@@ -549,7 +550,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.dimensions,
       data.description,
       data.quality,
-      data.condition
+      data.condition,
+      data.location_id ?? null
     )
 
     // ---- WEAPON / SHIELD: atributos de arma + ataques ----
@@ -608,7 +610,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
     db.prepare(`
       UPDATE game_table_items
-      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, dimensions = ?, description = ?, quality = ?, condition = ?
+      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
       WHERE id = ?
     `).run(
       data.name,
@@ -620,6 +622,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.description,
       data.quality,
       data.condition,
+      data.location_id ?? null,
       data.id
     )
 
@@ -719,7 +722,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { ...gameTableItem, weapon: weapon || null, armor: armor || null }
   }
 
-  async findAllGameItems(id: any, search?: string, category?: string, kind?: string, viewer?: any): Promise<any> {
+  async findAllGameItems(id: any, search?: string, category?: string, kind?: string, viewer?: any, location?: any): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -747,6 +750,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     if (kind) {
       itemClauses.push("kind = ?")
       itemParams.push(kind)
+    }
+
+    if (location) {
+      itemClauses.push("location_id = ?")
+      itemParams.push(location)
     }
 
     const gameTablesItems = db.prepare(`
@@ -829,9 +837,10 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       INSERT INTO table_locations (
         id, table_id, parent_id, kind, level, path,
         name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
-        hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap
+        hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
+        shop_name
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.table_id,
@@ -856,7 +865,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.center_r ?? data.hex?.centerR ?? 0,
       data.orientation ?? data.hex?.orientation ?? 'flat',
       data.rotation_deg ?? data.hex?.rotationDeg ?? 0,
-      isBattle
+      isBattle,
+      data.shop_name ?? data.shopName ?? null
     )
 
     return this.findGameLocation(id)
@@ -883,7 +893,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         name = ?, region = ?, address = ?, sub_region = ?, is_indoor = ?,
         other = ?, country = ?, area = ?, dimensions = ?, description = ?,
         hex_size_m = ?, width_hexes = ?, height_hexes = ?, center_q = ?, center_r = ?,
-        orientation = ?, rotation_deg = ?, is_battlemap = ?
+        orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?
       WHERE id = ?
     `).run(
       parentId,
@@ -908,6 +918,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.orientation ?? data.hex?.orientation ?? current.orientation ?? 'flat',
       data.rotation_deg ?? data.hex?.rotationDeg ?? current.rotation_deg ?? 0,
       isBattle,
+      data.shop_name ?? data.shopName ?? current.shop_name ?? null,
       data.id
     )
 
@@ -1015,9 +1026,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       }
 
       db.prepare(`
-        INSERT INTO game_table_npcs (id, character_id, status)
-        VALUES (?, ?, ?)
-      `).run(crypto.randomUUID(), characterId, data.status || 'active')
+        INSERT INTO game_table_npcs (id, character_id, status, location_id)
+        VALUES (?, ?, ?, ?)
+      `).run(crypto.randomUUID(), characterId, data.status || 'active', data.location_id ?? null)
     })
 
     insertTransaction()
@@ -1026,11 +1037,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async editGameNPC(data: any): Promise<void> {
     db.prepare(`
       UPDATE game_table_npcs
-      SET character_id = ?, status = ?
+      SET character_id = ?, status = ?, location_id = ?
       WHERE id = ?
     `).run(
       data.character_id,
       data.status,
+      data.location_id ?? null,
       data.id
     )
   }
@@ -1039,6 +1051,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       SELECT
         npc.id as npc_id,
         npc.status,
+        npc.location_id,
         npc.character_id,
         c.table_id,
         c.user_id,
@@ -1061,7 +1074,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         g.intro as table_intro,
         g.system as table_system
       FROM game_table_npcs npc
-      LEFT JOIN characters c ON c.id = npc.character_id
+      LEFT JOIN game_table_characters c ON c.id = npc.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       LEFT JOIN users u ON u.id = c.user_id
       LEFT JOIN game_tables g ON g.id = c.table_id
@@ -1113,7 +1126,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return {
       npc: {
         id: npcData.npc_id,
-        status: npcData.status
+        status: npcData.status,
+        location_id: npcData.location_id ?? null
       },
       character: {
         id: npcData.character_id,
@@ -1151,7 +1165,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       peculiarities
     }
   }
-  async findAllGameNPCS(tableId: any): Promise<any> {
+  async findAllGameNPCS(tableId: any, location?: any): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -1167,6 +1181,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         npc.id as id,
         npc.status,
         npc.character_id,
+        npc.location_id,
         cs.name as name,
         cs.points,
         cs.hp,
@@ -1177,8 +1192,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       FROM game_table_npcs npc
       LEFT JOIN game_table_characters c ON c.id = npc.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
-      WHERE c.table_id = ?
-    `).all(tableId) as any[]
+      WHERE c.table_id = ? AND (? IS NULL OR npc.location_id = ?)
+    `).all(tableId, location ?? null, location ?? null) as any[]
     
     return ({
         'table': table,

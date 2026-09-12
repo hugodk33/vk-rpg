@@ -248,6 +248,7 @@ router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAl
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 
 router.post('/game-table-npc', (req, res) => gameTableRulesController.createNPC(req, res))
+router.put('/game-table-npc', (req, res) => gameTableRulesController.editNPC(req, res))
 router.post('/game-table-character', (req, res) => gameTableRulesController.createCharacter(req, res))
 router.put('/game-table-character', (req, res) => gameTableRulesController.editCharacter(req, res))
 router.put('/game-table-character-equipment', (req, res) => gameTableRulesController.editCharacterEquipment(req, res))
