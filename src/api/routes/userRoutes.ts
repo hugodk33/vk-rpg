@@ -70,6 +70,7 @@ import { FindAllTableLocationsUseCase } from '../../application/use-cases/table-
 import { CreateTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateTableLocationUseCase'
 import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
 import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
+import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/SetDefaultGameLocationUseCase'
 import { FindUserByIdUseCase } from '../../application/use-cases/users-use-cases/FindUserByIdUseCase'
 
 const router = Router()
@@ -156,6 +157,7 @@ const findAllTableLocationsUseCase = new FindAllTableLocationsUseCase(gameTableR
 const createTableLocationUseCase = new CreateTableLocationUseCase(gameTableRulesRepo)
 const editTableLocationUseCase = new EditTableLocationUseCase(gameTableRulesRepo)
 const deleteTableLocationUseCase = new DeleteTableLocationUseCase(gameTableRulesRepo)
+const setDefaultGameLocationUseCase = new SetDefaultGameLocationUseCase(gameTableRulesRepo)
 
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(
@@ -205,7 +207,8 @@ const gameTableRulesController = new GameTableRulesController(
     findAllTableLocationsUseCase,
     createTableLocationUseCase,
     editTableLocationUseCase,
-    deleteTableLocationUseCase)
+    deleteTableLocationUseCase,
+    setDefaultGameLocationUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -244,6 +247,7 @@ router.get('/game-table-locations/:id', (req, res) => gameTableRulesController.f
 router.post('/table-location', (req, res) => gameTableRulesController.createLocation(req, res))
 router.put('/table-location/:id', (req, res) => gameTableRulesController.editLocation(req, res))
 router.delete('/table-location/:id', (req, res) => gameTableRulesController.deleteLocation(req, res))
+router.post('/game-table-locations/default', (req, res) => gameTableRulesController.setDefaultLocation(req, res))
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 

@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS game_tables (
   title TEXT,
   system TEXT,
   intro TEXT,
+  default_location_id TEXT,
   FOREIGN KEY (narrator_id) REFERENCES narrators(id)
 );
 
@@ -652,6 +653,12 @@ if (itemCols.length && !itemCols.includes('location_id')) {
 const npcCols = (db.prepare("PRAGMA table_info(game_table_npcs)").all() as any[]).map((c) => c.name)
 if (npcCols.length && !npcCols.includes('location_id')) {
   db.exec("ALTER TABLE game_table_npcs ADD COLUMN location_id TEXT")
+}
+
+// game_tables.default_location_id — location padrão que os players enxergam ao abrir o mapa
+const gameTableCols = (db.prepare("PRAGMA table_info(game_tables)").all() as any[]).map((c) => c.name)
+if (gameTableCols.length && !gameTableCols.includes('default_location_id')) {
+  db.exec("ALTER TABLE game_tables ADD COLUMN default_location_id TEXT")
 }
 
 console.log('✅ Full database migrated!')

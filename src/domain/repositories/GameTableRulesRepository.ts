@@ -794,7 +794,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         id,
         narrator_id,
         intro,
-        title
+        title,
+        default_location_id
       FROM game_tables
       WHERE id = ?
     `).get(id as string)
@@ -816,7 +817,22 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       tree: viewer
         ? filterTreeVisible(buildLocationTree(shaped), new Set(shaped.map((x: any) => String(x.id))))
         : buildLocationTree(locations),
+      defaultLocationId: (table as any)?.default_location_id ?? null,
     })
+  }
+
+  /** Marca a location padrão que os players veem primeiro ao abrir o mapa. */
+  async setDefaultGameLocation(tableId: any, locationId: any): Promise<any> {
+    const table = db.prepare('SELECT id FROM game_tables WHERE id = ?').get(tableId as string)
+    if (!table) return { success: false, error: 'Game table not found' }
+    if (locationId != null) {
+      const loc = db.prepare('SELECT id FROM table_locations WHERE id = ? AND table_id = ?')
+        .get(locationId as string, tableId as string)
+      if (!loc) return { success: false, error: 'Location does not belong to this table' }
+    }
+    db.prepare('UPDATE game_tables SET default_location_id = ? WHERE id = ?')
+      .run(locationId ?? null, tableId)
+    return { success: true, defaultLocationId: locationId ?? null }
   }
 
   /* =============== */

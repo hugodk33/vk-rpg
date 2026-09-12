@@ -46,6 +46,7 @@ import { FindAllTableLocationsUseCase } from '../../application/use-cases/table-
 import { CreateTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateTableLocationUseCase'
 import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
 import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
+import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/SetDefaultGameLocationUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -94,7 +95,8 @@ export class GameTableRulesController {
     private findAllTableLocationsUseCase?: FindAllTableLocationsUseCase,
     private createTableLocationUseCase?: CreateTableLocationUseCase,
     private editTableLocationUseCase?: EditTableLocationUseCase,
-    private deleteTableLocationUseCase?: DeleteTableLocationUseCase
+    private deleteTableLocationUseCase?: DeleteTableLocationUseCase,
+    private setDefaultGameLocationUseCase?: SetDefaultGameLocationUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -248,6 +250,18 @@ export class GameTableRulesController {
     } catch (err: any) {
       return res.status(400).json({ success: false, error: err.message })
     }
+  }
+
+  async setDefaultLocation(req: Request, res: Response) {
+    const { tableId, locationId } = req.body as { tableId?: string; locationId?: string | null }
+    if (!tableId) {
+      return res.status(400).json({ success: false, error: 'tableId is required' })
+    }
+    const result = await this.setDefaultGameLocationUseCase!.execute(tableId, locationId ?? null)
+    if (result?.success === false) {
+      return res.status(400).json(result)
+    }
+    return res.json(result)
   }
 
   async createNPC(req: Request, res: Response) {
