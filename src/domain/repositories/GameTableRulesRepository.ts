@@ -1699,6 +1699,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         c.user_id,
         c.table_id,
         cs.name as sheet_name,
+        cs.hp,
+        cs.st,
+        cs.dx,
+        cs.iq,
+        cs.ht,
+        cs.fatigue,
         u.username,
         g.title as table_title,
         g.system as table_system
@@ -1713,46 +1719,129 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
     const characterId = characterData.character_id
 
-    const events = (moment != null
-      ? db.prepare(`
+    // Consequências aplicadas (modifiers ativos) + rolagens registradas
+    // (narration_actions com dice_roll, SEM consequência materializada).
+    // Ambas as fontes viram eventos na mesma linha do tempo — o teste
+    // aparece como marco; a consequência carrega a mudança de estado.
+    const consQuery = `
+      SELECT
+        'consequence' AS kind,
+        m.*,
+        m.rowid AS _rowid,
+        n.moment AS narration_moment,
+        n.title AS narration_title,
+        n.narration AS narration_body,
+        s.title AS scene_title,
+        s.moment AS scene_moment,
+        s.chapter AS chapter,
+        na.queue AS action_queue,
+        na.description AS action_description,
+        na.result AS action_result,
+        na.dice_roll AS action_dice_roll
+      FROM modifiers m
+      LEFT JOIN narrations n ON n.id = m.narration_id
+      LEFT JOIN scenes s ON s.id = n.scene_id
+      LEFT JOIN narration_actions na ON na.id = m.action_id
+      WHERE m.character_id = ?
+        AND (m.apply_on_roll IS NULL OR m.apply_on_roll = 0)
+        ${moment != null ? 'AND (n.moment IS NULL OR n.moment <= ?)' : ''}
+    `
+    const testQuery = `
+      SELECT
+        'test' AS kind,
+        na.id AS id,
+        na.queue AS action_queue,
+        na.description AS action_description,
+        na.result AS action_result,
+        na.dice_roll AS action_dice_roll,
+        na.rowid AS _rowid,
+        n.moment AS narration_moment,
+        n.title AS narration_title,
+        n.narration AS narration_body,
+        s.title AS scene_title,
+        s.moment AS scene_moment,
+        s.chapter AS chapter,
+        q.test_kind AS test_kind,
+        q.test_skill AS test_skill,
+        q.test_skill_name AS test_skill_name
+      FROM narration_actions na
+      LEFT JOIN narrations n ON n.id = na.narrations_id
+      LEFT JOIN scenes s ON s.id = n.scene_id
+      LEFT JOIN (
         SELECT
-          m.*,
-          n.moment AS narration_moment,
-          n.title AS narration_title,
-          n.narration AS narration_body,
-          s.title AS scene_title,
-          s.chapter AS chapter,
-          na.queue AS action_queue,
-          na.description AS action_description,
-          na.result AS action_result,
-          na.dice_roll AS action_dice_roll
-        FROM modifiers m
-        LEFT JOIN narrations n ON n.id = m.narration_id
-        LEFT JOIN scenes s ON s.id = n.scene_id
-        LEFT JOIN narration_actions na ON na.id = m.action_id
-        WHERE m.character_id = ?
-          AND (n.moment IS NULL OR n.moment <= ?)
-        ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, m.rowid ASC
-      `).all(characterId, moment) as any[]
-      : db.prepare(`
-        SELECT
-          m.*,
-          n.moment AS narration_moment,
-          n.title AS narration_title,
-          n.narration AS narration_body,
-          s.title AS scene_title,
-          s.chapter AS chapter,
-          na.queue AS action_queue,
-          na.description AS action_description,
-          na.result AS action_result,
-          na.dice_roll AS action_dice_roll
-        FROM modifiers m
-        LEFT JOIN narrations n ON n.id = m.narration_id
-        LEFT JOIN scenes s ON s.id = n.scene_id
-        LEFT JOIN narration_actions na ON na.id = m.action_id
-        WHERE m.character_id = ?
-        ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, m.rowid ASC
-      `).all(characterId) as any[])
+          q0.action_id,
+          MAX(q0.test_kind) AS test_kind,
+          MAX(q0.test_skill) AS test_skill,
+          MAX(sk.name) AS test_skill_name
+        FROM queue q0
+        LEFT JOIN game_table_skills sk ON sk.id = q0.test_skill
+        GROUP BY q0.action_id
+      ) q ON q.action_id = na.id
+      WHERE na.character_id = ?
+        AND na.dice_roll IS NOT NULL AND TRIM(na.dice_roll) != ''
+        ${moment != null ? 'AND (n.moment IS NULL OR n.moment <= ?)' : ''}
+        AND NOT EXISTS (
+          SELECT 1 FROM modifiers mx
+          WHERE mx.action_id = na.id AND mx.character_id = na.character_id
+            AND (mx.apply_on_roll IS NULL OR mx.apply_on_roll = 0)
+        )
+    `
+
+    const consParams = moment != null ? [characterId, moment] : [characterId]
+    const testParams = moment != null ? [characterId, moment] : [characterId]
+    const consequences = db.prepare(consQuery).all(...consParams) as any[]
+    const tests = db.prepare(testQuery).all(...testParams) as any[]
+
+    const combined = [...tests, ...consequences].sort((a, b) => {
+      const ak = a.chapter ?? Infinity
+      const bk = b.chapter ?? Infinity
+      if (ak !== bk) return ak - bk
+      const am = a.scene_moment ?? Infinity
+      const bm = b.scene_moment ?? Infinity
+      if (am !== bm) return am - bm
+      const an = a.narration_moment ?? Infinity
+      const bn = b.narration_moment ?? Infinity
+      if (an !== bn) return an - bn
+      const aq = a.action_queue ?? Infinity
+      const bq = b.action_queue ?? Infinity
+      if (aq !== bq) return aq - bq
+      const ao = a.kind === 'test' ? 0 : 1
+      const bo = b.kind === 'test' ? 0 : 1
+      if (ao !== bo) return ao - bo
+      return (a._rowid ?? 0) - (b._rowid ?? 0)
+    })
+
+    // Estado acumulado: cada evento carrega o snapshot antes/depois (mesma regra da ficha).
+    const baseStats = {
+      hp: characterData.hp ?? 10,
+      st: characterData.st ?? 10,
+      dx: characterData.dx ?? 10,
+      iq: characterData.iq ?? 10,
+      ht: characterData.ht ?? 10,
+      fatigue: characterData.fatigue ?? 10,
+    }
+    const snapshot = (s: any) => ({
+      hp: s.hp, st: s.st, dx: s.dx, iq: s.iq, ht: s.ht, fatigue: s.fatigue,
+    })
+    let cur = { ...baseStats }
+    const enriched: any[] = []
+    for (const m of combined) {
+      const before = snapshot(cur)
+      if (m.hp != null) cur.hp = m.hp
+      if (m.st != null) cur.st = m.st
+      if (m.dx != null) cur.dx = m.dx
+      if (m.iq != null) cur.iq = m.iq
+      if (m.ht != null) cur.ht = m.ht
+      if (m.fatigue != null) cur.fatigue = m.fatigue
+      if (m.mod_hp != null) cur.hp += m.mod_hp
+      if (m.mod_st != null) cur.st += m.mod_st
+      if (m.mod_dx != null) cur.dx += m.mod_dx
+      if (m.mod_iq != null) cur.iq += m.mod_iq
+      if (m.mod_ht != null) cur.ht += m.mod_ht
+      if (m.mod_fatigue != null) cur.fatigue += m.mod_fatigue
+      enriched.push({ ...m, state_before: before, state_after: snapshot(cur) })
+    }
+    for (const ev of enriched) delete ev._rowid
 
     return {
       character: {
@@ -1768,7 +1857,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         title: characterData.table_title,
         system: characterData.table_system
       },
-      events
+      baseline: baseStats,
+      events: enriched
     }
   }
 
