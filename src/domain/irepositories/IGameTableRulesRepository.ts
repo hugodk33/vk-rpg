@@ -16,6 +16,7 @@ export interface IGameTableRulesRepository {
   createGameLocation(data: any): Promise<any>
   editGameLocation(data: any): Promise<void>
   deleteGameLocation(id: any): Promise<any>
+  setDefaultGameLocation(tableId: any, locationId: any): Promise<any>
   
   createGamePeculiarites(id: any): Promise<void>
   editGamePeculiarites(id: any): Promise<void>
@@ -25,7 +26,7 @@ export interface IGameTableRulesRepository {
   createGameItems(id: any): Promise<any>
   editGameItems(id: any): Promise<void>
   findGameItems(id: any): Promise<void>
-  findAllGameItems(id: any, search?: string, category?: string, type?: string, viewer?: any): Promise<any[] | void>
+  findAllGameItems(id: any, search?: string, category?: string, type?: string, viewer?: any, location?: any): Promise<any[] | void>
 
   createGameCharacter(data: any): Promise<any>
   editGameCharacter(id: any): Promise<void>
@@ -38,7 +39,7 @@ export interface IGameTableRulesRepository {
   createGameNPC(data: any): Promise<any>
   editGameNPC(id: any): Promise<void>
   findGameNPC(id: any): Promise<void>
-  findAllGameNPCS(id: any): Promise<any[] | void>
+  findAllGameNPCS(id: any, location?: any): Promise<any[] | void>
   
   createGameNPCVisibility(id: any): Promise<void>
   editGameNPCVisibility(id: any): Promise<void>

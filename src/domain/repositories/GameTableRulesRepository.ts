@@ -100,6 +100,7 @@ function locationToDTO(l: any): any {
       rotationDeg: l.rotation_deg ?? 0,
     },
     isBattlemap: locationIsBattlemap(hexSizeM, l.is_battlemap),
+    shopName: l.shop_name ?? null,
   }
 }
 
@@ -536,8 +537,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const itemId = crypto.randomUUID()
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
     db.prepare(`
-      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       itemId,
       data.table_id,
@@ -549,7 +550,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.dimensions,
       data.description,
       data.quality,
-      data.condition
+      data.condition,
+      data.location_id ?? null
     )
 
     // ---- WEAPON / SHIELD: atributos de arma + ataques ----
@@ -608,7 +610,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
     db.prepare(`
       UPDATE game_table_items
-      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, dimensions = ?, description = ?, quality = ?, condition = ?
+      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
       WHERE id = ?
     `).run(
       data.name,
@@ -620,6 +622,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.description,
       data.quality,
       data.condition,
+      data.location_id ?? null,
       data.id
     )
 
@@ -719,7 +722,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { ...gameTableItem, weapon: weapon || null, armor: armor || null }
   }
 
-  async findAllGameItems(id: any, search?: string, category?: string, kind?: string, viewer?: any): Promise<any> {
+  async findAllGameItems(id: any, search?: string, category?: string, kind?: string, viewer?: any, location?: any): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -747,6 +750,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     if (kind) {
       itemClauses.push("kind = ?")
       itemParams.push(kind)
+    }
+
+    if (location) {
+      itemClauses.push("location_id = ?")
+      itemParams.push(location)
     }
 
     const gameTablesItems = db.prepare(`
@@ -786,7 +794,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         id,
         narrator_id,
         intro,
-        title
+        title,
+        default_location_id
       FROM game_tables
       WHERE id = ?
     `).get(id as string)
@@ -808,7 +817,22 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       tree: viewer
         ? filterTreeVisible(buildLocationTree(shaped), new Set(shaped.map((x: any) => String(x.id))))
         : buildLocationTree(locations),
+      defaultLocationId: (table as any)?.default_location_id ?? null,
     })
+  }
+
+  /** Marca a location padrão que os players veem primeiro ao abrir o mapa. */
+  async setDefaultGameLocation(tableId: any, locationId: any): Promise<any> {
+    const table = db.prepare('SELECT id FROM game_tables WHERE id = ?').get(tableId as string)
+    if (!table) return { success: false, error: 'Game table not found' }
+    if (locationId != null) {
+      const loc = db.prepare('SELECT id FROM table_locations WHERE id = ? AND table_id = ?')
+        .get(locationId as string, tableId as string)
+      if (!loc) return { success: false, error: 'Location does not belong to this table' }
+    }
+    db.prepare('UPDATE game_tables SET default_location_id = ? WHERE id = ?')
+      .run(locationId ?? null, tableId)
+    return { success: true, defaultLocationId: locationId ?? null }
   }
 
   /* =============== */
@@ -829,9 +853,10 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       INSERT INTO table_locations (
         id, table_id, parent_id, kind, level, path,
         name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
-        hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap
+        hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
+        shop_name
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.table_id,
@@ -856,7 +881,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.center_r ?? data.hex?.centerR ?? 0,
       data.orientation ?? data.hex?.orientation ?? 'flat',
       data.rotation_deg ?? data.hex?.rotationDeg ?? 0,
-      isBattle
+      isBattle,
+      data.shop_name ?? data.shopName ?? null
     )
 
     return this.findGameLocation(id)
@@ -883,7 +909,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         name = ?, region = ?, address = ?, sub_region = ?, is_indoor = ?,
         other = ?, country = ?, area = ?, dimensions = ?, description = ?,
         hex_size_m = ?, width_hexes = ?, height_hexes = ?, center_q = ?, center_r = ?,
-        orientation = ?, rotation_deg = ?, is_battlemap = ?
+        orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?
       WHERE id = ?
     `).run(
       parentId,
@@ -908,6 +934,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.orientation ?? data.hex?.orientation ?? current.orientation ?? 'flat',
       data.rotation_deg ?? data.hex?.rotationDeg ?? current.rotation_deg ?? 0,
       isBattle,
+      data.shop_name ?? data.shopName ?? current.shop_name ?? null,
       data.id
     )
 
@@ -1015,9 +1042,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       }
 
       db.prepare(`
-        INSERT INTO game_table_npcs (id, character_id, status)
-        VALUES (?, ?, ?)
-      `).run(crypto.randomUUID(), characterId, data.status || 'active')
+        INSERT INTO game_table_npcs (id, character_id, status, location_id)
+        VALUES (?, ?, ?, ?)
+      `).run(crypto.randomUUID(), characterId, data.status || 'active', data.location_id ?? null)
     })
 
     insertTransaction()
@@ -1026,11 +1053,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   async editGameNPC(data: any): Promise<void> {
     db.prepare(`
       UPDATE game_table_npcs
-      SET character_id = ?, status = ?
+      SET character_id = ?, status = ?, location_id = ?
       WHERE id = ?
     `).run(
       data.character_id,
       data.status,
+      data.location_id ?? null,
       data.id
     )
   }
@@ -1039,6 +1067,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       SELECT
         npc.id as npc_id,
         npc.status,
+        npc.location_id,
         npc.character_id,
         c.table_id,
         c.user_id,
@@ -1061,7 +1090,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         g.intro as table_intro,
         g.system as table_system
       FROM game_table_npcs npc
-      LEFT JOIN characters c ON c.id = npc.character_id
+      LEFT JOIN game_table_characters c ON c.id = npc.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       LEFT JOIN users u ON u.id = c.user_id
       LEFT JOIN game_tables g ON g.id = c.table_id
@@ -1113,7 +1142,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return {
       npc: {
         id: npcData.npc_id,
-        status: npcData.status
+        status: npcData.status,
+        location_id: npcData.location_id ?? null
       },
       character: {
         id: npcData.character_id,
@@ -1151,7 +1181,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       peculiarities
     }
   }
-  async findAllGameNPCS(tableId: any): Promise<any> {
+  async findAllGameNPCS(tableId: any, location?: any): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -1167,6 +1197,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         npc.id as id,
         npc.status,
         npc.character_id,
+        npc.location_id,
         cs.name as name,
         cs.points,
         cs.hp,
@@ -1177,8 +1208,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       FROM game_table_npcs npc
       LEFT JOIN game_table_characters c ON c.id = npc.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
-      WHERE c.table_id = ?
-    `).all(tableId) as any[]
+      WHERE c.table_id = ? AND (? IS NULL OR npc.location_id = ?)
+    `).all(tableId, location ?? null, location ?? null) as any[]
     
     return ({
         'table': table,
@@ -1668,6 +1699,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         c.user_id,
         c.table_id,
         cs.name as sheet_name,
+        cs.hp,
+        cs.st,
+        cs.dx,
+        cs.iq,
+        cs.ht,
+        cs.fatigue,
         u.username,
         g.title as table_title,
         g.system as table_system
@@ -1682,46 +1719,129 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
     const characterId = characterData.character_id
 
-    const events = (moment != null
-      ? db.prepare(`
+    // Consequências aplicadas (modifiers ativos) + rolagens registradas
+    // (narration_actions com dice_roll, SEM consequência materializada).
+    // Ambas as fontes viram eventos na mesma linha do tempo — o teste
+    // aparece como marco; a consequência carrega a mudança de estado.
+    const consQuery = `
+      SELECT
+        'consequence' AS kind,
+        m.*,
+        m.rowid AS _rowid,
+        n.moment AS narration_moment,
+        n.title AS narration_title,
+        n.narration AS narration_body,
+        s.title AS scene_title,
+        s.moment AS scene_moment,
+        s.chapter AS chapter,
+        na.queue AS action_queue,
+        na.description AS action_description,
+        na.result AS action_result,
+        na.dice_roll AS action_dice_roll
+      FROM modifiers m
+      LEFT JOIN narrations n ON n.id = m.narration_id
+      LEFT JOIN scenes s ON s.id = n.scene_id
+      LEFT JOIN narration_actions na ON na.id = m.action_id
+      WHERE m.character_id = ?
+        AND (m.apply_on_roll IS NULL OR m.apply_on_roll = 0)
+        ${moment != null ? 'AND (n.moment IS NULL OR n.moment <= ?)' : ''}
+    `
+    const testQuery = `
+      SELECT
+        'test' AS kind,
+        na.id AS id,
+        na.queue AS action_queue,
+        na.description AS action_description,
+        na.result AS action_result,
+        na.dice_roll AS action_dice_roll,
+        na.rowid AS _rowid,
+        n.moment AS narration_moment,
+        n.title AS narration_title,
+        n.narration AS narration_body,
+        s.title AS scene_title,
+        s.moment AS scene_moment,
+        s.chapter AS chapter,
+        q.test_kind AS test_kind,
+        q.test_skill AS test_skill,
+        q.test_skill_name AS test_skill_name
+      FROM narration_actions na
+      LEFT JOIN narrations n ON n.id = na.narrations_id
+      LEFT JOIN scenes s ON s.id = n.scene_id
+      LEFT JOIN (
         SELECT
-          m.*,
-          n.moment AS narration_moment,
-          n.title AS narration_title,
-          n.narration AS narration_body,
-          s.title AS scene_title,
-          s.chapter AS chapter,
-          na.queue AS action_queue,
-          na.description AS action_description,
-          na.result AS action_result,
-          na.dice_roll AS action_dice_roll
-        FROM modifiers m
-        LEFT JOIN narrations n ON n.id = m.narration_id
-        LEFT JOIN scenes s ON s.id = n.scene_id
-        LEFT JOIN narration_actions na ON na.id = m.action_id
-        WHERE m.character_id = ?
-          AND (n.moment IS NULL OR n.moment <= ?)
-        ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, m.rowid ASC
-      `).all(characterId, moment) as any[]
-      : db.prepare(`
-        SELECT
-          m.*,
-          n.moment AS narration_moment,
-          n.title AS narration_title,
-          n.narration AS narration_body,
-          s.title AS scene_title,
-          s.chapter AS chapter,
-          na.queue AS action_queue,
-          na.description AS action_description,
-          na.result AS action_result,
-          na.dice_roll AS action_dice_roll
-        FROM modifiers m
-        LEFT JOIN narrations n ON n.id = m.narration_id
-        LEFT JOIN scenes s ON s.id = n.scene_id
-        LEFT JOIN narration_actions na ON na.id = m.action_id
-        WHERE m.character_id = ?
-        ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, m.rowid ASC
-      `).all(characterId) as any[])
+          q0.action_id,
+          MAX(q0.test_kind) AS test_kind,
+          MAX(q0.test_skill) AS test_skill,
+          MAX(sk.name) AS test_skill_name
+        FROM queue q0
+        LEFT JOIN game_table_skills sk ON sk.id = q0.test_skill
+        GROUP BY q0.action_id
+      ) q ON q.action_id = na.id
+      WHERE na.character_id = ?
+        AND na.dice_roll IS NOT NULL AND TRIM(na.dice_roll) != ''
+        ${moment != null ? 'AND (n.moment IS NULL OR n.moment <= ?)' : ''}
+        AND NOT EXISTS (
+          SELECT 1 FROM modifiers mx
+          WHERE mx.action_id = na.id AND mx.character_id = na.character_id
+            AND (mx.apply_on_roll IS NULL OR mx.apply_on_roll = 0)
+        )
+    `
+
+    const consParams = moment != null ? [characterId, moment] : [characterId]
+    const testParams = moment != null ? [characterId, moment] : [characterId]
+    const consequences = db.prepare(consQuery).all(...consParams) as any[]
+    const tests = db.prepare(testQuery).all(...testParams) as any[]
+
+    const combined = [...tests, ...consequences].sort((a, b) => {
+      const ak = a.chapter ?? Infinity
+      const bk = b.chapter ?? Infinity
+      if (ak !== bk) return ak - bk
+      const am = a.scene_moment ?? Infinity
+      const bm = b.scene_moment ?? Infinity
+      if (am !== bm) return am - bm
+      const an = a.narration_moment ?? Infinity
+      const bn = b.narration_moment ?? Infinity
+      if (an !== bn) return an - bn
+      const aq = a.action_queue ?? Infinity
+      const bq = b.action_queue ?? Infinity
+      if (aq !== bq) return aq - bq
+      const ao = a.kind === 'test' ? 0 : 1
+      const bo = b.kind === 'test' ? 0 : 1
+      if (ao !== bo) return ao - bo
+      return (a._rowid ?? 0) - (b._rowid ?? 0)
+    })
+
+    // Estado acumulado: cada evento carrega o snapshot antes/depois (mesma regra da ficha).
+    const baseStats = {
+      hp: characterData.hp ?? 10,
+      st: characterData.st ?? 10,
+      dx: characterData.dx ?? 10,
+      iq: characterData.iq ?? 10,
+      ht: characterData.ht ?? 10,
+      fatigue: characterData.fatigue ?? 10,
+    }
+    const snapshot = (s: any) => ({
+      hp: s.hp, st: s.st, dx: s.dx, iq: s.iq, ht: s.ht, fatigue: s.fatigue,
+    })
+    let cur = { ...baseStats }
+    const enriched: any[] = []
+    for (const m of combined) {
+      const before = snapshot(cur)
+      if (m.hp != null) cur.hp = m.hp
+      if (m.st != null) cur.st = m.st
+      if (m.dx != null) cur.dx = m.dx
+      if (m.iq != null) cur.iq = m.iq
+      if (m.ht != null) cur.ht = m.ht
+      if (m.fatigue != null) cur.fatigue = m.fatigue
+      if (m.mod_hp != null) cur.hp += m.mod_hp
+      if (m.mod_st != null) cur.st += m.mod_st
+      if (m.mod_dx != null) cur.dx += m.mod_dx
+      if (m.mod_iq != null) cur.iq += m.mod_iq
+      if (m.mod_ht != null) cur.ht += m.mod_ht
+      if (m.mod_fatigue != null) cur.fatigue += m.mod_fatigue
+      enriched.push({ ...m, state_before: before, state_after: snapshot(cur) })
+    }
+    for (const ev of enriched) delete ev._rowid
 
     return {
       character: {
@@ -1737,7 +1857,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         title: characterData.table_title,
         system: characterData.table_system
       },
-      events
+      baseline: baseStats,
+      events: enriched
     }
   }
 
