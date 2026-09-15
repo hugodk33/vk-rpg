@@ -71,6 +71,7 @@ import { CreateTableLocationUseCase } from '../../application/use-cases/table-ga
 import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
 import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
 import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/SetDefaultGameLocationUseCase'
+import { EndPlayerTurnUseCase } from '../../application/use-cases/table-game-rules-use-case/EndPlayerTurnUseCase'
 import { FindUserByIdUseCase } from '../../application/use-cases/users-use-cases/FindUserByIdUseCase'
 
 const router = Router()
@@ -158,6 +159,7 @@ const createTableLocationUseCase = new CreateTableLocationUseCase(gameTableRules
 const editTableLocationUseCase = new EditTableLocationUseCase(gameTableRulesRepo)
 const deleteTableLocationUseCase = new DeleteTableLocationUseCase(gameTableRulesRepo)
 const setDefaultGameLocationUseCase = new SetDefaultGameLocationUseCase(gameTableRulesRepo)
+const endPlayerTurnUseCase = new EndPlayerTurnUseCase(gameTableRulesRepo)
 
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(
@@ -208,7 +210,8 @@ const gameTableRulesController = new GameTableRulesController(
     createTableLocationUseCase,
     editTableLocationUseCase,
     deleteTableLocationUseCase,
-    setDefaultGameLocationUseCase)
+    setDefaultGameLocationUseCase,
+    endPlayerTurnUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -266,6 +269,7 @@ router.get('/game-table-modifier/:id', (req, res) => gameTableRulesController.fi
 router.post('/game-table-modifier', (req, res) => gameTableRulesController.createModifier(req, res))
 router.put('/game-table-modifier', (req, res) => gameTableRulesController.editModifier(req, res))
 router.post('/game-table-roll-effect', (req, res) => gameTableRulesController.applySkillEffect(req, res))
+router.post('/game-table-end-turn', (req, res) => gameTableRulesController.endPlayerTurn(req, res))
 
 /* ===== VISIBILITY ===== */
 router.get('/game-table-visibility/:id', (req, res) => gameTableRulesController.findAllVisibility(req, res))

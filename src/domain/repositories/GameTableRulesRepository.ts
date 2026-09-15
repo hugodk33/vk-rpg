@@ -2296,6 +2296,44 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     )
   }
 
+  /** Encerra o turno de um jogador num único passo atômico:
+      grava a ação (narration_actions) e tira o personagem da fila.
+      Só a pessoa que está NA VEZ na fila pode fazê-lo. */
+  async endPlayerTurn(data: any): Promise<any> {
+    const tx = db.transaction(() => {
+      const front = db
+        .prepare(`
+          SELECT id, character_id FROM queue
+          WHERE status != 'done'
+          ORDER BY CAST(queue AS INTEGER) ASC, rowid ASC
+          LIMIT 1
+        `)
+        .get() as any
+      if (!front) throw new Error('Queue is empty — no one is acting right now')
+      if (front.character_id !== data.character_id) {
+        throw new Error('It is not your turn — wait for the spotlight')
+      }
+
+      const actionId = crypto.randomUUID()
+      db.prepare(`
+        INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id)
+        VALUES (?, ?, ?, ?, ?, NULL, NULL, 0, ?, ?)
+      `).run(
+        actionId,
+        data.narrations_id || null,
+        data.queue ?? 0,
+        data.result ?? null,
+        data.dice_roll ?? null,
+        data.description ?? null,
+        data.character_id
+      )
+
+      db.prepare(`UPDATE queue SET status = 'done', queue = '' WHERE id = ?`).run(front.id)
+      return { action_id: actionId }
+    })
+    return tx()
+  }
+
   async findGameQueue(id: any): Promise<any> {
     const queueItem = db.prepare(`SELECT * FROM queue WHERE id = ?`).get(id) as any
     return queueItem

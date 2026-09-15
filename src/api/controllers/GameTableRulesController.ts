@@ -47,6 +47,7 @@ import { CreateTableLocationUseCase } from '../../application/use-cases/table-ga
 import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
 import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
 import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/SetDefaultGameLocationUseCase'
+import { EndPlayerTurnUseCase } from '../../application/use-cases/table-game-rules-use-case/EndPlayerTurnUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -96,7 +97,8 @@ export class GameTableRulesController {
     private createTableLocationUseCase?: CreateTableLocationUseCase,
     private editTableLocationUseCase?: EditTableLocationUseCase,
     private deleteTableLocationUseCase?: DeleteTableLocationUseCase,
-    private setDefaultGameLocationUseCase?: SetDefaultGameLocationUseCase
+    private setDefaultGameLocationUseCase?: SetDefaultGameLocationUseCase,
+    private endPlayerTurnUseCase?: EndPlayerTurnUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -416,5 +418,15 @@ export class GameTableRulesController {
     }
     const applied = await this.applyGameSkillEffectUseCase!.execute(character_id, skill_id)
     return res.json({ success: true, applied })
+  }
+
+  /* Turno do jogador encerrado num passo atomico: grava a action + sai da fila. */
+  async endPlayerTurn(req: Request, res: Response) {
+    try {
+      const result = await this.endPlayerTurnUseCase!.execute(req.body)
+      return res.json({ success: true, ...result })
+    } catch (e: any) {
+      return res.status(400).json({ success: false, error: e.message })
+    }
   }
 }
