@@ -2023,26 +2023,84 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE c.table_id = ?
     `).all(tableId) as any[]
 
-    const rows = characters.map(char => ({
-      id: char.character_id,
-      name: char.sheet_name,
-      isNpc: !!char.is_npc,
-      user: {
-        id: char.user_id,
-        username: char.username,
-        type: char.user_type
-      },
-      sheet: char.sheet_id ? {
-        id: char.sheet_id,
+    // Povoa cada linha com os stats efetivos (base + modificadores ativos),
+    // igual à semântica do findGameCharacter: sheet.hp é o HP atual, base_hp
+    // é o máximo original, e active_effects lista os efeitos em vigor.
+    const rows = characters.map(char => {
+      const baseStats = {
+        hp: char.hp ?? 10,
+        st: char.st ?? 10,
+        dx: char.dx ?? 10,
+        iq: char.iq ?? 10,
+        ht: char.ht ?? 10,
+      }
+      const modifiers = db.prepare(`
+        SELECT * FROM modifiers
+        WHERE character_id = ?
+        ORDER BY rowid ASC
+      `).all(char.character_id) as any[]
+
+      const activeEffects = modifiers
+        .filter((m) =>
+          m.mod_hp != null || m.mod_st != null || m.mod_dx != null ||
+          m.mod_iq != null || m.mod_ht != null || m.mod_fatigue != null ||
+          m.hp != null || m.st != null || m.dx != null ||
+          m.iq != null || m.ht != null || m.encumbrance != null)
+        .map((m) => {
+          const e: any = { id: m.id }
+          for (const k of [
+            'name', 'effect', 'description', 'damage_value',
+            'mod_hp', 'mod_st', 'mod_dx', 'mod_iq', 'mod_ht', 'mod_fatigue',
+            'hp', 'st', 'dx', 'iq', 'ht'
+          ]) {
+            if (m[k] != null) e[k] = m[k]
+          }
+          return e
+        })
+
+      const currentStats = { ...baseStats }
+      for (const mod of modifiers) {
+        if (mod.apply_on_roll === 1) continue
+        if (mod.hp != null) currentStats.hp = mod.hp
+        if (mod.st != null) currentStats.st = mod.st
+        if (mod.dx != null) currentStats.dx = mod.dx
+        if (mod.iq != null) currentStats.iq = mod.iq
+        if (mod.ht != null) currentStats.ht = mod.ht
+        if (mod.mod_hp != null) currentStats.hp += mod.mod_hp
+        if (mod.mod_st != null) currentStats.st += mod.mod_st
+        if (mod.mod_dx != null) currentStats.dx += mod.mod_dx
+        if (mod.mod_iq != null) currentStats.iq += mod.mod_iq
+        if (mod.mod_ht != null) currentStats.ht += mod.mod_ht
+      }
+
+      return {
+        id: char.character_id,
         name: char.sheet_name,
-        points: char.points,
-        hp: char.hp,
-        st: char.st,
-        dx: char.dx,
-        iq: char.iq,
-        ht: char.ht
-      } : null
-    }))
+        isNpc: !!char.is_npc,
+        user: {
+          id: char.user_id,
+          username: char.username,
+          type: char.user_type
+        },
+        sheet: char.sheet_id ? {
+          id: char.sheet_id,
+          name: char.sheet_name,
+          points: char.points,
+          hp: currentStats.hp,
+          st: currentStats.st,
+          dx: currentStats.dx,
+          iq: currentStats.iq,
+          ht: currentStats.ht,
+          current_hp: currentStats.hp,
+          base_hp: baseStats.hp,
+          base_st: baseStats.st,
+          base_dx: baseStats.dx,
+          base_iq: baseStats.iq,
+          base_ht: baseStats.ht
+        } : null,
+        active_effects: activeEffects
+      }
+    })
 
     /* Visibilidade — se um observador (type 1) de outro personagem
        pede a lista, molde cada linha pelas regras desse observador
