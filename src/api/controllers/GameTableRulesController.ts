@@ -51,6 +51,8 @@ import { EditTableLocationUseCase } from '../../application/use-cases/table-game
 import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
 import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/SetDefaultGameLocationUseCase'
 import { EndPlayerTurnUseCase } from '../../application/use-cases/table-game-rules-use-case/EndPlayerTurnUseCase'
+import { GrantGameItemUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameItemUseCase'
+import { AwardGameCharacterPointsUseCase } from '../../application/use-cases/table-game-rules-use-case/AwardGameCharacterPointsUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -104,7 +106,9 @@ export class GameTableRulesController {
     private endPlayerTurnUseCase?: EndPlayerTurnUseCase,
     private deleteGameCharacterEquipmentUseCase?: DeleteGameCharacterEquipmentUseCase,
     private transferGameCharacterEquipmentUseCase?: TransferGameCharacterEquipmentUseCase,
-    private sellGameCharacterEquipmentUseCase?: SellGameCharacterEquipmentUseCase
+    private sellGameCharacterEquipmentUseCase?: SellGameCharacterEquipmentUseCase,
+    private grantGameItemUseCase?: GrantGameItemUseCase,
+    private awardGameCharacterPointsUseCase?: AwardGameCharacterPointsUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -381,6 +385,31 @@ export class GameTableRulesController {
   async findAllModifiers(req: Request, res: Response) {
     const modifiers = await this.findAllGameModifiersUseCase!.execute(req.params.id as string)
     return res.json(modifiers)
+  }
+
+  /* GM quick actions — materialize + log */
+  async grantItem(req: Request, res: Response) {
+    try {
+      const result = await this.grantGameItemUseCase!.execute(req.body)
+      if (result && result.success === false) {
+        return res.status(400).json(result)
+      }
+      return res.json({ success: true, ...result })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message })
+    }
+  }
+
+  async awardPoints(req: Request, res: Response) {
+    try {
+      const result = await this.awardGameCharacterPointsUseCase!.execute(req.body)
+      if (result && result.success === false) {
+        return res.status(400).json(result)
+      }
+      return res.json({ success: true, ...result })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message })
+    }
   }
 
   /* =============== */

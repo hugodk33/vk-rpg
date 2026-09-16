@@ -159,6 +159,8 @@ CREATE TABLE IF NOT EXISTS table_locations (
   rotation_deg INTEGER DEFAULT 0,
   is_battlemap INTEGER DEFAULT 0,
   shop_name TEXT,
+  tiles TEXT DEFAULT '[]',
+  drawing TEXT DEFAULT '[]',
   FOREIGN KEY (table_id) REFERENCES game_tables(id),
   FOREIGN KEY (parent_id) REFERENCES table_locations(id)
 );
@@ -636,6 +638,8 @@ if (locationCols.length) {
     { col: 'rotation_deg', ddl: 'INTEGER DEFAULT 0' },
     { col: 'is_battlemap', ddl: 'INTEGER DEFAULT 0' },
     { col: 'shop_name', ddl: 'TEXT' },
+    { col: 'tiles', ddl: "TEXT DEFAULT '[]'" },
+    { col: 'drawing', ddl: "TEXT DEFAULT '[]'" },
   ]
   for (const { col, ddl } of locationAdds) {
     if (!locationCols.includes(col)) {

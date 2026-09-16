@@ -101,6 +101,18 @@ function locationToDTO(l: any): any {
     },
     isBattlemap: locationIsBattlemap(hexSizeM, l.is_battlemap),
     shopName: l.shop_name ?? null,
+    tiles: parseJsonArray(l.tiles),
+    drawing: parseJsonArray(l.drawing),
+  }
+}
+
+function parseJsonArray(raw: any): any[] {
+  if (!raw) return []
+  try {
+    const v = JSON.parse(raw)
+    return Array.isArray(v) ? v : []
+  } catch {
+    return []
   }
 }
 
@@ -885,9 +897,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         id, table_id, parent_id, kind, level, path,
         name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
         hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
-        shop_name
+        shop_name, tiles, drawing
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.table_id,
@@ -913,7 +925,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.orientation ?? data.hex?.orientation ?? 'flat',
       data.rotation_deg ?? data.hex?.rotationDeg ?? 0,
       isBattle,
-      data.shop_name ?? data.shopName ?? null
+      data.shop_name ?? data.shopName ?? null,
+      JSON.stringify(data.tiles ?? []),
+      JSON.stringify(data.drawing ?? [])
     )
 
     return this.findGameLocation(id)
@@ -940,7 +954,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         name = ?, region = ?, address = ?, sub_region = ?, is_indoor = ?,
         other = ?, country = ?, area = ?, dimensions = ?, description = ?,
         hex_size_m = ?, width_hexes = ?, height_hexes = ?, center_q = ?, center_r = ?,
-        orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?
+        orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?,
+        tiles = ?, drawing = ?
       WHERE id = ?
     `).run(
       parentId,
@@ -966,6 +981,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.rotation_deg ?? data.hex?.rotationDeg ?? current.rotation_deg ?? 0,
       isBattle,
       data.shop_name ?? data.shopName ?? current.shop_name ?? null,
+      data.tiles !== undefined ? JSON.stringify(data.tiles ?? []) : current.tiles ?? '[]',
+      data.drawing !== undefined ? JSON.stringify(data.drawing ?? []) : current.drawing ?? '[]',
       data.id
     )
 
@@ -2251,6 +2268,91 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.apply_on_roll ?? 0,
       data.id
     )
+  }
+
+  /* ============================================================
+     GM QUICK ACTIONS
+     Materialize a change on the target character AND keep a
+     modifier row as the story log — the same read-path the
+     narrator uses, so the award is replayable by scene moment.
+     ============================================================ */
+
+  async grantGameItem(data: any): Promise<any> {
+    const characterId = data.character_id
+    const itemId = data.item_id
+    if (!characterId || !itemId) return { success: false, error: 'character_id and item_id are required' }
+
+    const existing = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(characterId, itemId) as any
+    const quantity = data.quantity ?? existing?.quantity ?? 1
+    const status = data.status ?? existing?.status ?? 'in_inventory'
+    const location = data.location ?? existing?.location ?? 'none'
+
+    if (existing) {
+      db.prepare(`
+        UPDATE character_equipment
+        SET status = ?, location = ?, quantity = ?
+        WHERE id = ?
+      `).run(status, location, quantity, existing.id)
+    } else {
+      db.prepare(`
+        INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(crypto.randomUUID(), characterId, itemId, quantity, status, location)
+    }
+
+    const item = db.prepare(`SELECT name FROM game_table_items WHERE id = ?`).get(itemId) as any
+    const id = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO modifiers (id, character_id, item_id, action_id, narration_id, scene_id, name, item_quantity, item_status, description, apply_on_roll)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+    `).run(
+      id,
+      characterId,
+      itemId,
+      data.action_id || null,
+      data.narration_id || null,
+      data.scene_id || null,
+      data.name || (item?.name ? `Granted ${item.name}` : 'Item granted'),
+      quantity,
+      status,
+      data.description || (item?.name ? `+${quantity}× ${item.name}` : `+${quantity} item`)
+    )
+
+    return { success: true, id, character_id: characterId, item_id: itemId, quantity, status }
+  }
+
+  async awardGameCharacterPoints(data: any): Promise<any> {
+    const characterId = data.character_id
+    if (!characterId) return { success: false, error: 'character_id is required' }
+    const delta = Number(data.points)
+    if (!Number.isFinite(delta) || delta === 0) return { success: false, error: 'points must be a non-zero number' }
+
+    const sheet = db.prepare(`
+      SELECT id, points FROM game_table_character_sheets WHERE character_id = ?
+    `).get(characterId) as any
+    if (!sheet) return { success: false, error: 'Character has no sheet' }
+
+    db.prepare(`UPDATE game_table_character_sheets SET points = points + ? WHERE id = ?`).run(delta, sheet.id)
+
+    const id = crypto.randomUUID()
+    const name = data.name || (delta > 0 ? 'Experience award' : 'Experience cost')
+    db.prepare(`
+      INSERT INTO modifiers (id, character_id, action_id, narration_id, scene_id, name, cost_points, description, apply_on_roll)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+    `).run(
+      id,
+      characterId,
+      data.action_id || null,
+      data.narration_id || null,
+      data.scene_id || null,
+      name,
+      delta,
+      data.description || (delta > 0 ? `+${delta} campaign points` : `${delta} campaign points`)
+    )
+
+    return { success: true, id, character_id: characterId, points: delta }
   }
 
   async findGameModifier(id: any): Promise<any> {
