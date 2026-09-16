@@ -140,6 +140,37 @@ function locationAncestry(selfId: string, parentId: string | null): { level: num
   return { level: (parent.level ?? 0) + 1, path: `${parentPath}${selfId}/` }
 }
 
+function moveEquipmentStash(fromCharacterId: string, toCharacterId: string, itemId: string, qty: number): { ok: boolean; error?: string } {
+  const source = db.prepare(`
+    SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+  `).get(fromCharacterId, itemId) as any
+  if (!source || (source.quantity ?? 1) < qty) return { ok: false, error: 'Character does not possess this item.' }
+  const remaining = (source.quantity ?? 1) - qty
+  if (remaining > 0) {
+    db.prepare(`
+      UPDATE character_equipment SET quantity = ?, status = ?, location = ? WHERE id = ?
+    `).run(remaining, 'in_inventory', 'none', source.id)
+  } else {
+    db.prepare(`
+      DELETE FROM character_equipment WHERE id = ?
+    `).run(source.id)
+  }
+  const target = db.prepare(`
+    SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+  `).get(toCharacterId, itemId) as any
+  if (target) {
+    db.prepare(`
+      UPDATE character_equipment SET quantity = ?, status = ?, location = ? WHERE id = ?
+    `).run((target.quantity ?? 1) + qty, 'in_inventory', 'none', target.id)
+  } else {
+    db.prepare(`
+      INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location, rendered_st)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(crypto.randomUUID(), toCharacterId, itemId, qty, 'in_inventory', 'none', null)
+  }
+  return { ok: true }
+}
+
 export class GameTableRulesRepository implements IGameTableRulesRepository {
   /* =============== */
   /*      SKILLS     */
@@ -1388,6 +1419,102 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { success: true }
   }
 
+  async deleteGameCharacterEquipment(data: any): Promise<any> {
+    const characterId = data.character_id
+    const itemId = data.item_id
+    if (!characterId || !itemId) return { success: false }
+
+    const existing = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(characterId, itemId) as any
+
+    if (!existing) return { success: false, error: 'Character does not possess this item.' }
+
+    db.prepare(`
+      DELETE FROM character_equipment WHERE id = ?
+    `).run(existing.id)
+
+    return { success: true }
+  }
+
+  async transferGameCharacterEquipment(data: any): Promise<any> {
+    const characterId = data.character_id
+    const itemId = data.item_id
+    const targetCharacterId = data.target_character_id
+    if (!characterId || !itemId || !targetCharacterId) return { success: false }
+    if (characterId === targetCharacterId) return { success: false, error: 'Target cannot be the owner.' }
+
+    const source = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(characterId, itemId) as any
+    if (!source) return { success: false, error: 'Character does not possess this item.' }
+
+    db.prepare(`
+      DELETE FROM character_equipment WHERE id = ?
+    `).run(source.id)
+
+    const quantity = source.quantity ?? 1
+    const targetExisting = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(targetCharacterId, itemId) as any
+    if (targetExisting) {
+      db.prepare(`
+        UPDATE character_equipment
+        SET quantity = ?, status = ?, location = ?
+        WHERE id = ?
+      `).run((targetExisting.quantity ?? 1) + quantity, 'in_inventory', 'none', targetExisting.id)
+    } else {
+      db.prepare(`
+        INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location, rendered_st)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(crypto.randomUUID(), targetCharacterId, itemId, quantity, 'in_inventory', 'none', null)
+    }
+
+    return { success: true }
+  }
+
+  async sellGameCharacterEquipment(data: any): Promise<any> {
+    const sellerId = data.character_id
+    const buyerId = data.buyer_character_id
+    const itemId = data.item_id
+    const priceItemId = data.price_item_id
+    const priceQuantity = Number(data.price_quantity ?? 1)
+    if (!sellerId || !buyerId || !itemId || !priceItemId || priceQuantity < 1) {
+      return { success: false, error: 'Missing sale details.' }
+    }
+    if (sellerId === buyerId) return { success: false, error: 'You cannot sell to yourself.' }
+
+    const source = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(sellerId, itemId) as any
+    if (!source) return { success: false, error: 'Character does not possess this item.' }
+    const itemQty = source.quantity ?? 1
+
+    const priceRow = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(buyerId, priceItemId) as any
+    if (!priceRow || (priceRow.quantity ?? 1) < priceQuantity) {
+      return { success: false, error: 'Buyer cannot afford the price.' }
+    }
+
+    const error = db.transaction((): string | null => {
+      const moveItem = moveEquipmentStash(sellerId, buyerId, itemId, itemQty)
+      if (!moveItem.ok) return moveItem.error ?? 'Sale failed.'
+      const movePrice = moveEquipmentStash(buyerId, sellerId, priceItemId, priceQuantity)
+      if (!movePrice.ok) return movePrice.error ?? 'Sale failed.'
+      return null
+    })()
+    if (error) return { success: false, error }
+
+    return {
+      success: true,
+      item_id: itemId,
+      quantity: itemQty,
+      buyer_character_id: buyerId,
+      price_item_id: priceItemId,
+      price_quantity: priceQuantity
+    }
+  }
 
   async findGameCharacter(id: any, moment?: number, viewer?: any): Promise<any> {
     const characterData = db.prepare(`
@@ -1663,6 +1790,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         armors,
         skills,
         items,
+        peculiarities,
         active_effects: activeEffects
       },
       peculiarities,

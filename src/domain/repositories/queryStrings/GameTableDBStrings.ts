@@ -38,6 +38,7 @@ export const GameTableDBStrings:any = {
       cns.name AS narration_character_name,
       cnu.id AS narration_character_user_id,
       cnu.username AS narration_character_username,
+      nc.conscious AS narration_character_conscious,
 
       -- NPC
       nn.id AS narration_npc_link_id,

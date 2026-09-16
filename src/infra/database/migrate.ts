@@ -184,6 +184,7 @@ CREATE TABLE IF NOT EXISTS narration_characters (
   id TEXT PRIMARY KEY,
   character_id TEXT,
   narrations_id TEXT,
+  conscious INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (narrations_id) REFERENCES narrations(id)
 );
@@ -659,6 +660,12 @@ if (npcCols.length && !npcCols.includes('location_id')) {
 const gameTableCols = (db.prepare("PRAGMA table_info(game_tables)").all() as any[]).map((c) => c.name)
 if (gameTableCols.length && !gameTableCols.includes('default_location_id')) {
   db.exec("ALTER TABLE game_tables ADD COLUMN default_location_id TEXT")
+}
+
+// narration_characters.conscious — presença consciente/inconsciente na cena (bases antigas)
+const narrationCharCols = (db.prepare("PRAGMA table_info(narration_characters)").all() as any[]).map((c) => c.name)
+if (narrationCharCols.length && !narrationCharCols.includes('conscious')) {
+  db.exec("ALTER TABLE narration_characters ADD COLUMN conscious INTEGER NOT NULL DEFAULT 1")
 }
 
 console.log('✅ Full database migrated!')

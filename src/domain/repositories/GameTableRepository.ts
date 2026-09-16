@@ -1,4 +1,5 @@
 import { db } from '../../infra/database/database'
+import crypto from 'crypto'
 
 import type {
   GameTableWithNarrator,
@@ -327,6 +328,7 @@ export class GameTableRepository implements IGameTableRepository {
                 name: string
                 userId: string
                 username: string
+                conscious: boolean
               }
             >
             npcs: Map<
@@ -447,7 +449,8 @@ export class GameTableRepository implements IGameTableRepository {
           id: row.narration_character_ref_id,
           name: row.narration_character_name,
           userId: row.narration_character_user_id,
-          username: row.narration_character_username
+          username: row.narration_character_username,
+          conscious: row.narration_character_conscious != null ? !!row.narration_character_conscious : true
         })
       }
 
@@ -538,14 +541,46 @@ export class GameTableRepository implements IGameTableRepository {
   }
 
   async createNarration(data: any): Promise<void> {
-    db.prepare(GameTableDBStrings.NarrationCreate as string).run(
-      data.id,
-      data.table_id,
-      data.scene_id,
-      data.title,
-      data.narration,
-      data.moment ?? 0
-    )
+    const insertTransaction = db.transaction((): void => {
+      db.prepare(GameTableDBStrings.NarrationCreate as string).run(
+        data.id,
+        data.table_id,
+        data.scene_id,
+        data.title,
+        data.narration,
+        data.moment ?? 0
+      )
+
+      const present = Array.isArray(data.present) ? data.present : []
+      for (const p of present) {
+        const characterId = p?.character_id
+        if (!characterId) continue
+        const npc = db.prepare(`
+          SELECT id FROM game_table_npcs WHERE character_id = ?
+        `).get(characterId) as any
+        if (npc) {
+          db.prepare(`
+            INSERT INTO narration_npcs (id, narration_id, npc_id)
+            VALUES (?, ?, ?)
+          `).run(crypto.randomUUID(), data.id, npc.id)
+        } else {
+          db.prepare(`
+            INSERT INTO narration_characters (id, character_id, narrations_id, conscious)
+            VALUES (?, ?, ?, ?)
+          `).run(crypto.randomUUID(), characterId, data.id, p.conscious === false ? 0 : 1)
+        }
+      }
+
+      const presentNpcs = Array.isArray(data.present_npcs) ? data.present_npcs : []
+      for (const npcId of presentNpcs) {
+        if (!npcId) continue
+        db.prepare(`
+          INSERT INTO narration_npcs (id, narration_id, npc_id)
+          VALUES (?, ?, ?)
+        `).run(crypto.randomUUID(), data.id, npcId)
+      }
+    })
+    insertTransaction()
   }
 
   async createNarrationAction(data: any): Promise<void> {

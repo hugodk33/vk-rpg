@@ -26,6 +26,9 @@ import { EditGameTableCharacterUseCase } from '../../application/use-cases/table
 import { FindGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterUseCase'
 import { FindGameTableCharacterHistoryUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterHistoryUseCase'
 import { EditGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameCharacterEquipmentUseCase'
+import { DeleteGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameCharacterEquipmentUseCase'
+import { TransferGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/TransferGameCharacterEquipmentUseCase'
+import { SellGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/SellGameCharacterEquipmentUseCase'
 import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
 import { CreateGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameModifierUseCase'
 import { EditGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameModifierUseCase'
@@ -98,7 +101,10 @@ export class GameTableRulesController {
     private editTableLocationUseCase?: EditTableLocationUseCase,
     private deleteTableLocationUseCase?: DeleteTableLocationUseCase,
     private setDefaultGameLocationUseCase?: SetDefaultGameLocationUseCase,
-    private endPlayerTurnUseCase?: EndPlayerTurnUseCase
+    private endPlayerTurnUseCase?: EndPlayerTurnUseCase,
+    private deleteGameCharacterEquipmentUseCase?: DeleteGameCharacterEquipmentUseCase,
+    private transferGameCharacterEquipmentUseCase?: TransferGameCharacterEquipmentUseCase,
+    private sellGameCharacterEquipmentUseCase?: SellGameCharacterEquipmentUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -316,6 +322,21 @@ export class GameTableRulesController {
 
   async editCharacterEquipment(req: Request, res: Response) {
     const result = await this.editGameCharacterEquipmentUseCase!.execute(req.body)
+    return res.json(result)
+  }
+
+  async deleteCharacterEquipment(req: Request, res: Response) {
+    const result = await this.deleteGameCharacterEquipmentUseCase!.execute(req.body)
+    return res.json(result)
+  }
+
+  async transferCharacterEquipment(req: Request, res: Response) {
+    const result = await this.transferGameCharacterEquipmentUseCase!.execute(req.body)
+    return res.json(result)
+  }
+
+  async sellCharacterEquipment(req: Request, res: Response) {
+    const result = await this.sellGameCharacterEquipmentUseCase!.execute(req.body)
     return res.json(result)
   }
 
