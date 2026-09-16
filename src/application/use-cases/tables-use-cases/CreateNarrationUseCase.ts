@@ -11,7 +11,9 @@ export class CreateNarrationUseCase {
       scene_id: data.scene_id,
       title: data.title || '',
       narration: data.narration,
-      moment: data.moment ?? 0
+      moment: data.moment ?? 0,
+      present: Array.isArray(data.present) ? data.present : undefined,
+      present_npcs: Array.isArray(data.present_npcs) ? data.present_npcs : undefined
     }
     await this.repo.createNarration(narration)
     return narration

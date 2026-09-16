@@ -26,6 +26,9 @@ import { EditGameTableCharacterUseCase } from '../../application/use-cases/table
 import { FindGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterUseCase'
 import { FindGameTableCharacterHistoryUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableCharacterHistoryUseCase'
 import { EditGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameCharacterEquipmentUseCase'
+import { DeleteGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameCharacterEquipmentUseCase'
+import { TransferGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/TransferGameCharacterEquipmentUseCase'
+import { SellGameCharacterEquipmentUseCase } from '../../application/use-cases/table-game-rules-use-case/SellGameCharacterEquipmentUseCase'
 import { FindAllGameTableCharactersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableCharactersUseCase'
 import { CreateGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameModifierUseCase'
 import { EditGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameModifierUseCase'
@@ -47,6 +50,9 @@ import { CreateTableLocationUseCase } from '../../application/use-cases/table-ga
 import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
 import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
 import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/SetDefaultGameLocationUseCase'
+import { EndPlayerTurnUseCase } from '../../application/use-cases/table-game-rules-use-case/EndPlayerTurnUseCase'
+import { GrantGameItemUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameItemUseCase'
+import { AwardGameCharacterPointsUseCase } from '../../application/use-cases/table-game-rules-use-case/AwardGameCharacterPointsUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -96,7 +102,13 @@ export class GameTableRulesController {
     private createTableLocationUseCase?: CreateTableLocationUseCase,
     private editTableLocationUseCase?: EditTableLocationUseCase,
     private deleteTableLocationUseCase?: DeleteTableLocationUseCase,
-    private setDefaultGameLocationUseCase?: SetDefaultGameLocationUseCase
+    private setDefaultGameLocationUseCase?: SetDefaultGameLocationUseCase,
+    private endPlayerTurnUseCase?: EndPlayerTurnUseCase,
+    private deleteGameCharacterEquipmentUseCase?: DeleteGameCharacterEquipmentUseCase,
+    private transferGameCharacterEquipmentUseCase?: TransferGameCharacterEquipmentUseCase,
+    private sellGameCharacterEquipmentUseCase?: SellGameCharacterEquipmentUseCase,
+    private grantGameItemUseCase?: GrantGameItemUseCase,
+    private awardGameCharacterPointsUseCase?: AwardGameCharacterPointsUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -317,6 +329,21 @@ export class GameTableRulesController {
     return res.json(result)
   }
 
+  async deleteCharacterEquipment(req: Request, res: Response) {
+    const result = await this.deleteGameCharacterEquipmentUseCase!.execute(req.body)
+    return res.json(result)
+  }
+
+  async transferCharacterEquipment(req: Request, res: Response) {
+    const result = await this.transferGameCharacterEquipmentUseCase!.execute(req.body)
+    return res.json(result)
+  }
+
+  async sellCharacterEquipment(req: Request, res: Response) {
+    const result = await this.sellGameCharacterEquipmentUseCase!.execute(req.body)
+    return res.json(result)
+  }
+
   async findCharacter(req: Request, res: Response) {
     const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
     const viewer = req.query.viewer as string | undefined
@@ -358,6 +385,31 @@ export class GameTableRulesController {
   async findAllModifiers(req: Request, res: Response) {
     const modifiers = await this.findAllGameModifiersUseCase!.execute(req.params.id as string)
     return res.json(modifiers)
+  }
+
+  /* GM quick actions — materialize + log */
+  async grantItem(req: Request, res: Response) {
+    try {
+      const result = await this.grantGameItemUseCase!.execute(req.body)
+      if (result && result.success === false) {
+        return res.status(400).json(result)
+      }
+      return res.json({ success: true, ...result })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message })
+    }
+  }
+
+  async awardPoints(req: Request, res: Response) {
+    try {
+      const result = await this.awardGameCharacterPointsUseCase!.execute(req.body)
+      if (result && result.success === false) {
+        return res.status(400).json(result)
+      }
+      return res.json({ success: true, ...result })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message })
+    }
   }
 
   /* =============== */
@@ -416,5 +468,15 @@ export class GameTableRulesController {
     }
     const applied = await this.applyGameSkillEffectUseCase!.execute(character_id, skill_id)
     return res.json({ success: true, applied })
+  }
+
+  /* Turno do jogador encerrado num passo atomico: grava a action + sai da fila. */
+  async endPlayerTurn(req: Request, res: Response) {
+    try {
+      const result = await this.endPlayerTurnUseCase!.execute(req.body)
+      return res.json({ success: true, ...result })
+    } catch (e: any) {
+      return res.status(400).json({ success: false, error: e.message })
+    }
   }
 }

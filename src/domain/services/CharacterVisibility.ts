@@ -278,6 +278,9 @@ export function shapeCharacterForViewer(character: any, rules: any[]): any {
   character.disadvantages = (character.disadvantages ?? []).filter((d: any) =>
     isVisible(map.disadvantages.get(String(d?.disadvantage_id ?? d?.id)))
   )
+  character.peculiarities = (character.peculiarities ?? []).filter(() =>
+    isVisible(map.attrs.get('peculiarity'))
+  )
   character.armors = (character.armors ?? []).map((a: any) => ({
     a,
     rule: map.items.get(String(a?.item_id)),

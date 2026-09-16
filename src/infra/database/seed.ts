@@ -26,6 +26,7 @@ import { narrations } from '../variables/varNarrations'
 import { modifierTableLocations } from '../variables/varLocations'
 import { modifierGameTableSkillsPreDetermined } from '../variables/varPreDetermined'
 import { modifierGameTableSkillsDependecies } from '../variables/varDependecies'
+import { visibilityRules } from '../variables/varVisibility'
 
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -525,6 +526,33 @@ for (const modifier of modifierSeedEntries) {
     modifier.skill_value ?? null,
     modifier.item_quantity ?? null,
     modifier.item_weight ?? null
+  )
+}
+
+// insert visibility (conhecimento inicial de cada jogador do mundo)
+const visibilityStmt = db.prepare(`
+  INSERT INTO visibility (id, character_id, other_character_id, skill_id, advantage_id, disadvantage_id, attribute, additionals_attributes, item_id, location_id, value, status, scene_id, narration_id, moment, previous_status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const visibility of visibilityRules) {
+  visibilityStmt.run(
+    visibility.id,
+    visibility.character_id,
+    visibility.other_character_id ?? null,
+    null,
+    null,
+    null,
+    visibility.attribute ?? null,
+    visibility.additionals_attributes ?? null,
+    visibility.item_id ?? null,
+    visibility.location_id ?? null,
+    visibility.value,
+    visibility.status,
+    null,
+    null,
+    null,
+    null
   )
 }
 

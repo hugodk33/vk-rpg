@@ -35,6 +35,11 @@ export interface IGameTableRulesRepository {
   findAllGameCharacters(id: any, viewer?: any): Promise<any[] | void>
 
   editGameCharacterEquipment(data: any): Promise<any>
+  deleteGameCharacterEquipment(data: any): Promise<any>
+  transferGameCharacterEquipment(data: any): Promise<any>
+  sellGameCharacterEquipment(data: any): Promise<any>
+  grantGameItem(data: any): Promise<any>
+  awardGameCharacterPoints(data: any): Promise<any>
 
   createGameNPC(data: any): Promise<any>
   editGameNPC(id: any): Promise<void>
@@ -61,4 +66,5 @@ export interface IGameTableRulesRepository {
   editGameQueue(data: any): Promise<void>
   findGameQueue(id: any): Promise<any>
   findAllGameQueue(tableId: any): Promise<any>
+  endPlayerTurn(data: any): Promise<any>
 }

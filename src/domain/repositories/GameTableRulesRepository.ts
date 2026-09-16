@@ -101,6 +101,18 @@ function locationToDTO(l: any): any {
     },
     isBattlemap: locationIsBattlemap(hexSizeM, l.is_battlemap),
     shopName: l.shop_name ?? null,
+    tiles: parseJsonArray(l.tiles),
+    drawing: parseJsonArray(l.drawing),
+  }
+}
+
+function parseJsonArray(raw: any): any[] {
+  if (!raw) return []
+  try {
+    const v = JSON.parse(raw)
+    return Array.isArray(v) ? v : []
+  } catch {
+    return []
   }
 }
 
@@ -138,6 +150,37 @@ function locationAncestry(selfId: string, parentId: string | null): { level: num
   let parentPath = parent.path ?? ''
   if (!parentPath || !parentPath.endsWith('/')) parentPath = parentPath ? `${parentPath}/` : '/'
   return { level: (parent.level ?? 0) + 1, path: `${parentPath}${selfId}/` }
+}
+
+function moveEquipmentStash(fromCharacterId: string, toCharacterId: string, itemId: string, qty: number): { ok: boolean; error?: string } {
+  const source = db.prepare(`
+    SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+  `).get(fromCharacterId, itemId) as any
+  if (!source || (source.quantity ?? 1) < qty) return { ok: false, error: 'Character does not possess this item.' }
+  const remaining = (source.quantity ?? 1) - qty
+  if (remaining > 0) {
+    db.prepare(`
+      UPDATE character_equipment SET quantity = ?, status = ?, location = ? WHERE id = ?
+    `).run(remaining, 'in_inventory', 'none', source.id)
+  } else {
+    db.prepare(`
+      DELETE FROM character_equipment WHERE id = ?
+    `).run(source.id)
+  }
+  const target = db.prepare(`
+    SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+  `).get(toCharacterId, itemId) as any
+  if (target) {
+    db.prepare(`
+      UPDATE character_equipment SET quantity = ?, status = ?, location = ? WHERE id = ?
+    `).run((target.quantity ?? 1) + qty, 'in_inventory', 'none', target.id)
+  } else {
+    db.prepare(`
+      INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location, rendered_st)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(crypto.randomUUID(), toCharacterId, itemId, qty, 'in_inventory', 'none', null)
+  }
+  return { ok: true }
 }
 
 export class GameTableRulesRepository implements IGameTableRulesRepository {
@@ -854,9 +897,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         id, table_id, parent_id, kind, level, path,
         name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
         hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
-        shop_name
+        shop_name, tiles, drawing
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.table_id,
@@ -882,7 +925,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.orientation ?? data.hex?.orientation ?? 'flat',
       data.rotation_deg ?? data.hex?.rotationDeg ?? 0,
       isBattle,
-      data.shop_name ?? data.shopName ?? null
+      data.shop_name ?? data.shopName ?? null,
+      JSON.stringify(data.tiles ?? []),
+      JSON.stringify(data.drawing ?? [])
     )
 
     return this.findGameLocation(id)
@@ -909,7 +954,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         name = ?, region = ?, address = ?, sub_region = ?, is_indoor = ?,
         other = ?, country = ?, area = ?, dimensions = ?, description = ?,
         hex_size_m = ?, width_hexes = ?, height_hexes = ?, center_q = ?, center_r = ?,
-        orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?
+        orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?,
+        tiles = ?, drawing = ?
       WHERE id = ?
     `).run(
       parentId,
@@ -935,6 +981,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.rotation_deg ?? data.hex?.rotationDeg ?? current.rotation_deg ?? 0,
       isBattle,
       data.shop_name ?? data.shopName ?? current.shop_name ?? null,
+      data.tiles !== undefined ? JSON.stringify(data.tiles ?? []) : current.tiles ?? '[]',
+      data.drawing !== undefined ? JSON.stringify(data.drawing ?? []) : current.drawing ?? '[]',
       data.id
     )
 
@@ -1388,6 +1436,102 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { success: true }
   }
 
+  async deleteGameCharacterEquipment(data: any): Promise<any> {
+    const characterId = data.character_id
+    const itemId = data.item_id
+    if (!characterId || !itemId) return { success: false }
+
+    const existing = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(characterId, itemId) as any
+
+    if (!existing) return { success: false, error: 'Character does not possess this item.' }
+
+    db.prepare(`
+      DELETE FROM character_equipment WHERE id = ?
+    `).run(existing.id)
+
+    return { success: true }
+  }
+
+  async transferGameCharacterEquipment(data: any): Promise<any> {
+    const characterId = data.character_id
+    const itemId = data.item_id
+    const targetCharacterId = data.target_character_id
+    if (!characterId || !itemId || !targetCharacterId) return { success: false }
+    if (characterId === targetCharacterId) return { success: false, error: 'Target cannot be the owner.' }
+
+    const source = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(characterId, itemId) as any
+    if (!source) return { success: false, error: 'Character does not possess this item.' }
+
+    db.prepare(`
+      DELETE FROM character_equipment WHERE id = ?
+    `).run(source.id)
+
+    const quantity = source.quantity ?? 1
+    const targetExisting = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(targetCharacterId, itemId) as any
+    if (targetExisting) {
+      db.prepare(`
+        UPDATE character_equipment
+        SET quantity = ?, status = ?, location = ?
+        WHERE id = ?
+      `).run((targetExisting.quantity ?? 1) + quantity, 'in_inventory', 'none', targetExisting.id)
+    } else {
+      db.prepare(`
+        INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location, rendered_st)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(crypto.randomUUID(), targetCharacterId, itemId, quantity, 'in_inventory', 'none', null)
+    }
+
+    return { success: true }
+  }
+
+  async sellGameCharacterEquipment(data: any): Promise<any> {
+    const sellerId = data.character_id
+    const buyerId = data.buyer_character_id
+    const itemId = data.item_id
+    const priceItemId = data.price_item_id
+    const priceQuantity = Number(data.price_quantity ?? 1)
+    if (!sellerId || !buyerId || !itemId || !priceItemId || priceQuantity < 1) {
+      return { success: false, error: 'Missing sale details.' }
+    }
+    if (sellerId === buyerId) return { success: false, error: 'You cannot sell to yourself.' }
+
+    const source = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(sellerId, itemId) as any
+    if (!source) return { success: false, error: 'Character does not possess this item.' }
+    const itemQty = source.quantity ?? 1
+
+    const priceRow = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(buyerId, priceItemId) as any
+    if (!priceRow || (priceRow.quantity ?? 1) < priceQuantity) {
+      return { success: false, error: 'Buyer cannot afford the price.' }
+    }
+
+    const error = db.transaction((): string | null => {
+      const moveItem = moveEquipmentStash(sellerId, buyerId, itemId, itemQty)
+      if (!moveItem.ok) return moveItem.error ?? 'Sale failed.'
+      const movePrice = moveEquipmentStash(buyerId, sellerId, priceItemId, priceQuantity)
+      if (!movePrice.ok) return movePrice.error ?? 'Sale failed.'
+      return null
+    })()
+    if (error) return { success: false, error }
+
+    return {
+      success: true,
+      item_id: itemId,
+      quantity: itemQty,
+      buyer_character_id: buyerId,
+      price_item_id: priceItemId,
+      price_quantity: priceQuantity
+    }
+  }
 
   async findGameCharacter(id: any, moment?: number, viewer?: any): Promise<any> {
     const characterData = db.prepare(`
@@ -1663,6 +1807,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         armors,
         skills,
         items,
+        peculiarities,
         active_effects: activeEffects
       },
       peculiarities,
@@ -1895,26 +2040,84 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       WHERE c.table_id = ?
     `).all(tableId) as any[]
 
-    const rows = characters.map(char => ({
-      id: char.character_id,
-      name: char.sheet_name,
-      isNpc: !!char.is_npc,
-      user: {
-        id: char.user_id,
-        username: char.username,
-        type: char.user_type
-      },
-      sheet: char.sheet_id ? {
-        id: char.sheet_id,
+    // Povoa cada linha com os stats efetivos (base + modificadores ativos),
+    // igual à semântica do findGameCharacter: sheet.hp é o HP atual, base_hp
+    // é o máximo original, e active_effects lista os efeitos em vigor.
+    const rows = characters.map(char => {
+      const baseStats = {
+        hp: char.hp ?? 10,
+        st: char.st ?? 10,
+        dx: char.dx ?? 10,
+        iq: char.iq ?? 10,
+        ht: char.ht ?? 10,
+      }
+      const modifiers = db.prepare(`
+        SELECT * FROM modifiers
+        WHERE character_id = ?
+        ORDER BY rowid ASC
+      `).all(char.character_id) as any[]
+
+      const activeEffects = modifiers
+        .filter((m) =>
+          m.mod_hp != null || m.mod_st != null || m.mod_dx != null ||
+          m.mod_iq != null || m.mod_ht != null || m.mod_fatigue != null ||
+          m.hp != null || m.st != null || m.dx != null ||
+          m.iq != null || m.ht != null || m.encumbrance != null)
+        .map((m) => {
+          const e: any = { id: m.id }
+          for (const k of [
+            'name', 'effect', 'description', 'damage_value',
+            'mod_hp', 'mod_st', 'mod_dx', 'mod_iq', 'mod_ht', 'mod_fatigue',
+            'hp', 'st', 'dx', 'iq', 'ht'
+          ]) {
+            if (m[k] != null) e[k] = m[k]
+          }
+          return e
+        })
+
+      const currentStats = { ...baseStats }
+      for (const mod of modifiers) {
+        if (mod.apply_on_roll === 1) continue
+        if (mod.hp != null) currentStats.hp = mod.hp
+        if (mod.st != null) currentStats.st = mod.st
+        if (mod.dx != null) currentStats.dx = mod.dx
+        if (mod.iq != null) currentStats.iq = mod.iq
+        if (mod.ht != null) currentStats.ht = mod.ht
+        if (mod.mod_hp != null) currentStats.hp += mod.mod_hp
+        if (mod.mod_st != null) currentStats.st += mod.mod_st
+        if (mod.mod_dx != null) currentStats.dx += mod.mod_dx
+        if (mod.mod_iq != null) currentStats.iq += mod.mod_iq
+        if (mod.mod_ht != null) currentStats.ht += mod.mod_ht
+      }
+
+      return {
+        id: char.character_id,
         name: char.sheet_name,
-        points: char.points,
-        hp: char.hp,
-        st: char.st,
-        dx: char.dx,
-        iq: char.iq,
-        ht: char.ht
-      } : null
-    }))
+        isNpc: !!char.is_npc,
+        user: {
+          id: char.user_id,
+          username: char.username,
+          type: char.user_type
+        },
+        sheet: char.sheet_id ? {
+          id: char.sheet_id,
+          name: char.sheet_name,
+          points: char.points,
+          hp: currentStats.hp,
+          st: currentStats.st,
+          dx: currentStats.dx,
+          iq: currentStats.iq,
+          ht: currentStats.ht,
+          current_hp: currentStats.hp,
+          base_hp: baseStats.hp,
+          base_st: baseStats.st,
+          base_dx: baseStats.dx,
+          base_iq: baseStats.iq,
+          base_ht: baseStats.ht
+        } : null,
+        active_effects: activeEffects
+      }
+    })
 
     /* Visibilidade — se um observador (type 1) de outro personagem
        pede a lista, molde cada linha pelas regras desse observador
@@ -2065,6 +2268,91 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.apply_on_roll ?? 0,
       data.id
     )
+  }
+
+  /* ============================================================
+     GM QUICK ACTIONS
+     Materialize a change on the target character AND keep a
+     modifier row as the story log — the same read-path the
+     narrator uses, so the award is replayable by scene moment.
+     ============================================================ */
+
+  async grantGameItem(data: any): Promise<any> {
+    const characterId = data.character_id
+    const itemId = data.item_id
+    if (!characterId || !itemId) return { success: false, error: 'character_id and item_id are required' }
+
+    const existing = db.prepare(`
+      SELECT * FROM character_equipment WHERE character_id = ? AND item_id = ?
+    `).get(characterId, itemId) as any
+    const quantity = data.quantity ?? existing?.quantity ?? 1
+    const status = data.status ?? existing?.status ?? 'in_inventory'
+    const location = data.location ?? existing?.location ?? 'none'
+
+    if (existing) {
+      db.prepare(`
+        UPDATE character_equipment
+        SET status = ?, location = ?, quantity = ?
+        WHERE id = ?
+      `).run(status, location, quantity, existing.id)
+    } else {
+      db.prepare(`
+        INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(crypto.randomUUID(), characterId, itemId, quantity, status, location)
+    }
+
+    const item = db.prepare(`SELECT name FROM game_table_items WHERE id = ?`).get(itemId) as any
+    const id = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO modifiers (id, character_id, item_id, action_id, narration_id, scene_id, name, item_quantity, item_status, description, apply_on_roll)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+    `).run(
+      id,
+      characterId,
+      itemId,
+      data.action_id || null,
+      data.narration_id || null,
+      data.scene_id || null,
+      data.name || (item?.name ? `Granted ${item.name}` : 'Item granted'),
+      quantity,
+      status,
+      data.description || (item?.name ? `+${quantity}× ${item.name}` : `+${quantity} item`)
+    )
+
+    return { success: true, id, character_id: characterId, item_id: itemId, quantity, status }
+  }
+
+  async awardGameCharacterPoints(data: any): Promise<any> {
+    const characterId = data.character_id
+    if (!characterId) return { success: false, error: 'character_id is required' }
+    const delta = Number(data.points)
+    if (!Number.isFinite(delta) || delta === 0) return { success: false, error: 'points must be a non-zero number' }
+
+    const sheet = db.prepare(`
+      SELECT id, points FROM game_table_character_sheets WHERE character_id = ?
+    `).get(characterId) as any
+    if (!sheet) return { success: false, error: 'Character has no sheet' }
+
+    db.prepare(`UPDATE game_table_character_sheets SET points = points + ? WHERE id = ?`).run(delta, sheet.id)
+
+    const id = crypto.randomUUID()
+    const name = data.name || (delta > 0 ? 'Experience award' : 'Experience cost')
+    db.prepare(`
+      INSERT INTO modifiers (id, character_id, action_id, narration_id, scene_id, name, cost_points, description, apply_on_roll)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+    `).run(
+      id,
+      characterId,
+      data.action_id || null,
+      data.narration_id || null,
+      data.scene_id || null,
+      name,
+      delta,
+      data.description || (delta > 0 ? `+${delta} campaign points` : `${delta} campaign points`)
+    )
+
+    return { success: true, id, character_id: characterId, points: delta }
   }
 
   async findGameModifier(id: any): Promise<any> {
@@ -2294,6 +2582,44 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.test_skill || null,
       data.id
     )
+  }
+
+  /** Encerra o turno de um jogador num único passo atômico:
+      grava a ação (narration_actions) e tira o personagem da fila.
+      Só a pessoa que está NA VEZ na fila pode fazê-lo. */
+  async endPlayerTurn(data: any): Promise<any> {
+    const tx = db.transaction(() => {
+      const front = db
+        .prepare(`
+          SELECT id, character_id FROM queue
+          WHERE status != 'done'
+          ORDER BY CAST(queue AS INTEGER) ASC, rowid ASC
+          LIMIT 1
+        `)
+        .get() as any
+      if (!front) throw new Error('Queue is empty — no one is acting right now')
+      if (front.character_id !== data.character_id) {
+        throw new Error('It is not your turn — wait for the spotlight')
+      }
+
+      const actionId = crypto.randomUUID()
+      db.prepare(`
+        INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id)
+        VALUES (?, ?, ?, ?, ?, NULL, NULL, 0, ?, ?)
+      `).run(
+        actionId,
+        data.narrations_id || null,
+        data.queue ?? 0,
+        data.result ?? null,
+        data.dice_roll ?? null,
+        data.description ?? null,
+        data.character_id
+      )
+
+      db.prepare(`UPDATE queue SET status = 'done', queue = '' WHERE id = ?`).run(front.id)
+      return { action_id: actionId }
+    })
+    return tx()
   }
 
   async findGameQueue(id: any): Promise<any> {
