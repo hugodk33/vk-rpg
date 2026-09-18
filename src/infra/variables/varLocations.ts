@@ -14,6 +14,7 @@ import {
   locDistrictDockId,
   locDistrictScholarsId,
   locDistrictOldId,
+  locTempleId,
 } from "./MainUUIDIds/uuidLocation"
 
 type SeedModifierLocation = {
@@ -39,6 +40,8 @@ type SeedModifierLocation = {
   orientation?: string
   rotation_deg?: number
   is_battlemap?: number
+  tiles?: Array<{ q: number; r: number; t: string }>
+  drawing?: Array<Record<string, unknown>>
 }
 
 export const modifierTableLocations: SeedModifierLocation[] = [
@@ -426,5 +429,55 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 1,
     center_r: 1,
     is_battlemap: 1,
+  },
+
+  /* ---------------- THE FORGOTTEN TEMPLE — 3×3 vector battlemap ---------------- */
+  {
+    id: locTempleId,
+    table_id: mainGameTableId,
+    parent_id: locDistrictLowerId,
+    kind: 'site',
+    name: 'The Forgotten Temple',
+    region: 'Lower City',
+    sub_region: 'Ancient Undercroft',
+    address: 'Behind the catacombs',
+    is_indoor: 1,
+    other: 'Pulsating crystal above the altar',
+    country: 'Valorian Empire',
+    area: 'Underground temple',
+    dimensions: '6 m × 5.2 m',
+    description:
+      'A vast underground temple, its architecture ancient and alien. Stone pillars rise from the floor and a pulsating crystal hovers above the central altar — the source of the disappearances.',
+    hex_size_m: 2,
+    width_hexes: 3,
+    height_hexes: 3,
+    center_q: 1,
+    center_r: 1,
+    orientation: 'flat',
+    rotation_deg: 0,
+    is_battlemap: 1,
+    tiles: [
+      { q: 0, r: 0, t: 'stone' },
+      { q: 1, r: 0, t: 'stone' },
+      { q: 2, r: 0, t: 'stone' },
+      { q: 0, r: 1, t: 'door' },
+      { q: 1, r: 1, t: 'stone' },
+      { q: 2, r: 1, t: 'stone' },
+      { q: 0, r: 2, t: 'stone' },
+      { q: 1, r: 2, t: 'stone' },
+      { q: 2, r: 2, t: 'stone' },
+    ],
+    drawing: [
+      /* altar rectangle (normalised hexR units) */
+      { type: 'rect', x: 0.5, y: 1.2, w: 2.0, h: 1.06, size: 0.12, color: '#e4e4e7', unit: 'hexR' },
+      /* crystal glow (purple circle above altar) */
+      { type: 'ellipse', cx: 1.5, cy: 1.732, rx: 0.55, ry: 0.55, size: 0.12, color: '#a78bfa', unit: 'hexR' },
+      /* pillar northwest */
+      { type: 'path', d: 'M -0.5 -0.45 L -0.5 0.55', size: 0.28, color: '#71767e', unit: 'hexR' },
+      /* pillar southeast */
+      { type: 'path', d: 'M 3.5 2.9 L 3.5 3.95', size: 0.28, color: '#71767e', unit: 'hexR' },
+      /* processional path door → altar */
+      { type: 'path', d: 'M 0 1.732 L 1.5 1.732', size: 0.35, color: '#9a7d2f', unit: 'hexR' },
+    ],
   },
 ]

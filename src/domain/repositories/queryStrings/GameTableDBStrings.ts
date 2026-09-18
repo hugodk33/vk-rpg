@@ -23,6 +23,10 @@ export const GameTableDBStrings:any = {
       na.description AS action_description,
       na.dice_roll AS action_dice_roll,
       na.result AS action_result,
+      na.location_id AS action_location_id,
+      na.q AS action_q,
+      na.r AS action_r,
+      na.facing AS action_facing,
       
       -- CHARACTER (via action)
       ca.id AS action_character_ref_id,
@@ -39,12 +43,18 @@ export const GameTableDBStrings:any = {
       cnu.id AS narration_character_user_id,
       cnu.username AS narration_character_username,
       nc.conscious AS narration_character_conscious,
+      nc.q AS narration_character_q,
+      nc.r AS narration_character_r,
+      nc.facing AS narration_character_facing,
 
       -- NPC
       nn.id AS narration_npc_link_id,
       npc.id AS narration_npc_id,
       npc.character_id AS narration_npc_character_id,
       npc.status AS narration_npc_status,
+      nn.q AS narration_npc_q,
+      nn.r AS narration_npc_r,
+      nn.facing AS narration_npc_facing,
 
       c_npc.id AS narration_npc_ref_id,
       npc_cs.name AS narration_npc_name,
@@ -83,7 +93,21 @@ export const GameTableDBStrings:any = {
       tl.area AS location_area,
       tl.dimensions AS location_dimensions,
       tl.description AS location_description,
-      tl.other AS location_other
+      tl.other AS location_other,
+      tl.parent_id AS location_parent_id,
+      tl.kind AS location_kind,
+      tl.level AS location_level,
+      tl.path AS location_path,
+      tl.hex_size_m AS location_hex_size_m,
+      tl.width_hexes AS location_width_hexes,
+      tl.height_hexes AS location_height_hexes,
+      tl.center_q AS location_center_q,
+      tl.center_r AS location_center_r,
+      tl.orientation AS location_orientation,
+      tl.rotation_deg AS location_rotation_deg,
+      tl.is_battlemap AS location_is_battlemap,
+      tl.tiles AS location_tiles,
+      tl.drawing AS location_drawing
 
     FROM scenes s
 
@@ -151,6 +175,7 @@ export const GameTableDBStrings:any = {
         g.intro AS table_intro,
         g.title AS table_title,
         g.system AS table_system,
+        g.modules AS table_modules,
         n.id AS narrator_id,
         n.user_id AS narrator_user_id,
         n.name AS narrator_name,
@@ -191,6 +216,8 @@ export const GameTableDBStrings:any = {
         g.narrator_id AS table_narrator_id,
         g.intro AS table_intro,
         g.title AS table_title,
+        g.system AS table_system,
+        g.modules AS table_modules,
         n.id AS narrator_id,
         n.user_id AS narrator_user_id,
         n.name AS narrator_name,
@@ -293,7 +320,9 @@ export const GameTableDBStrings:any = {
         id,
         narrator_id,
         intro,
-        title
+        title,
+        system,
+        modules
       FROM game_tables
       WHERE id = ?
     `,
@@ -311,7 +340,7 @@ export const GameTableDBStrings:any = {
       VALUES (?, ?, ?, ?, ?, ?)
     `,
     NarrationActionCreate:`
-      INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id, location_id, q, r, facing)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 }

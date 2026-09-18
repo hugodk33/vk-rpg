@@ -27,6 +27,7 @@ import { modifierTableLocations } from '../variables/varLocations'
 import { modifierGameTableSkillsPreDetermined } from '../variables/varPreDetermined'
 import { modifierGameTableSkillsDependecies } from '../variables/varDependecies'
 import { visibilityRules } from '../variables/varVisibility'
+import { contentModules, contentCategories, skillTag, advantageTagBy, disadvantageTagBy, itemTagBy, npcTagBy } from '../variables/varContentModules'
 
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -64,36 +65,77 @@ for (const table of gameTables) {
   gameTableStmt.run(table.id, table.narratorId, table.intro , table.title, table.system)
 }
 
-// insert advantages
+// insert content modules (pacotes de campanha)
+const contentModuleStmt = db.prepare(`
+  INSERT INTO content_modules (id, slug, name, tech_level, description, accent, sort)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const module of contentModules) {
+  contentModuleStmt.run(
+    module.id,
+    module.slug,
+    module.name,
+    module.techLevel,
+    module.description,
+    module.accent,
+    module.sort
+  )
+}
+
+// insert content categories (árvore GURPS)
+const contentCategoryStmt = db.prepare(`
+  INSERT INTO content_categories (id, domain, parent_id, name, display_name, sort)
+  VALUES (?, ?, ?, ?, ?, ?)
+`)
+
+for (const category of contentCategories) {
+  contentCategoryStmt.run(
+    category.id,
+    category.domain,
+    category.parentId,
+    category.name,
+    category.displayName,
+    category.sort
+  )
+}
+
+// insert advantages (etiquetadas com módulo + categoria GURPS)
 const advantageStmt = db.prepare(`
-  INSERT INTO game_table_advantages (id, table_id , name , cost_points, description)
-  VALUES (?, ?, ?, ? , ?)
+  INSERT INTO game_table_advantages (id, table_id , name , cost_points, description, module_id, category, subcategory)
+  VALUES (?, ?, ?, ? , ?, ?, ?, ?)
 `)
 
 for (const advantage of advantages) {
+  const tag = advantageTagBy(advantage.name)
   advantageStmt.run(
     advantage.id,
     advantage.table_id,
     advantage.name,
     advantage.costPoints,
-    advantage.description
+    advantage.description,
+    tag.moduleId,
+    tag.category,
+    tag.subcategory ?? null
   )
-
-
 }
 
 const disadvantageStmt = db.prepare(`
-  INSERT INTO game_table_disadvantages (id, table_id , name, cost_points, description)
-  VALUES (?, ?, ?, ? , ?)
+  INSERT INTO game_table_disadvantages (id, table_id , name, cost_points, description, module_id, category, subcategory)
+  VALUES (?, ?, ?, ? , ?, ?, ?, ?)
 `)
 
 for (const disadvantage of disadvantages) {
+  const tag = disadvantageTagBy(disadvantage.name)
   disadvantageStmt.run(
     disadvantage.id,
     disadvantage.table_id,
     disadvantage.name,
     disadvantage.costPoints,
-    disadvantage.description
+    disadvantage.description,
+    tag.moduleId,
+    tag.category,
+    tag.subcategory ?? null
   )
 }
 
@@ -107,14 +149,15 @@ for (const entry of gameTablePlayers) {
   gameTablePlayerStmt.run(entry.id, entry.tableId, entry.userId)
 }
 
-// insert skills
+// insert skills (etiquetadas com módulo + categoria GURPS)
 const skillStmt = db.prepare(`
-  INSERT INTO game_table_skills (id, table_id , name, predefinition_type , predefinition_difficulty , description)
-  VALUES (?, ? , ?, ?, ? , ?)
+  INSERT INTO game_table_skills (id, table_id , name, predefinition_type , predefinition_difficulty , description, module_id, category, subcategory)
+  VALUES (?, ? , ?, ?, ? , ?, ?, ?, ?)
 `)
 
 for (const skill of skills) {
-  skillStmt.run(skill.id , skill.table_id , skill.name, skill.predefinition_type , skill.predefinition_difficulty, skill.description)
+  const tag = skillTag[skill.name] ?? { moduleId: 'fantasy', category: 'survival', subcategory: 'wilderness' }
+  skillStmt.run(skill.id , skill.table_id , skill.name, skill.predefinition_type , skill.predefinition_difficulty, skill.description, tag.moduleId, tag.category, tag.subcategory ?? null)
 }
 
 // insert characters
@@ -152,25 +195,36 @@ for (const sheet of characterSheets) {
 }
 
 const npcSheetStmt = db.prepare(`
-  INSERT INTO game_table_npcs (id, character_id , status)
-  VALUES (?, ?, ? )
+  INSERT INTO game_table_npcs (id, character_id , status, module_id, category, subcategory)
+  VALUES (?, ?, ?, ?, ?, ?)
 `)
 
+const npcSheetNameByCharacter = new Map<string, string>()
+for (const sheet of characterSheets) {
+  npcSheetNameByCharacter.set(sheet.characterId, sheet.name)
+}
+
 for (const npcSheet of newNpcs) {
+  const characterName = npcSheetNameByCharacter.get(npcSheet.character_id) ?? 'Unknown NPC'
+  const tag = npcTagBy(characterName, npcSheet.status)
   npcSheetStmt.run(
     npcSheet.id,
     npcSheet.character_id,
-    npcSheet.status
+    npcSheet.status,
+    tag.moduleId,
+    tag.category,
+    tag.subcategory
   )
 }
 
-// insert items
+// insert items (etiquetadas com módulo + subcategoria)
 const itemStmt = db.prepare(`
-  INSERT INTO game_table_items (id, table_id , name, kind, category, weight_lb, cost, dimensions, description, quality, condition)
-  VALUES (?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO game_table_items (id, table_id , name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory)
+  VALUES (?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const item of items) {
+  const tag = itemTagBy(item)
   itemStmt.run(
     item.id,
     item.table_id,
@@ -182,7 +236,9 @@ for (const item of items) {
     item.dimensions,
     item.description,
     item.quality,
-    item.condition
+    item.condition,
+    tag.moduleId,
+    tag.subcategory
   )
 }
 
@@ -327,37 +383,38 @@ for (const modifierNarration of narrations) {
 }
 
 const modifierNarrationsActionstmt = db.prepare(`
-  INSERT INTO narration_actions(id, narrations_id, queue, result, dice_roll, description, character_id, modificator, target, multitarget)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO narration_actions(id, narrations_id, queue, result, dice_roll, description, character_id, modificator, target, multitarget, location_id, q, r, facing)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const modifierNarrationAction of modifierNarrationsActions) {
-  modifierNarrationsActionstmt.run(modifierNarrationAction.id, modifierNarrationAction.narrations_id, modifierNarrationAction.queue , modifierNarrationAction.result, modifierNarrationAction.dice_roll, modifierNarrationAction.description, modifierNarrationAction.character_id, modifierNarrationAction.modificator, modifierNarrationAction.target, Number(modifierNarrationAction.multitarget))
+  modifierNarrationsActionstmt.run(modifierNarrationAction.id, modifierNarrationAction.narrations_id, modifierNarrationAction.queue , modifierNarrationAction.result, modifierNarrationAction.dice_roll, modifierNarrationAction.description, modifierNarrationAction.character_id, modifierNarrationAction.modificator, modifierNarrationAction.target, Number(modifierNarrationAction.multitarget), modifierNarrationAction.location_id ?? null, modifierNarrationAction.q ?? null, modifierNarrationAction.r ?? null, modifierNarrationAction.facing ?? null)
 }
 
 const modifierNarrationsCharacterstmt = db.prepare(`
-  INSERT INTO narration_characters(id, character_id, narrations_id)
-  VALUES (?, ?, ?)
+  INSERT INTO narration_characters(id, character_id, narrations_id, conscious, q, r, facing)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const modifierNarrationCharacter of modifierNarrationsCharacters) {
-  modifierNarrationsCharacterstmt.run(modifierNarrationCharacter.id, modifierNarrationCharacter.character_id, modifierNarrationCharacter.narrations_id)
+  modifierNarrationsCharacterstmt.run(modifierNarrationCharacter.id, modifierNarrationCharacter.character_id, modifierNarrationCharacter.narrations_id, modifierNarrationCharacter.conscious !== false ? 1 : 0, modifierNarrationCharacter.q ?? null, modifierNarrationCharacter.r ?? null, modifierNarrationCharacter.facing ?? null)
 }
 
 const modifierNarrationsNPCstmt = db.prepare(`
-  INSERT INTO narration_npcs(id, narration_id, npc_id)
-  VALUES (?, ?, ?)
+  INSERT INTO narration_npcs(id, narration_id, npc_id, q, r, facing)
+  VALUES (?, ?, ?, ?, ?, ?)
 `)
 
 for (const modifierNarrationsNPC of modifierNarrationsNPCs) {
-  modifierNarrationsNPCstmt.run(modifierNarrationsNPC.id, modifierNarrationsNPC.narration_id, modifierNarrationsNPC.npc_id)
+  modifierNarrationsNPCstmt.run(modifierNarrationsNPC.id, modifierNarrationsNPC.narration_id, modifierNarrationsNPC.npc_id, modifierNarrationsNPC.q ?? null, modifierNarrationsNPC.r ?? null, modifierNarrationsNPC.facing ?? null)
 }
 
 const modifierTableLocationstmt = db.prepare(`
   INSERT INTO table_locations(id, table_id, parent_id, kind, level, path,
     name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
-    hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
+    tiles, drawing )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const modifierTableLocation of modifierTableLocations) {
@@ -397,7 +454,9 @@ for (const modifierTableLocation of modifierTableLocations) {
     modifierTableLocation.center_r ?? 0,
     modifierTableLocation.orientation ?? 'flat',
     modifierTableLocation.rotation_deg ?? 0,
-    isBattlemap
+    isBattlemap,
+    JSON.stringify(modifierTableLocation.tiles ?? []),
+    JSON.stringify(modifierTableLocation.drawing ?? [])
   )
 }
 

@@ -79,12 +79,17 @@ import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table
 import { EndPlayerTurnUseCase } from '../../application/use-cases/table-game-rules-use-case/EndPlayerTurnUseCase'
 import { FindUserByIdUseCase } from '../../application/use-cases/users-use-cases/FindUserByIdUseCase'
 
+import { ContentCatalogRepository } from '../../domain/repositories/ContentCatalogRepository'
+import { FindContentCatalogUseCase } from '../../application/use-cases/content-use-cases/FindContentCatalogUseCase'
+import { ContentModuleController } from '../controllers/ContentModuleController'
+
 const router = Router()
 
 const repo = new UserRepository()
 const narratorRepo = new NarratorRepository()
 const gameTableRepo = new GameTableRepository()
 const gameTableRulesRepo = new GameTableRulesRepository()
+const contentCatalogRepo = new ContentCatalogRepository()
 
 /* USERS */
 const findAllUsersUseCase = new FindAllUsersUseCase(repo)
@@ -104,7 +109,7 @@ const userController =
     );  
 
 /* GAME TABLE */
-const createGameTableUseCase = new CreateGameTableUseCase(gameTableRepo)
+const createGameTableUseCase = new CreateGameTableUseCase(gameTableRepo, contentCatalogRepo)
 const findGameTableUseCase = new FindGameTableUseCase(gameTableRepo)
 const findAllGameTablesUseCase = new FindAllGameTablesUseCase(gameTableRepo)
 const findAllGameTableScenesUseCase = new FindAllGameTableScenesUseCase(gameTableRepo)
@@ -114,6 +119,11 @@ const createNarrationUseCase = new CreateNarrationUseCase(gameTableRepo)
 const createNarrationActionUseCase = new CreateNarrationActionUseCase(gameTableRepo)
 /* ========== */
 const gameTableController = new GameTableController(createGameTableUseCase, findGameTableUseCase , findAllGameTablesUseCase , findAllGameTableScenesUseCase, editGameTableUseCase, createSceneUseCase, createNarrationUseCase, createNarrationActionUseCase)
+
+/* CONTENT MODULES */
+const findContentCatalogUseCase = new FindContentCatalogUseCase(contentCatalogRepo)
+/* ========== */
+const contentModuleController = new ContentModuleController(findContentCatalogUseCase)
 
 /* GAME TABLE RULES*/
 const findGameTableSkillsUseCase = new FindGameTableSkillUseCase(gameTableRulesRepo)   
@@ -245,6 +255,9 @@ router.put('/game-table/edit/:id', (req, res) => gameTableController.editGameTab
 router.post('/game-table-scene', (req, res) => gameTableController.createScene(req, res))
 router.post('/game-table-narration', (req, res) => gameTableController.createNarration(req, res))
 router.post('/game-table-action', (req, res) => gameTableController.createNarrationAction(req, res))
+
+/* ===== CONTENT MODULES ===== */
+router.get('/content-modules', (req, res) => contentModuleController.findCatalog(req, res))
 
 router.get('/game-table-skills/:id', (req, res) => gameTableRulesController.findAllSkills(req, res))
 router.get('/game-table-skill/:id', (req, res) => gameTableRulesController.findSkill(req, res))

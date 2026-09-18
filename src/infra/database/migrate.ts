@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS game_tables (
   system TEXT,
   intro TEXT,
   default_location_id TEXT,
+  modules TEXT DEFAULT '[]',
   FOREIGN KEY (narrator_id) REFERENCES narrators(id)
 );
 
@@ -176,6 +177,10 @@ CREATE TABLE IF NOT EXISTS narration_actions (
   multitarget BOOLEAN,
   description TEXT,
   character_id TEXT,
+  location_id TEXT,      -- planta baixa onde a action acontece
+  q INTEGER,             -- hex de destino da action (malha hexagonal local)
+  r INTEGER,
+  facing INTEGER DEFAULT 0, -- direção (0-5) após o movimento
   datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (narrations_id) REFERENCES narrations(id),
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
@@ -187,6 +192,9 @@ CREATE TABLE IF NOT EXISTS narration_characters (
   character_id TEXT,
   narrations_id TEXT,
   conscious INTEGER NOT NULL DEFAULT 1,
+  q INTEGER,              -- posição inicial do token na planta baixa
+  r INTEGER,
+  facing INTEGER DEFAULT 0,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (narrations_id) REFERENCES narrations(id)
 );
@@ -228,6 +236,8 @@ CREATE TABLE IF NOT EXISTS game_table_items (
   description TEXT,
   quality TEXT,         -- domínio: cheap | standard | fine | very_fine
   condition TEXT,       -- domínio: new | worn | damaged | broken
+  module_id TEXT,       -- pacote/fonte de conteúdo (ex: fantasy | mid-tech)
+  subcategory TEXT,     -- subdivisão da categoria de item (ex: melee | ranged | body)
   FOREIGN KEY (table_id) REFERENCES game_tables(id),
   FOREIGN KEY (location_id) REFERENCES table_locations(id)
 );
@@ -347,6 +357,9 @@ CREATE TABLE IF NOT EXISTS game_table_npcs (
   character_id TEXT,
   status TEXT,
   location_id TEXT,     -- vínculo opcional a um local (ex: equipe de uma loja)
+  module_id TEXT,       -- pacote/fonte de conteúdo
+  category TEXT,        -- papel do NPC (combatente | atirador | arcano | assassino)
+  subcategory TEXT,     -- aliança (ally | neutral | enemy | boss)
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (location_id) REFERENCES table_locations(id)
 );
@@ -355,6 +368,9 @@ CREATE TABLE IF NOT EXISTS narration_npcs (
   id TEXT PRIMARY KEY,
   narration_id TEXT NOT NULL,
   npc_id TEXT NOT NULL,
+  q INTEGER,              -- posição inicial do token na planta baixa
+  r INTEGER,
+  facing INTEGER DEFAULT 0,
   FOREIGN KEY (narration_id) REFERENCES narrations(id),
   FOREIGN KEY (npc_id) REFERENCES game_table_npcs(id)
 );
@@ -372,6 +388,7 @@ CREATE TABLE IF NOT EXISTS game_table_skills (
   predefinition_type TEXT,
   predefinition_difficulty TEXT,
   description TEXT,
+  module_id TEXT,
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
@@ -454,6 +471,7 @@ CREATE TABLE IF NOT EXISTS game_table_advantages (
   subcategory TEXT,
   cost_points INTEGER,
   description TEXT,
+  module_id TEXT,
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
@@ -466,6 +484,7 @@ CREATE TABLE IF NOT EXISTS game_table_disadvantages (
   cost_points INTEGER,
   effect TEXT,
   description TEXT,
+  module_id TEXT,
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
@@ -563,6 +582,39 @@ CREATE TABLE IF NOT EXISTS log (
   action TEXT,
   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- =========================
+-- CONTENT MODULES (pacotes de campanha)
+-- -------------------------
+-- Módulos são PACOTES de conteúdo GURPS (ex: fantasy, mid-tech, cyberpunk).
+-- Linhas de catálogo nas tabelas de skill/item/advantage/disadvantage/npc
+-- apontam para um content_module via module_id (fonte/posse).
+-- =========================
+CREATE TABLE IF NOT EXISTS content_modules (
+  id TEXT PRIMARY KEY,
+  slug TEXT UNIQUE,
+  name TEXT,
+  tech_level TEXT,
+  description TEXT,
+  accent TEXT,
+  sort INTEGER DEFAULT 0
+);
+
+-- =========================
+-- CONTENT CATEGORIES (taxonomia GURPS)
+-- -------------------------
+-- Árvore por domínio: category (nível raiz) e subcategory (filho).
+-- parent_id aponta para a categoria raiz; NULL = categoria raiz.
+-- =========================
+CREATE TABLE IF NOT EXISTS content_categories (
+  id TEXT PRIMARY KEY,
+  domain TEXT,          -- skill | item | advantage | disadvantage | npc
+  parent_id TEXT,
+  name TEXT,            -- slug da categoria (raiz) ou subcategoria
+  display_name TEXT,
+  sort INTEGER DEFAULT 0,
+  FOREIGN KEY (parent_id) REFERENCES content_categories(id)
 );
 
 `)
@@ -670,6 +722,84 @@ if (gameTableCols.length && !gameTableCols.includes('default_location_id')) {
 const narrationCharCols = (db.prepare("PRAGMA table_info(narration_characters)").all() as any[]).map((c) => c.name)
 if (narrationCharCols.length && !narrationCharCols.includes('conscious')) {
   db.exec("ALTER TABLE narration_characters ADD COLUMN conscious INTEGER NOT NULL DEFAULT 1")
+}
+
+// ---- Camada de CONTENT MODULES (colunas de etiquetagem) ----
+// game_tables.modules — pacotes instalados no momento da criação da mesa
+const gameTableBackfillCols = (db.prepare("PRAGMA table_info(game_tables)").all() as any[]).map((c) => c.name)
+if (gameTableBackfillCols.length && !gameTableBackfillCols.includes('modules')) {
+  db.exec("ALTER TABLE game_tables ADD COLUMN modules TEXT DEFAULT '[]'")
+}
+
+// domain tables: module_id / subcategory / category
+const tagAdds: { table: string; cols: { col: string; ddl: string }[] }[] = [
+  {
+    table: 'game_table_items',
+    cols: [
+      { col: 'module_id', ddl: 'TEXT' },
+      { col: 'subcategory', ddl: 'TEXT' }
+    ]
+  },
+  {
+    table: 'game_table_skills',
+    cols: [{ col: 'module_id', ddl: 'TEXT' }]
+  },
+  {
+    table: 'game_table_advantages',
+    cols: [{ col: 'module_id', ddl: 'TEXT' }]
+  },
+  {
+    table: 'game_table_disadvantages',
+    cols: [{ col: 'module_id', ddl: 'TEXT' }]
+  },
+  {
+    table: 'game_table_npcs',
+    cols: [
+      { col: 'module_id', ddl: 'TEXT' },
+      { col: 'category', ddl: 'TEXT' },
+      { col: 'subcategory', ddl: 'TEXT' }
+    ]
+  }
+]
+for (const { table, cols } of tagAdds) {
+  const existing = (db.prepare(`PRAGMA table_info(${table})`).all() as any[]).map((c) => c.name)
+  if (!existing.length) continue
+  for (const { col, ddl } of cols) {
+    if (!existing.includes(col)) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${ddl}`)
+    }
+  }
+}
+
+// ---- Camada TÁTICA (q/r/facing + location_id) ----
+// narration_actions — cada action corresponde a um movimento na malha
+// hexagonal e aponta para a planta baixa (location_id) onde aconteceu
+const tacticActionCols = (db.prepare("PRAGMA table_info(narration_actions)").all() as any[]).map((c) => c.name)
+if (tacticActionCols.length) {
+  const tacticActionAdds: { col: string; ddl: string }[] = [
+    { col: 'location_id', ddl: 'TEXT' },
+    { col: 'q', ddl: 'INTEGER' },
+    { col: 'r', ddl: 'INTEGER' },
+    { col: 'facing', ddl: 'INTEGER DEFAULT 0' }
+  ]
+  for (const { col, ddl } of tacticActionAdds) {
+    if (!tacticActionCols.includes(col)) {
+      db.exec(`ALTER TABLE narration_actions ADD COLUMN ${col} ${ddl}`)
+    }
+  }
+}
+// narration_characters / narration_npcs — posição inicial do token na planta baixa
+for (const table of ['narration_characters', 'narration_npcs']) {
+  const tacticTokenCols = (db.prepare(`PRAGMA table_info(${table})`).all() as any[]).map((c) => c.name)
+  if (!tacticTokenCols.length) continue
+  for (const col of ['q', 'r']) {
+    if (!tacticTokenCols.includes(col)) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} INTEGER`)
+    }
+  }
+  if (!tacticTokenCols.includes('facing')) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN facing INTEGER DEFAULT 0`)
+  }
 }
 
 console.log('✅ Full database migrated!')

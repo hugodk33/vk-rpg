@@ -136,6 +136,7 @@ export type GameTableWithNarrator = {
   intro: string
   title: string
   system?: string
+  modules?: string[]
   narrator: {
     id: string
     userId: string

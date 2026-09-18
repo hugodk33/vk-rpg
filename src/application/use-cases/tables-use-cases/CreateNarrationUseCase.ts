@@ -12,6 +12,7 @@ export class CreateNarrationUseCase {
       title: data.title || '',
       narration: data.narration,
       moment: data.moment ?? 0,
+      location_id: data.location_id ?? null,
       present: Array.isArray(data.present) ? data.present : undefined,
       present_npcs: Array.isArray(data.present_npcs) ? data.present_npcs : undefined
     }
