@@ -15,7 +15,11 @@ export class CreateNarrationActionUseCase {
       target: data.target ?? null,
       multitarget: data.multitarget ?? false,
       description: data.description ?? null,
-      character_id: data.character_id ?? null
+      character_id: data.character_id ?? null,
+      location_id: data.location_id ?? null,
+      q: data.q ?? null,
+      r: data.r ?? null,
+      facing: data.facing ?? 0
     }
     await this.repo.createNarrationAction(action)
     return action

@@ -47,6 +47,7 @@ export class GameTableRepository implements IGameTableRepository {
           intro: row.table_intro,
           title: row.table_title,
           system: row.table_system || undefined,
+          modules: this.parseModules(row.table_modules),
           narrator: {
             id: row.narrator_id,
             userId: row.narrator_user_id,
@@ -146,6 +147,8 @@ export class GameTableRepository implements IGameTableRepository {
       narratorId: first.table_narrator_id,
       intro: first.table_intro,
       title: first.table_title,
+      system: first.table_system || undefined,
+      modules: this.parseModules(first.table_modules),
       narrator: {
         id: first.narrator_id,
         userId: first.narrator_user_id,
@@ -318,6 +321,10 @@ export class GameTableRepository implements IGameTableRepository {
               result: string
               description: string
               dice_roll: string
+              locationId: string | null
+              q: number | null
+              r: number | null
+              facing: number | null
               character: { id: string; name: string; userId: string; username: string } | null
               modifier: any
             }>
@@ -329,6 +336,9 @@ export class GameTableRepository implements IGameTableRepository {
                 userId: string
                 username: string
                 conscious: boolean
+                q: number | null
+                r: number | null
+                facing: number | null
               }
             >
             npcs: Map<
@@ -338,11 +348,18 @@ export class GameTableRepository implements IGameTableRepository {
                 characterId: string
                 name: string
                 status: string
+                q: number | null
+                r: number | null
+                facing: number | null
               }
             >,
             location: {
               id: string
               name: string
+              parentId: string | null
+              kind: string | null
+              level: number | null
+              path: string | null
               region: string
               subRegion: string
               address: string
@@ -352,6 +369,19 @@ export class GameTableRepository implements IGameTableRepository {
               dimensions: string
               description: string
               other: string
+              hex: {
+                sizeM: number | null
+                width: number | null
+                height: number | null
+                centerQ: number | null
+                centerR: number | null
+                orientation: string | null
+                rotationDeg: number | null
+              } | null
+              isBattlemap: boolean
+              shopName: string | null
+              tiles: any[]
+              drawing: any[]
             } | null
           }
         >
@@ -428,6 +458,10 @@ export class GameTableRepository implements IGameTableRepository {
           result: row.action_result,
           description: row.action_description,
           dice_roll: row.action_dice_roll,
+          locationId: row.action_location_id ?? null,
+          q: row.action_q != null ? Number(row.action_q) : null,
+          r: row.action_r != null ? Number(row.action_r) : null,
+          facing: row.action_facing != null ? Number(row.action_facing) : null,
           character: row.action_character_id
             ? {
               id: row.action_character_id,
@@ -450,7 +484,10 @@ export class GameTableRepository implements IGameTableRepository {
           name: row.narration_character_name,
           userId: row.narration_character_user_id,
           username: row.narration_character_username,
-          conscious: row.narration_character_conscious != null ? !!row.narration_character_conscious : true
+          conscious: row.narration_character_conscious != null ? !!row.narration_character_conscious : true,
+          q: row.narration_character_q != null ? Number(row.narration_character_q) : null,
+          r: row.narration_character_r != null ? Number(row.narration_character_r) : null,
+          facing: row.narration_character_facing != null ? Number(row.narration_character_facing) : null
         })
       }
 
@@ -462,7 +499,10 @@ export class GameTableRepository implements IGameTableRepository {
           id: row.narration_npc_id,
           characterId: row.narration_npc_character_id,
           name: row.narration_npc_name,
-          status: row.narration_npc_status
+          status: row.narration_npc_status,
+          q: row.narration_npc_q != null ? Number(row.narration_npc_q) : null,
+          r: row.narration_npc_r != null ? Number(row.narration_npc_r) : null,
+          facing: row.narration_npc_facing != null ? Number(row.narration_npc_facing) : null
         })
       }
 
@@ -473,6 +513,10 @@ export class GameTableRepository implements IGameTableRepository {
         narration.location = {
           id: row.location_id,
           name: row.location_name,
+          parentId: row.location_parent_id ?? null,
+          kind: row.location_kind ?? null,
+          level: row.location_level != null ? Number(row.location_level) : null,
+          path: row.location_path ?? null,
           region: row.location_region,
           subRegion: row.location_sub_region,
           address: row.location_address,
@@ -481,7 +525,22 @@ export class GameTableRepository implements IGameTableRepository {
           area: row.location_area,
           dimensions: row.location_dimensions,
           description: row.location_description,
-          other: row.location_other
+          other: row.location_other,
+          hex: row.location_width_hexes != null || row.location_height_hexes != null
+            ? {
+                sizeM: row.location_hex_size_m != null ? Number(row.location_hex_size_m) : null,
+                width: row.location_width_hexes != null ? Number(row.location_width_hexes) : null,
+                height: row.location_height_hexes != null ? Number(row.location_height_hexes) : null,
+                centerQ: row.location_center_q != null ? Number(row.location_center_q) : null,
+                centerR: row.location_center_r != null ? Number(row.location_center_r) : null,
+                orientation: row.location_orientation ?? 'flat',
+                rotationDeg: row.location_rotation_deg != null ? Number(row.location_rotation_deg) : 0
+              }
+            : null,
+          isBattlemap: !!row.location_is_battlemap,
+          shopName: null,
+          tiles: this.parseJsonArray(row.location_tiles),
+          drawing: this.parseJsonArray(row.location_drawing)
         }
       }
     }
@@ -517,7 +576,28 @@ export class GameTableRepository implements IGameTableRepository {
       narratorId: row.narrator_id,
       title: row.title,
       system: row.table_system, 
-      intro: row.intro
+      intro: row.intro,
+      modules: this.parseModules(row.modules)
+    }
+  }
+
+  private parseModules(raw: string | null): string[] {
+    if (!raw) return []
+    try {
+      const parsed = JSON.parse(raw)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+
+  private parseJsonArray(raw: string | null): any[] {
+    if (!raw) return []
+    try {
+      const parsed = JSON.parse(raw)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
     }
   }
 
@@ -551,6 +631,13 @@ export class GameTableRepository implements IGameTableRepository {
         data.moment ?? 0
       )
 
+      if (data.location_id) {
+        db.prepare(`
+          INSERT INTO narration_locations (id, location_id, narrations_id)
+          VALUES (?, ?, ?)
+        `).run(crypto.randomUUID(), data.location_id, data.id)
+      }
+
       const present = Array.isArray(data.present) ? data.present : []
       for (const p of present) {
         const characterId = p?.character_id
@@ -560,30 +647,71 @@ export class GameTableRepository implements IGameTableRepository {
         `).get(characterId) as any
         if (npc) {
           db.prepare(`
-            INSERT INTO narration_npcs (id, narration_id, npc_id)
-            VALUES (?, ?, ?)
-          `).run(crypto.randomUUID(), data.id, npc.id)
+            INSERT INTO narration_npcs (id, narration_id, npc_id, q, r, facing)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `).run(
+            crypto.randomUUID(),
+            data.id,
+            npc.id,
+            p.q != null ? Math.round(p.q) : null,
+            p.r != null ? Math.round(p.r) : null,
+            p.facing ?? 0
+          )
         } else {
           db.prepare(`
-            INSERT INTO narration_characters (id, character_id, narrations_id, conscious)
-            VALUES (?, ?, ?, ?)
-          `).run(crypto.randomUUID(), characterId, data.id, p.conscious === false ? 0 : 1)
+            INSERT INTO narration_characters (id, character_id, narrations_id, conscious, q, r, facing)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            crypto.randomUUID(),
+            characterId,
+            data.id,
+            p.conscious === false ? 0 : 1,
+            p.q != null ? Math.round(p.q) : null,
+            p.r != null ? Math.round(p.r) : null,
+            p.facing ?? 0
+          )
         }
       }
 
       const presentNpcs = Array.isArray(data.present_npcs) ? data.present_npcs : []
-      for (const npcId of presentNpcs) {
+      for (const entry of presentNpcs) {
+        const npcId = typeof entry === 'string' ? entry : entry?.id
         if (!npcId) continue
         db.prepare(`
-          INSERT INTO narration_npcs (id, narration_id, npc_id)
-          VALUES (?, ?, ?)
-        `).run(crypto.randomUUID(), data.id, npcId)
+          INSERT INTO narration_npcs (id, narration_id, npc_id, q, r, facing)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+          crypto.randomUUID(),
+          data.id,
+          npcId,
+          typeof entry !== 'string' && entry?.q != null ? Math.round(entry.q) : null,
+          typeof entry !== 'string' && entry?.r != null ? Math.round(entry.r) : null,
+          typeof entry !== 'string' && entry?.facing != null ? entry.facing : 0
+        )
       }
     })
     insertTransaction()
   }
 
   async createNarrationAction(data: any): Promise<void> {
+    let locationId = data.location_id ?? null
+    if (!locationId && data.narrations_id) {
+      const bound = db.prepare(`
+        SELECT location_id FROM narration_locations WHERE narrations_id = ? LIMIT 1
+      `).get(data.narrations_id) as any
+      if (bound?.location_id) locationId = bound.location_id
+    }
+    if (!locationId && data.character_id) {
+      const owner = db.prepare(`
+        SELECT table_id FROM game_table_characters WHERE id = ?
+      `).get(data.character_id) as any
+      if (owner?.table_id) {
+        const table = db.prepare(`
+          SELECT default_location_id FROM game_tables WHERE id = ?
+        `).get(owner.table_id) as any
+        if (table?.default_location_id) locationId = table.default_location_id
+      }
+    }
     db.prepare(GameTableDBStrings.NarrationActionCreate as string).run(
       data.id,
       data.narrations_id,
@@ -594,7 +722,11 @@ export class GameTableRepository implements IGameTableRepository {
       data.target ?? null,
       data.multitarget ? 1 : 0,
       data.description ?? null,
-      data.character_id ?? null
+      data.character_id ?? null,
+      locationId,
+      data.q != null ? Math.round(data.q) : null,
+      data.r != null ? Math.round(data.r) : null,
+      data.facing ?? 0
     )
   }
 }

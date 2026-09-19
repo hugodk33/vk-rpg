@@ -5,6 +5,9 @@ export const locationId1 = crypto.randomUUID()
 export const locationId2 = crypto.randomUUID()
 export const locationId3 = crypto.randomUUID()
 
+// Templo esquecido — planta baixa simples 3×3 do clímax do capítulo 1
+export const locTempleId = crypto.randomUUID()
+
 // Cascata de território do seed (world > ... > battlemap)
 export const locWorldId = crypto.randomUUID()
 export const locContinentId = crypto.randomUUID()
