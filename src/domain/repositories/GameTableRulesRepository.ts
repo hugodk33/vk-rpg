@@ -2604,8 +2604,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
       const actionId = crypto.randomUUID()
       db.prepare(`
-        INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id)
-        VALUES (?, ?, ?, ?, ?, NULL, NULL, 0, ?, ?)
+        INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id, location_id, q, r, facing)
+        VALUES (?, ?, ?, ?, ?, NULL, NULL, 0, ?, ?, ?, ?, ?, ?)
       `).run(
         actionId,
         data.narrations_id || null,
@@ -2613,7 +2613,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         data.result ?? null,
         data.dice_roll ?? null,
         data.description ?? null,
-        data.character_id
+        data.character_id,
+        data.location_id ?? null,
+        data.q != null ? Math.round(data.q) : null,
+        data.r != null ? Math.round(data.r) : null,
+        data.facing ?? 0
       )
 
       db.prepare(`UPDATE queue SET status = 'done', queue = '' WHERE id = ?`).run(front.id)
