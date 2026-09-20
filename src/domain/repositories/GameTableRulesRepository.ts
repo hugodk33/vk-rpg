@@ -2638,7 +2638,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       LEFT JOIN game_table_characters gc ON gc.id = q.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = gc.id
       WHERE gc.table_id = ?
-      ORDER BY q.queue ASC
+      ORDER BY (q.status = 'done') ASC, CAST(q.queue AS INTEGER) ASC, q.rowid ASC
     `).all(tableId) as any[]
     return queueItems
   }

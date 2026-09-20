@@ -391,6 +391,13 @@ for (const modifierNarrationAction of modifierNarrationsActions) {
   modifierNarrationsActionstmt.run(modifierNarrationAction.id, modifierNarrationAction.narrations_id, modifierNarrationAction.queue , modifierNarrationAction.result, modifierNarrationAction.dice_roll, modifierNarrationAction.description, modifierNarrationAction.character_id, modifierNarrationAction.modificator, modifierNarrationAction.target, Number(modifierNarrationAction.multitarget), modifierNarrationAction.location_id ?? null, modifierNarrationAction.q ?? null, modifierNarrationAction.r ?? null, modifierNarrationAction.facing ?? null)
 }
 
+/* cada action segue a etapa de tempo (moment) da sua narration */
+db.prepare(`
+  UPDATE narration_actions
+  SET moment = (SELECT n.moment FROM narrations n WHERE n.id = narration_actions.narrations_id)
+  WHERE moment IS NULL
+`).run()
+
 const modifierNarrationsCharacterstmt = db.prepare(`
   INSERT INTO narration_characters(id, character_id, narrations_id, conscious, q, r, facing)
   VALUES (?, ?, ?, ?, ?, ?, ?)

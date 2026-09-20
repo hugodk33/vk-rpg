@@ -170,6 +170,7 @@ CREATE TABLE IF NOT EXISTS narration_actions (
   id TEXT PRIMARY KEY,
   narrations_id TEXT,
   queue NUMERIC,
+  moment INTEGER,          -- etapa de tempo da action (espelha narrations.moment)
   result TEXT,
   dice_roll TEXT,
   modificator TEXT,
@@ -672,6 +673,17 @@ if (modifierCols.length && !modifierCols.includes('apply_on_roll')) {
 if (modifierCols.length && !modifierCols.includes('location_id')) {
   db.exec("ALTER TABLE modifiers ADD COLUMN location_id TEXT")
 }
+
+// narration_actions.moment — cada action segue a etapa de tempo da sua narration
+const nactCols = (db.prepare("PRAGMA table_info(narration_actions)").all() as any[]).map((c) => c.name)
+if (nactCols.length && !nactCols.includes('moment')) {
+  db.exec("ALTER TABLE narration_actions ADD COLUMN moment INTEGER")
+}
+db.prepare(`
+  UPDATE narration_actions
+  SET moment = (SELECT n.moment FROM narrations n WHERE n.id = narration_actions.narrations_id)
+  WHERE moment IS NULL
+`).run()
 
 // table_locations — hierarquia de território + grade hexagonal (bases pre-existentes)
 const locationCols = (db.prepare("PRAGMA table_info(table_locations)").all() as any[]).map((c) => c.name)

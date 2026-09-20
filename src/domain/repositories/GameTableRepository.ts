@@ -318,6 +318,7 @@ export class GameTableRepository implements IGameTableRepository {
             actions: Array<{
               id: string
               queue: number
+              moment: number | null
               result: string
               description: string
               dice_roll: string
@@ -455,6 +456,7 @@ export class GameTableRepository implements IGameTableRepository {
         narration.actions.push({
           id: row.action_id,
           queue: row.action_queue,
+          moment: row.action_moment != null ? Number(row.action_moment) : null,
           result: row.action_result,
           description: row.action_description,
           dice_roll: row.action_dice_roll,
@@ -712,10 +714,19 @@ export class GameTableRepository implements IGameTableRepository {
         if (table?.default_location_id) locationId = table.default_location_id
       }
     }
+    /* cada action segue a etapa de tempo (moment) da sua narration */
+    let moment = data.moment ?? null
+    if (moment == null && data.narrations_id) {
+      const bound = db.prepare(`
+        SELECT moment FROM narrations WHERE id = ?
+      `).get(data.narrations_id) as any
+      if (bound?.moment != null) moment = bound.moment
+    }
     db.prepare(GameTableDBStrings.NarrationActionCreate as string).run(
       data.id,
       data.narrations_id,
       data.queue ?? 0,
+      moment ?? 0,
       data.result ?? null,
       data.dice_roll ?? null,
       data.modificator ?? null,

@@ -19,6 +19,7 @@ export const GameTableDBStrings:any = {
       -- ACTION
       na.id AS action_id,
       na.queue AS action_queue,
+      na.moment AS action_moment,
       na.character_id AS action_character_id,
       na.description AS action_description,
       na.dice_roll AS action_dice_roll,
@@ -162,7 +163,7 @@ export const GameTableDBStrings:any = {
       ON tl.id = nl.location_id
 
     WHERE s.table_id = ?
-      ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, na.id ASC
+      ORDER BY s.chapter ASC, s.moment ASC, n.moment ASC, n.rowid ASC, na.queue ASC, na.id ASC
     `,
     GameTableCreateNew:`
       INSERT INTO game_tables (id, narrator_id, title, system , intro)
@@ -313,7 +314,7 @@ export const GameTableDBStrings:any = {
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       LEFT JOIN users u ON u.id = c.user_id
       WHERE s.id = ?
-      ORDER BY n.moment ASC, a.queue ASC
+      ORDER BY n.moment ASC, n.rowid ASC, a.queue ASC
     `,
     GameTableFindTableById:`
       SELECT
@@ -340,7 +341,7 @@ export const GameTableDBStrings:any = {
       VALUES (?, ?, ?, ?, ?, ?)
     `,
     NarrationActionCreate:`
-      INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id, location_id, q, r, facing)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO narration_actions (id, narrations_id, queue, moment, result, dice_roll, modificator, target, multitarget, description, character_id, location_id, q, r, facing)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 }

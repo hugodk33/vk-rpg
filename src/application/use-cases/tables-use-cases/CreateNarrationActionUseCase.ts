@@ -9,6 +9,7 @@ export class CreateNarrationActionUseCase {
       id: crypto.randomUUID(),
       narrations_id: data.narrations_id,
       queue: data.queue ?? 0,
+      moment: data.moment ?? null,
       result: data.result ?? null,
       dice_roll: data.dice_roll ?? null,
       modificator: data.modificator ?? null,
