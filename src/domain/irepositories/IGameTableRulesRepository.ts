@@ -67,4 +67,7 @@ export interface IGameTableRulesRepository {
   findGameQueue(id: any): Promise<any>
   findAllGameQueue(tableId: any): Promise<any>
   endPlayerTurn(data: any): Promise<any>
+
+  findTableSettings(tableId: any): Promise<any>
+  updateTableSettings(data: any): Promise<void>
 }

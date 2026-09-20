@@ -60,6 +60,8 @@ import { FindGameModifierUseCase } from '../../application/use-cases/table-game-
 import { FindAllGameModifiersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameModifiersUseCase'
 import { GrantGameItemUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameItemUseCase'
 import { AwardGameCharacterPointsUseCase } from '../../application/use-cases/table-game-rules-use-case/AwardGameCharacterPointsUseCase'
+import { FindGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableSettingsUseCase'
+import { EditGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSettingsUseCase'
 import { CreateGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameVisibilityUseCase'
 import { EditGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameVisibilityUseCase'
 import { FindGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameVisibilityUseCase'
@@ -180,6 +182,8 @@ const setDefaultGameLocationUseCase = new SetDefaultGameLocationUseCase(gameTabl
 const endPlayerTurnUseCase = new EndPlayerTurnUseCase(gameTableRulesRepo)
 const grantGameItemUseCase = new GrantGameItemUseCase(gameTableRulesRepo)
 const awardGameCharacterPointsUseCase = new AwardGameCharacterPointsUseCase(gameTableRulesRepo)
+const findGameTableSettingsUseCase = new FindGameTableSettingsUseCase(gameTableRulesRepo)
+const editGameTableSettingsUseCase = new EditGameTableSettingsUseCase(gameTableRulesRepo)
 
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(
@@ -236,7 +240,9 @@ const gameTableRulesController = new GameTableRulesController(
     transferGameCharacterEquipmentUseCase,
     sellGameCharacterEquipmentUseCase,
     grantGameItemUseCase,
-    awardGameCharacterPointsUseCase)
+    awardGameCharacterPointsUseCase,
+    findGameTableSettingsUseCase,
+    editGameTableSettingsUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -303,6 +309,10 @@ router.post('/game-table-item/grant', (req, res) => gameTableRulesController.gra
 router.post('/game-table-character/points', (req, res) => gameTableRulesController.awardPoints(req, res))
 router.post('/game-table-roll-effect', (req, res) => gameTableRulesController.applySkillEffect(req, res))
 router.post('/game-table-end-turn', (req, res) => gameTableRulesController.endPlayerTurn(req, res))
+
+/* ===== TABLE SETTINGS ===== */
+router.get('/game-table-settings/:id', (req, res) => gameTableRulesController.findTableSettings(req, res))
+router.put('/game-table-settings', (req, res) => gameTableRulesController.editTableSettings(req, res))
 
 /* ===== VISIBILITY ===== */
 router.get('/game-table-visibility/:id', (req, res) => gameTableRulesController.findAllVisibility(req, res))

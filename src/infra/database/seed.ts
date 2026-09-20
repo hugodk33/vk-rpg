@@ -65,6 +65,16 @@ for (const table of gameTables) {
   gameTableStmt.run(table.id, table.narratorId, table.intro , table.title, table.system)
 }
 
+// insert table settings (configurações padrão de cada mesa)
+const tableSettingsStmt = db.prepare(`
+  INSERT INTO game_table_settings (table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`)
+
+for (const table of gameTables) {
+  tableSettingsStmt.run(table.id, 'after_test', 'gm', 'gm', 1, null, 0)
+}
+
 // insert content modules (pacotes de campanha)
 const contentModuleStmt = db.prepare(`
   INSERT INTO content_modules (id, slug, name, tech_level, description, accent, sort)

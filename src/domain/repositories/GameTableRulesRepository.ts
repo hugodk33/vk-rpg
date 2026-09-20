@@ -2642,4 +2642,45 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).all(tableId) as any[]
     return queueItems
   }
+
+  /* ============ TABLE SETTINGS ============ */
+
+  async findTableSettings(tableId: any): Promise<any> {
+    const defaults = {
+      table_id: tableId,
+      turn_end_mode: 'after_test',
+      item_mode: 'gm',
+      reaction_mode: 'gm',
+      gm_adds_item: 1,
+      money_item_id: null,
+      starting_shop: 0
+    }
+    const row = db
+      .prepare(`SELECT * FROM game_table_settings WHERE table_id = ?`)
+      .get(tableId) as any
+    return row ? { ...row } : defaults
+  }
+
+  async updateTableSettings(data: any): Promise<void> {
+    const tableId = data.table_id
+    if (!tableId) throw new Error('table_id is required')
+    const turnEndMode = data.turn_end_mode === 'after_move' ? 'after_move' : 'after_test'
+    const itemMode = data.item_mode === 'points' ? 'points' : 'gm'
+    const reactionMode = data.reaction_mode === 'points' ? 'points' : 'gm'
+    const gmAddsItem = data.gm_adds_item ? 1 : 0
+    const moneyItemId = data.money_item_id || null
+    const startingShop = data.starting_shop ? 1 : 0
+    db.prepare(`
+      INSERT INTO game_table_settings (
+        table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(table_id) DO UPDATE SET
+        turn_end_mode = excluded.turn_end_mode,
+        item_mode = excluded.item_mode,
+        reaction_mode = excluded.reaction_mode,
+        gm_adds_item = excluded.gm_adds_item,
+        money_item_id = excluded.money_item_id,
+        starting_shop = excluded.starting_shop
+    `).run(tableId, turnEndMode, itemMode, reactionMode, gmAddsItem, moneyItemId, startingShop)
+  }
 }
