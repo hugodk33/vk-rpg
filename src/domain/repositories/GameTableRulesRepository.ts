@@ -1317,6 +1317,16 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const characterId = data.character_id || crypto.randomUUID()
     const sheetId = crypto.randomUUID()
 
+    // A primeira ficha do jogador respeita o orçamento de pontos da mesa.
+    if (data.respect_budget) {
+      const settings = await this.findTableSettings(data.table_id)
+      const budget = settings?.starting_points ?? 150
+      const spent = Number(data.sheet?.points ?? 0)
+      if (!Number.isFinite(spent) || spent > budget) {
+        throw new Error(`A ficha gasta ${spent} pontos, mas o orçamento da mesa é ${budget}.`)
+      }
+    }
+
     const insertTransaction = db.transaction(() => {
       db.prepare(`
         INSERT INTO game_table_characters (id, user_id, table_id)
@@ -2653,7 +2663,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       reaction_mode: 'gm',
       gm_adds_item: 1,
       money_item_id: null,
-      starting_shop: 0
+      starting_shop: 0,
+      starting_points: 150
     }
     const row = db
       .prepare(`SELECT * FROM game_table_settings WHERE table_id = ?`)
@@ -2670,17 +2681,19 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const gmAddsItem = data.gm_adds_item ? 1 : 0
     const moneyItemId = data.money_item_id || null
     const startingShop = data.starting_shop ? 1 : 0
+    const startingPoints = Number.isFinite(Number(data.starting_points)) ? Math.max(0, Math.floor(Number(data.starting_points))) : 150
     db.prepare(`
       INSERT INTO game_table_settings (
-        table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop, starting_points
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(table_id) DO UPDATE SET
         turn_end_mode = excluded.turn_end_mode,
         item_mode = excluded.item_mode,
         reaction_mode = excluded.reaction_mode,
         gm_adds_item = excluded.gm_adds_item,
         money_item_id = excluded.money_item_id,
-        starting_shop = excluded.starting_shop
-    `).run(tableId, turnEndMode, itemMode, reactionMode, gmAddsItem, moneyItemId, startingShop)
+        starting_shop = excluded.starting_shop,
+        starting_points = excluded.starting_points
+    `).run(tableId, turnEndMode, itemMode, reactionMode, gmAddsItem, moneyItemId, startingShop, startingPoints)
   }
 }

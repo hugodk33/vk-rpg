@@ -67,12 +67,12 @@ for (const table of gameTables) {
 
 // insert table settings (configurações padrão de cada mesa)
 const tableSettingsStmt = db.prepare(`
-  INSERT INTO game_table_settings (table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop)
-  VALUES (?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO game_table_settings (table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop, starting_points)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 for (const table of gameTables) {
-  tableSettingsStmt.run(table.id, 'after_test', 'gm', 'gm', 1, null, 0)
+  tableSettingsStmt.run(table.id, 'after_test', 'gm', 'gm', 1, null, 0, 150)
 }
 
 // insert content modules (pacotes de campanha)

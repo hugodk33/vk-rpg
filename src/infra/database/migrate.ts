@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS game_table_settings (
   gm_adds_item INTEGER NOT NULL DEFAULT 1,            -- o mestre pode adicionar o item diretamente (independente do gasto de pontos)
   money_item_id TEXT,                                 -- item que representa dinheiro (moeda) para a loja inicial
   starting_shop INTEGER NOT NULL DEFAULT 0,           -- loja inicial habilitada
+  starting_points INTEGER NOT NULL DEFAULT 150,       -- orçamento de pontos para a primeira ficha do jogador
   FOREIGN KEY (table_id) REFERENCES game_tables(id)
 );
 
@@ -829,6 +830,11 @@ for (const table of ['narration_characters', 'narration_npcs']) {
 }
 
 // ---- Camada de TABLE SETTINGS ----
+// migração para mesas existentes: coluna de orçamento de pontos na primeira ficha
+if (!(db.prepare("PRAGMA table_info(game_table_settings)").all() as any[]).some((c) => c.name === 'starting_points')) {
+  db.exec(`ALTER TABLE game_table_settings ADD COLUMN starting_points INTEGER NOT NULL DEFAULT 150`)
+}
+
 // default de configurações para mesas existentes que ainda não têm a linha
 const settingsCols = (db.prepare("PRAGMA table_info(game_table_settings)").all() as any[]).map((c) => c.name)
 if (settingsCols.length) {
