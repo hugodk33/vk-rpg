@@ -33,23 +33,23 @@ export const  gameTables: [SeedGameTable, SeedGameTable, SeedGameTable] = [
   {
     id: mainGameTableId,
     narratorId,
-    title: 'Shadows of the Old Kingdom',
+    title: 'Sombras do Antigo Reino',
     system: 'GURPS',
-    intro: 'In the crumbling streets of the kingdom\'s capital, a shadow falls over the city. The ancient noble houses whisper of disappearances in the night, and the party must navigate intrigue, forbidden ruins, and dark magic to uncover the truth before the kingdom falls into chaos.'
+    intro: 'Nas ruas em ruínas da capital do reino, uma sombra se abate sobre a cidade. As antigas casas nobres sussurram sobre desaparecimentos durante a noite, e o grupo precisa navegar por intrigas, ruínas proibidas e magia sombria para descobrir a verdade antes que o reino caia no caos.'
   },
   {
     id: crypto.randomUUID(),
     narratorId,
-    title: 'Jungle Expedition',
+    title: 'Expedição à Selva',
     system: 'GURPS',
-    intro: 'A two-player exploration game with survival challenges.'
+    intro: 'Um jogo de exploração para dois jogadores com desafios de sobrevivência.'
   },
   {
     id: crypto.randomUUID(),
     narratorId,
-    title: 'Admin Sandbox',
+    title: 'Caixa de Teste do Admin',
     system: 'GURPS',
-    intro: 'A test table for admin scenes.'
+    intro: 'Uma mesa de teste para cenas de admin.'
   }
 ]
 

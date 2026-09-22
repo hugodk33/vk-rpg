@@ -9,25 +9,53 @@ for (const { name } of allTables) {
 }
 db.exec('PRAGMA foreign_keys = ON')
 
-import { narrators  , gameTables , gameTablePlayers  } from '../variables/varGameTable'
-import { modifierNarrationsActions , modifierNarrationsLocations , modifierNarrationsCharacters , modifierNarrationsNPCs , modifierSeedEntries } from '../variables/varModifiers'
-import { skills } from '../variables/varSkills'
-import { items, weapons, weaponAttacks, armors } from '../variables/varItems'
-import { gurpsDamageTable } from '../variables/varGurpsDamage'
-import { characterEquipment } from '../variables/varEquipment'
-import { advantages } from '../variables/varAdvantages'
-import { disadvantages } from '../variables/varDisadvantage'
-import { users } from '../variables/varUsers'
-import { characters , characterSheets , characterSkills , characterAdvantages , characterDisadvantages } from '../variables/varCharacters'
-import { newNpcs } from '../variables/varNPC'
-import { peculiarities } from '../variables/varPeculiarites'
-import { scenes } from '../variables/varScenes'
-import { narrations } from '../variables/varNarrations'
-import { modifierTableLocations } from '../variables/varLocations'
-import { modifierGameTableSkillsPreDetermined } from '../variables/varPreDetermined'
-import { modifierGameTableSkillsDependecies } from '../variables/varDependecies'
-import { visibilityRules } from '../variables/varVisibility'
-import { contentModules, contentCategories, skillTag, advantageTagBy, disadvantageTagBy, itemTagBy, npcTagBy } from '../variables/varContentModules'
+import * as VVariablesEn from '../variables'
+import * as VVariablesPt from '../variables-pt-br'
+
+export const VARIANT = (process.env.VKRPG_LOCALE ?? 'pt') === 'en' ? 'en' : 'pt'
+
+const V = VARIANT === 'en' ? VVariablesEn : VVariablesPt
+
+const {
+  narrators,
+  gameTables,
+  gameTablePlayers,
+  modifierNarrationsActions,
+  modifierNarrationsLocations,
+  modifierNarrationsCharacters,
+  modifierNarrationsNPCs,
+  modifierSeedEntries,
+  skills,
+  items,
+  weapons,
+  weaponAttacks,
+  armors,
+  gurpsDamageTable,
+  characterEquipment,
+  advantages,
+  disadvantages,
+  users,
+  characters,
+  characterSheets,
+  characterSkills,
+  characterAdvantages,
+  characterDisadvantages,
+  newNpcs,
+  peculiarities,
+  scenes,
+  narrations,
+  modifierTableLocations,
+  modifierGameTableSkillsPreDetermined,
+  modifierGameTableSkillsDependecies,
+  visibilityRules,
+  contentModules,
+  contentCategories,
+  skillTag,
+  advantageTagBy,
+  disadvantageTagBy,
+  itemTagBy,
+  npcTagBy
+} = V
 
 const userStmt = db.prepare(`
   INSERT INTO users (id, type, username, password, phone, email)
@@ -540,11 +568,13 @@ const modifierGameTableCharacterAdvantagestmt = db.prepare(`
   VALUES ( ?, ?, ?, ?, ?, ?)
 `)
 
+const ptAdvantageNameById = new Map(advantages.map((advantage) => [advantage.id, advantage.name]))
+
 for (const modifierGameTableCharacterAdvantage of characterAdvantages) {
   modifierGameTableCharacterAdvantagestmt.run(
     modifierGameTableCharacterAdvantage.id,
     modifierGameTableCharacterAdvantage.advantage_id,
-    modifierGameTableCharacterAdvantage.name,
+    VARIANT === 'pt' ? (ptAdvantageNameById.get(modifierGameTableCharacterAdvantage.advantage_id) ?? modifierGameTableCharacterAdvantage.name) : modifierGameTableCharacterAdvantage.name,
     modifierGameTableCharacterAdvantage.character_id,
     modifierGameTableCharacterAdvantage.cost_points,
     modifierGameTableCharacterAdvantage.effect
@@ -563,11 +593,15 @@ const modifierGameTableCharacterDisadvantagestmt = db.prepare(`
   VALUES ( ?, ?, ?, ?, ?, ?)
 `)
 
+const ptDisadvantageNameById = new Map(
+  disadvantages.map((disadvantage) => [disadvantage.id, disadvantage.name])
+)
+
 for (const modifierGameTableCharacterDisadvantage of characterDisadvantages) {
   modifierGameTableCharacterDisadvantagestmt.run(
     modifierGameTableCharacterDisadvantage.id,
     modifierGameTableCharacterDisadvantage.disadvantage_id,
-    modifierGameTableCharacterDisadvantage.name,
+    VARIANT === 'pt' ? (ptDisadvantageNameById.get(modifierGameTableCharacterDisadvantage.disadvantage_id ?? '') ?? modifierGameTableCharacterDisadvantage.name) : modifierGameTableCharacterDisadvantage.name,
     modifierGameTableCharacterDisadvantage.character_id,
     modifierGameTableCharacterDisadvantage.cost_points,
     modifierGameTableCharacterDisadvantage.effect
