@@ -1,5 +1,5 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
-import { narration1, narration2, narration3, narration4, narration5, narration6 } from "./MainUUIDIds/uuidNarrations"
+import { narration1, narration2, narration3, narration4, narration5, narration6, narration7, narration8, narration9 } from "./MainUUIDIds/uuidNarrations"
 import { scenes } from "./varScenes"
 
 type SeedNarration= {
@@ -59,5 +59,29 @@ export const  narrations: SeedNarration[] = [
     title: 'The Temple Revealed',
     narration: 'Beyond the tunnels lies a vast underground temple, its architecture ancient and alien. At the centre, a pulsating crystal hovers above an altar — the source of the disappearances. Selene Voss stands before it, chanting in an unknown tongue.',
     moment: 0
+  },
+  {
+    id: narration7,
+    table_id: mainGameTableId,
+    scene_id: scenes[1].id,
+    title: 'The Hidden Stairwell',
+    narration: 'The ambushers vanish into the mist, leaving the alley ringing with silence. Testing the loose stone behind the forge stall, Kael finds the seam of a hidden stairwell spiralling into the dark — worn steps, old bones, and a cold draught carrying the smell of ancient earth. The sigil on the riser matches the one the guild agent described.',
+    moment: 2
+  },
+  {
+    id: narration8,
+    table_id: mainGameTableId,
+    scene_id: scenes[2].id,
+    title: 'The Grinding Pursuit',
+    narration: 'Something moves in the tunnels behind them. Stone grinds against stone and the hulking brute from the crossing shambles closer, its breath rattling in the dark. The party must reach the temple vault before the tunnel corners them.',
+    moment: 2
+  },
+  {
+    id: narration9,
+    table_id: mainGameTableId,
+    scene_id: scenes[3].id,
+    title: 'The Crystal Shatters',
+    narration: 'The final syllable leaves Selene\'s lips and the crystal flares violet. The party charges through the surge of magic — the altar cracks, the chant breaks, and the false mage snarls as her ritual unravels into smoke.',
+    moment: 1
   }
 ]

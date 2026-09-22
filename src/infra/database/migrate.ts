@@ -48,6 +48,21 @@ CREATE TABLE IF NOT EXISTS game_tables (
   FOREIGN KEY (narrator_id) REFERENCES narrators(id)
 );
 
+-- =========================
+-- TABLE SETTINGS (configurações de cada mesa)
+-- =========================
+CREATE TABLE IF NOT EXISTS game_table_settings (
+  table_id TEXT PRIMARY KEY,
+  turn_end_mode TEXT NOT NULL DEFAULT 'after_test',   -- 'after_test' | 'after_move' (o turno encerra depois de um teste, ou depois de mover + virar-se)
+  item_mode TEXT NOT NULL DEFAULT 'gm',               -- 'points' | 'gm' (gastar pontos da ficha para adicionar itens, ou é o mestre que concede)
+  reaction_mode TEXT NOT NULL DEFAULT 'gm',           -- 'points' | 'gm' (teste de reação com pontos, ou é o mestre quem resolve)
+  gm_adds_item INTEGER NOT NULL DEFAULT 1,            -- o mestre pode adicionar o item diretamente (independente do gasto de pontos)
+  money_item_id TEXT,                                 -- item que representa dinheiro (moeda) para a loja inicial
+  starting_shop INTEGER NOT NULL DEFAULT 0,           -- loja inicial habilitada
+  starting_points INTEGER NOT NULL DEFAULT 150,       -- orçamento de pontos para a primeira ficha do jogador
+  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+);
+
 CREATE TABLE IF NOT EXISTS game_table_players (
   id TEXT PRIMARY KEY,
   table_id TEXT,
@@ -170,6 +185,7 @@ CREATE TABLE IF NOT EXISTS narration_actions (
   id TEXT PRIMARY KEY,
   narrations_id TEXT,
   queue NUMERIC,
+  moment INTEGER,          -- etapa de tempo da action (espelha narrations.moment)
   result TEXT,
   dice_roll TEXT,
   modificator TEXT,
@@ -673,6 +689,17 @@ if (modifierCols.length && !modifierCols.includes('location_id')) {
   db.exec("ALTER TABLE modifiers ADD COLUMN location_id TEXT")
 }
 
+// narration_actions.moment — cada action segue a etapa de tempo da sua narration
+const nactCols = (db.prepare("PRAGMA table_info(narration_actions)").all() as any[]).map((c) => c.name)
+if (nactCols.length && !nactCols.includes('moment')) {
+  db.exec("ALTER TABLE narration_actions ADD COLUMN moment INTEGER")
+}
+db.prepare(`
+  UPDATE narration_actions
+  SET moment = (SELECT n.moment FROM narrations n WHERE n.id = narration_actions.narrations_id)
+  WHERE moment IS NULL
+`).run()
+
 // table_locations — hierarquia de território + grade hexagonal (bases pre-existentes)
 const locationCols = (db.prepare("PRAGMA table_info(table_locations)").all() as any[]).map((c) => c.name)
 if (locationCols.length) {
@@ -800,6 +827,26 @@ for (const table of ['narration_characters', 'narration_npcs']) {
   if (!tacticTokenCols.includes('facing')) {
     db.exec(`ALTER TABLE ${table} ADD COLUMN facing INTEGER DEFAULT 0`)
   }
+}
+
+// ---- Camada de TABLE SETTINGS ----
+// migração para mesas existentes: coluna de orçamento de pontos na primeira ficha
+if (!(db.prepare("PRAGMA table_info(game_table_settings)").all() as any[]).some((c) => c.name === 'starting_points')) {
+  db.exec(`ALTER TABLE game_table_settings ADD COLUMN starting_points INTEGER NOT NULL DEFAULT 150`)
+}
+
+// default de configurações para mesas existentes que ainda não têm a linha
+const settingsCols = (db.prepare("PRAGMA table_info(game_table_settings)").all() as any[]).map((c) => c.name)
+if (settingsCols.length) {
+  const missingTables = db.prepare(`
+    SELECT id FROM game_tables
+    WHERE id NOT IN (SELECT table_id FROM game_table_settings)
+  `).all() as any[]
+  const insertSettings = db.prepare(`
+    INSERT INTO game_table_settings (table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop)
+    VALUES (?, 'after_test', 'gm', 'gm', 1, NULL, 0)
+  `)
+  for (const t of missingTables) insertSettings.run(t.id)
 }
 
 console.log('✅ Full database migrated!')

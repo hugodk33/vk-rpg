@@ -58,8 +58,21 @@ import { CreateGameModifierUseCase } from '../../application/use-cases/table-gam
 import { EditGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameModifierUseCase'
 import { FindGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameModifierUseCase'
 import { FindAllGameModifiersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameModifiersUseCase'
+import { DeleteGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameModifierUseCase'
 import { GrantGameItemUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameItemUseCase'
 import { AwardGameCharacterPointsUseCase } from '../../application/use-cases/table-game-rules-use-case/AwardGameCharacterPointsUseCase'
+import { FindGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableSettingsUseCase'
+import { EditGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSettingsUseCase'
+import { CreateGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableSkillsUseCase'
+import { EditGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSkillsUseCase'
+import { DeleteGameTableSkillUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableSkillUseCase'
+import { CreateGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableDisadvantagesUseCase'
+import { EditGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableDisadvantagesUseCase'
+import { DeleteGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableDisadvantageUseCase'
+import { DeleteGameTableAdvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableAdvantageUseCase'
+import { DeleteGameTableItemUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableItemUseCase'
+import { DeleteGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableNPCUseCase'
+import { DeleteGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableCharacterUseCase'
 import { CreateGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameVisibilityUseCase'
 import { EditGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameVisibilityUseCase'
 import { FindGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameVisibilityUseCase'
@@ -161,6 +174,7 @@ const createGameModifierUseCase = new CreateGameModifierUseCase(gameTableRulesRe
 const editGameModifierUseCase = new EditGameModifierUseCase(gameTableRulesRepo)
 const findGameModifierUseCase = new FindGameModifierUseCase(gameTableRulesRepo)
 const findAllGameModifiersUseCase = new FindAllGameModifiersUseCase(gameTableRulesRepo)
+const deleteGameModifierUseCase = new DeleteGameModifierUseCase(gameTableRulesRepo)
 const createGameVisibilityUseCase = new CreateGameVisibilityUseCase(gameTableRulesRepo)
 const editGameVisibilityUseCase = new EditGameVisibilityUseCase(gameTableRulesRepo)
 const findGameVisibilityUseCase = new FindGameVisibilityUseCase(gameTableRulesRepo)
@@ -180,6 +194,18 @@ const setDefaultGameLocationUseCase = new SetDefaultGameLocationUseCase(gameTabl
 const endPlayerTurnUseCase = new EndPlayerTurnUseCase(gameTableRulesRepo)
 const grantGameItemUseCase = new GrantGameItemUseCase(gameTableRulesRepo)
 const awardGameCharacterPointsUseCase = new AwardGameCharacterPointsUseCase(gameTableRulesRepo)
+const findGameTableSettingsUseCase = new FindGameTableSettingsUseCase(gameTableRulesRepo)
+const editGameTableSettingsUseCase = new EditGameTableSettingsUseCase(gameTableRulesRepo)
+const createGameTableSkillsUseCase = new CreateGameTableSkillsUseCase(gameTableRulesRepo)
+const editGameTableSkillsUseCase = new EditGameTableSkillsUseCase(gameTableRulesRepo)
+const deleteGameTableSkillUseCase = new DeleteGameTableSkillUseCase(gameTableRulesRepo)
+const createGameTableDisadvantagesUseCase = new CreateGameTableDisadvantagesUseCase(gameTableRulesRepo)
+const editGameTableDisadvantagesUseCase = new EditGameTableDisadvantagesUseCase(gameTableRulesRepo)
+const deleteGameTableDisadvantageUseCase = new DeleteGameTableDisadvantageUseCase(gameTableRulesRepo)
+const deleteGameTableAdvantageUseCase = new DeleteGameTableAdvantageUseCase(gameTableRulesRepo)
+const deleteGameTableItemUseCase = new DeleteGameTableItemUseCase(gameTableRulesRepo)
+const deleteGameTableNPCUseCase = new DeleteGameTableNPCUseCase(gameTableRulesRepo)
+const deleteGameTableCharacterUseCase = new DeleteGameTableCharacterUseCase(gameTableRulesRepo)
 
 /* ========== */
 const gameTableRulesController = new GameTableRulesController(
@@ -215,6 +241,7 @@ const gameTableRulesController = new GameTableRulesController(
     editGameModifierUseCase,
     findGameModifierUseCase,
     findAllGameModifiersUseCase,
+    deleteGameModifierUseCase,
     createGameVisibilityUseCase,
     editGameVisibilityUseCase,
     findGameVisibilityUseCase,
@@ -236,7 +263,19 @@ const gameTableRulesController = new GameTableRulesController(
     transferGameCharacterEquipmentUseCase,
     sellGameCharacterEquipmentUseCase,
     grantGameItemUseCase,
-    awardGameCharacterPointsUseCase)
+    awardGameCharacterPointsUseCase,
+    findGameTableSettingsUseCase,
+    editGameTableSettingsUseCase,
+    createGameTableSkillsUseCase,
+    editGameTableSkillsUseCase,
+    deleteGameTableSkillUseCase,
+    createGameTableDisadvantagesUseCase,
+    editGameTableDisadvantagesUseCase,
+    deleteGameTableDisadvantageUseCase,
+    deleteGameTableAdvantageUseCase,
+    deleteGameTableItemUseCase,
+    deleteGameTableNPCUseCase,
+    deleteGameTableCharacterUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -261,10 +300,17 @@ router.get('/content-modules', (req, res) => contentModuleController.findCatalog
 
 router.get('/game-table-skills/:id', (req, res) => gameTableRulesController.findAllSkills(req, res))
 router.get('/game-table-skill/:id', (req, res) => gameTableRulesController.findSkill(req, res))
+router.post('/game-table-skill', (req, res) => gameTableRulesController.createSkill(req, res))
+router.put('/game-table-skill/:id', (req, res) => gameTableRulesController.editSkill(req, res))
+router.delete('/game-table-skill/:id', (req, res) => gameTableRulesController.deleteSkill(req, res))
 router.get('/game-table-advantages/:id', (req, res) => gameTableRulesController.findAllAdvantages(req, res))
 router.get('/game-table-advantage/:id', (req, res) => gameTableRulesController.findAdvantage(req, res))
+router.delete('/game-table-advantage/:id', (req, res) => gameTableRulesController.deleteAdvantage(req, res))
 router.get('/game-table-disadvantages/:id', (req, res) => gameTableRulesController.findAllDisadvantages(req, res))
 router.get('/game-table-disadvantage/:id', (req, res) => gameTableRulesController.findDisadvantage(req, res))
+router.post('/game-table-disadvantage', (req, res) => gameTableRulesController.createDisadvantage(req, res))
+router.put('/game-table-disadvantage/:id', (req, res) => gameTableRulesController.editDisadvantage(req, res))
+router.delete('/game-table-disadvantage/:id', (req, res) => gameTableRulesController.deleteDisadvantage(req, res))
 router.get('/game-table-peculiarities/:id', (req, res) => gameTableRulesController.findAllPeculiarities(req, res))
 router.get('/game-table-peculiarity/:id', (req, res) => gameTableRulesController.findPeculiarity(req, res))
 router.post('/game-table-peculiarity', (req, res) => gameTableRulesController.createPeculiarity(req, res))
@@ -273,6 +319,7 @@ router.get('/game-table-items/:id', (req, res) => gameTableRulesController.findA
 router.get('/game-table-item/:id', (req, res) => gameTableRulesController.findItem(req, res))
 router.post('/game-table-item', (req, res) => gameTableRulesController.createItem(req, res))
 router.put('/game-table-item', (req, res) => gameTableRulesController.editItem(req, res))
+router.delete('/game-table-item/:id', (req, res) => gameTableRulesController.deleteItem(req, res))
 router.get('/table-location/:id', (req, res) => gameTableRulesController.findLocation(req, res))
 router.get('/game-table-locations/:id', (req, res) => gameTableRulesController.findAllLocations(req, res))
 router.post('/table-location', (req, res) => gameTableRulesController.createLocation(req, res))
@@ -281,11 +328,12 @@ router.delete('/table-location/:id', (req, res) => gameTableRulesController.dele
 router.post('/game-table-locations/default', (req, res) => gameTableRulesController.setDefaultLocation(req, res))
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
-
 router.post('/game-table-npc', (req, res) => gameTableRulesController.createNPC(req, res))
 router.put('/game-table-npc', (req, res) => gameTableRulesController.editNPC(req, res))
+router.delete('/game-table-npc/:id', (req, res) => gameTableRulesController.deleteNPC(req, res))
 router.post('/game-table-character', (req, res) => gameTableRulesController.createCharacter(req, res))
 router.put('/game-table-character', (req, res) => gameTableRulesController.editCharacter(req, res))
+router.delete('/game-table-character/:id', (req, res) => gameTableRulesController.deleteCharacter(req, res))
 router.put('/game-table-character-equipment', (req, res) => gameTableRulesController.editCharacterEquipment(req, res))
 router.delete('/game-table-character-equipment', (req, res) => gameTableRulesController.deleteCharacterEquipment(req, res))
 router.post('/game-table-character-equipment/transfer', (req, res) => gameTableRulesController.transferCharacterEquipment(req, res))
@@ -297,12 +345,17 @@ router.get('/game-table-characters/:id', (req, res) => gameTableRulesController.
 /* ===== MODIFIERS ===== */
 router.get('/game-table-modifiers/:id', (req, res) => gameTableRulesController.findAllModifiers(req, res))
 router.get('/game-table-modifier/:id', (req, res) => gameTableRulesController.findModifier(req, res))
-router.post('/game-table-modifier', (req, res) => gameTableRulesController.createModifier(req, res))
-router.put('/game-table-modifier', (req, res) => gameTableRulesController.editModifier(req, res))
+  router.post('/game-table-modifier', (req, res) => gameTableRulesController.createModifier(req, res))
+  router.put('/game-table-modifier', (req, res) => gameTableRulesController.editModifier(req, res))
+  router.delete('/game-table-modifier/:id', (req, res) => gameTableRulesController.deleteModifier(req, res))
 router.post('/game-table-item/grant', (req, res) => gameTableRulesController.grantItem(req, res))
 router.post('/game-table-character/points', (req, res) => gameTableRulesController.awardPoints(req, res))
 router.post('/game-table-roll-effect', (req, res) => gameTableRulesController.applySkillEffect(req, res))
 router.post('/game-table-end-turn', (req, res) => gameTableRulesController.endPlayerTurn(req, res))
+
+/* ===== TABLE SETTINGS ===== */
+router.get('/game-table-settings/:id', (req, res) => gameTableRulesController.findTableSettings(req, res))
+router.put('/game-table-settings', (req, res) => gameTableRulesController.editTableSettings(req, res))
 
 /* ===== VISIBILITY ===== */
 router.get('/game-table-visibility/:id', (req, res) => gameTableRulesController.findAllVisibility(req, res))

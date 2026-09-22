@@ -1,7 +1,6 @@
 import { db } from '../../infra/database/database'
 import crypto from 'crypto'
 import { IGameTableRulesRepository } from '../irepositories/IGameTableRulesRepository'
-import  {Skill} from '../entities/GURPS/Skill_GURPS'
 import { shapeCatalogForViewer, shapeCharacterForViewer } from '../services/CharacterVisibility'
 
 /** Rules an observer holds (any target) — the "knowledge" set that gates
@@ -187,29 +186,59 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /* =============== */
   /*      SKILLS     */
   /* =============== */
-  async createGameTableSkills(skill: Skill): Promise<void> {
+  async createGameTableSkills(skill: any): Promise<void> {
     db.prepare(`
-      INSERT INTO game_table_skills (id, name , predefinition_value , predefinition_type)
-      VALUES (?, ? , ?, ?)
+      INSERT INTO game_table_skills (id, table_id, name, category, subcategory, type, predefinition_type, predefinition_difficulty, description, module_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       crypto.randomUUID(),
-      skill.name,
-      skill.predefinition_value,
-      skill.predefinition_type
-    ) 
+      skill.table_id ?? null,
+      skill.name ?? null,
+      skill.category ?? null,
+      skill.subcategory ?? null,
+      skill.type ?? null,
+      skill.predefinition_type ?? null,
+      skill.predefinition_difficulty ?? null,
+      skill.description ?? null,
+      skill.module_id ?? null
+    )
   }
 
-  async editGameTableSkills(data: any): Promise<void> {
+  async editGameTableSkills(skill: any): Promise<void> {
     db.prepare(`
       UPDATE game_table_skills
-      SET name = ?, predefinition_value = ?, predefinition_type = ?
+      SET name = ?, category = ?, subcategory = ?, type = ?, predefinition_type = ?, predefinition_difficulty = ?, description = ?, module_id = ?
       WHERE id = ?
-    `).run(     
-      data.name,
-      data.predefinition_value,
-      data.predefinition_type,
-      data.id
+    `).run(
+      skill.name ?? null,
+      skill.category ?? null,
+      skill.subcategory ?? null,
+      skill.type ?? null,
+      skill.predefinition_type ?? null,
+      skill.predefinition_difficulty ?? null,
+      skill.description ?? null,
+      skill.module_id ?? null,
+      skill.id ?? skill.skill_id ?? null
     )
+  }
+
+  /** Remove uma skill e desamarra tudo que a referencia (defs, character_skills,
+      modifiers e visibility) para não violar as FKs. */
+  async deleteGameTableSkill(id: any): Promise<any> {
+    const skill: any = db.prepare('SELECT id, name FROM game_table_skills WHERE id = ?').get(id)
+    if (!skill) throw new Error('Skill not found')
+
+    const tx = db.transaction(() => {
+      db.prepare('DELETE FROM game_table_skill_predefinede WHERE origin_skill_id = ? OR depends_on_skill_id = ?').run(id, id)
+      db.prepare('DELETE FROM game_table_skill_dependencies WHERE origin_skill_id = ? OR depends_on_skill_id = ?').run(id, id)
+      db.prepare('DELETE FROM game_table_character_skills WHERE skill_id = ?').run(id)
+      db.prepare('UPDATE modifiers SET skill_id = NULL WHERE skill_id = ?').run(id)
+      db.prepare('UPDATE visibility SET skill_id = NULL WHERE skill_id = ?').run(id)
+      db.prepare('DELETE FROM game_table_skills WHERE id = ?').run(id)
+    })
+    tx()
+
+    return { success: true, id, name: skill.name }
   }
 
   async findGameTableSkill(id: any): Promise<void> {
@@ -345,30 +374,51 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   
   async createGameAdvantages(data: any): Promise<void> {
     db.prepare(`
-      INSERT INTO game_table_advantages (id, table_id, name, cost_points, effect, description)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO game_table_advantages (id, table_id, name, category, subcategory, cost_points, description, module_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       crypto.randomUUID(),
       data.table_id,
       data.name,
+      data.category ?? null,
+      data.subcategory ?? null,
       data.cost_points,
-      data.effect,
-      data.description
+      data.description,
+      data.module_id ?? null
     )
   }
 
   async editGameAdvantages(data: any): Promise<void> {
     db.prepare(`
       UPDATE game_table_advantages
-      SET name = ?, cost_points = ?, effect = ?, description = ?
+      SET name = ?, category = ?, subcategory = ?, cost_points = ?, description = ?, module_id = ?
       WHERE id = ?
     `).run(
       data.name,
+      data.category ?? null,
+      data.subcategory ?? null,
       data.cost_points,
-      data.effect,
       data.description,
+      data.module_id ?? null,
       data.id
     )
+  }
+
+  /** Remove uma vantagem e desamarra as referências (character_advantages,
+      modifiers e visibility) para não violar as FKs. */
+  async deleteGameAdvantage(id: any): Promise<any> {
+    const advantage: any = db.prepare('SELECT id, name FROM game_table_advantages WHERE id = ?').get(id)
+    if (!advantage) throw new Error('Advantage not found')
+
+    const tx = db.transaction(() => {
+      db.prepare('DELETE FROM game_table_character_advantages WHERE advantage_id = ?').run(id)
+      db.prepare('UPDATE modifiers SET advantage_id = NULL WHERE advantage_id = ?').run(id)
+      db.prepare('UPDATE visibility SET advantage_id = NULL WHERE advantage_id = ?').run(id)
+      db.prepare('DELETE FROM game_table_advantages WHERE id = ?').run(id)
+    })
+    tx()
+
+    return { success: true, id, name: advantage.name }
   }
  
   async findGameAdvantages(id: any): Promise<any> {
@@ -377,7 +427,14 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       FROM game_table_advantages
       WHERE id = ?
     `).get(id) as any
-    return gameTableAdvantage
+    if (!gameTableAdvantage) return null
+
+    const modifiers = db.prepare(`
+      SELECT * FROM modifiers
+      WHERE advantage_id = ?
+    `).all(id) as any[]
+
+    return { ...gameTableAdvantage, modifiers }
   }
 
   async findAllGameAdvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any> {
@@ -404,12 +461,44 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       SELECT * FROM game_table_advantages
       WHERE ${advClauses.join(" AND ")}
     `).all(...advParams) as any[]
+
+    const advantagesWithModifiers = this.attachAdvantageModifiers(gameTablesAdvantages)
+
     return ({
       table: table,
       advantages: viewer
-        ? shapeCatalogForViewer(gameTablesAdvantages, viewerRules(viewer), 'advantage')
-        : gameTablesAdvantages
+        ? shapeCatalogForViewer(advantagesWithModifiers, viewerRules(viewer), 'advantage')
+        : advantagesWithModifiers
     })
+  }
+
+  /** Anexa a cada vantagem a lista de modifiers vinculados (modifiers.advantage_id). */
+  private attachAdvantageModifiers(advantages: any[]): any[] {
+    if (!advantages.length) return advantages
+    const ids = advantages.map((advantage) => advantage.id)
+    const modifiers = db.prepare(`
+      SELECT * FROM modifiers
+      WHERE advantage_id IS NOT NULL AND advantage_id IN (${ids.map(() => '?').join(', ')})
+    `).all(...ids) as any[]
+
+    const modifiersByAdvantage = new Map<string, any[]>()
+    for (const modifier of modifiers) {
+      const list = modifiersByAdvantage.get(modifier.advantage_id) ?? []
+      list.push(modifier)
+      modifiersByAdvantage.set(modifier.advantage_id, list)
+    }
+
+    return advantages.map((advantage) => ({
+      ...advantage,
+      modifiers: modifiersByAdvantage.get(advantage.id) ?? []
+    }))
+  }
+
+  async deleteGameModifier(id: any): Promise<any> {
+    const modifier: any = db.prepare('SELECT id, name FROM modifiers WHERE id = ?').get(id)
+    if (!modifier) throw new Error('Modifier not found')
+    db.prepare('DELETE FROM modifiers WHERE id = ?').run(id)
+    return { success: true, id, name: modifier.name }
   }
 
   async findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any> {
@@ -449,6 +538,57 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       SELECT * FROM game_table_disadvantages WHERE id = ?
     `).get(id) as any
     return disadvantage
+  }
+
+  async createGameDisadvantages(data: any): Promise<void> {
+    db.prepare(`
+      INSERT INTO game_table_disadvantages (id, table_id, name, category, subcategory, cost_points, effect, description, module_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      crypto.randomUUID(),
+      data.table_id,
+      data.name,
+      data.category ?? null,
+      data.subcategory ?? null,
+      data.cost_points,
+      data.effect ?? '',
+      data.description,
+      data.module_id ?? null
+    )
+  }
+
+  async editGameDisadvantages(data: any): Promise<void> {
+    db.prepare(`
+      UPDATE game_table_disadvantages
+      SET name = ?, category = ?, subcategory = ?, cost_points = ?, effect = ?, description = ?, module_id = ?
+      WHERE id = ?
+    `).run(
+      data.name,
+      data.category ?? null,
+      data.subcategory ?? null,
+      data.cost_points,
+      data.effect ?? '',
+      data.description,
+      data.module_id ?? null,
+      data.id
+    )
+  }
+
+  /** Remove uma desvantagem e desamarra as referências (character_disadvantages,
+      modifiers e visibility) para não violar as FKs. */
+  async deleteGameDisadvantage(id: any): Promise<any> {
+    const disadvantage: any = db.prepare('SELECT id, name FROM game_table_disadvantages WHERE id = ?').get(id)
+    if (!disadvantage) throw new Error('Disadvantage not found')
+
+    const tx = db.transaction(() => {
+      db.prepare('DELETE FROM game_table_character_disadvantages WHERE disadvantage_id = ?').run(id)
+      db.prepare('UPDATE modifiers SET disadvantage_id = NULL WHERE disadvantage_id = ?').run(id)
+      db.prepare('UPDATE visibility SET disadvantage_id = NULL WHERE disadvantage_id = ?').run(id)
+      db.prepare('DELETE FROM game_table_disadvantages WHERE id = ?').run(id)
+    })
+    tx()
+
+    return { success: true, id, name: disadvantage.name }
   }
 
   async findGameLocation(id: any, viewer?: any): Promise<any> {
@@ -741,6 +881,30 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     } else if (existingArmor) {
       db.prepare(`DELETE FROM game_table_armors WHERE id = ?`).run(existingArmor.id)
     }
+  }
+
+  /** Remove um item e tudo que depende dele (weapon/armor/attacks/imagens,
+      character_equipment, modifiers e visibility) para não violar as FKs. */
+  async deleteGameItems(id: any): Promise<any> {
+    const item: any = db.prepare('SELECT id, name FROM game_table_items WHERE id = ?').get(id)
+    if (!item) throw new Error('Item not found')
+
+    const tx = db.transaction(() => {
+      const weapons = db.prepare('SELECT id FROM game_table_weapons WHERE item_id = ?').all(id) as any[]
+      for (const w of weapons) {
+        db.prepare('DELETE FROM weapon_attacks WHERE weapon_id = ?').run(w.id)
+      }
+      db.prepare('DELETE FROM game_table_weapons WHERE item_id = ?').run(id)
+      db.prepare('DELETE FROM game_table_armors WHERE item_id = ?').run(id)
+      db.prepare('DELETE FROM item_images WHERE item_id = ?').run(id)
+      db.prepare('DELETE FROM character_equipment WHERE item_id = ?').run(id)
+      db.prepare('UPDATE modifiers SET item_id = NULL WHERE item_id = ?').run(id)
+      db.prepare('UPDATE visibility SET item_id = NULL WHERE item_id = ?').run(id)
+      db.prepare('DELETE FROM game_table_items WHERE id = ?').run(id)
+    })
+    tx()
+
+    return { success: true, id, name: item.name }
   }
 
   async findGameItems(id: any): Promise<any> {
@@ -1317,6 +1481,16 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const characterId = data.character_id || crypto.randomUUID()
     const sheetId = crypto.randomUUID()
 
+    // A primeira ficha do jogador respeita o orçamento de pontos da mesa.
+    if (data.respect_budget) {
+      const settings = await this.findTableSettings(data.table_id)
+      const budget = settings?.starting_points ?? 150
+      const spent = Number(data.sheet?.points ?? 0)
+      if (!Number.isFinite(spent) || spent > budget) {
+        throw new Error(`A ficha gasta ${spent} pontos, mas o orçamento da mesa é ${budget}.`)
+      }
+    }
+
     const insertTransaction = db.transaction(() => {
       db.prepare(`
         INSERT INTO game_table_characters (id, user_id, table_id)
@@ -1531,6 +1705,57 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       price_item_id: priceItemId,
       price_quantity: priceQuantity
     }
+  }
+
+  /** Remove um NPC: desamarra as narrações, apaga o vínculo (game_table_npcs)
+    e limpa a ficha/personagem por trás dele. */
+  async deleteGameNPC(id: any): Promise<any> {
+    const npc: any = db.prepare('SELECT id, character_id, status FROM game_table_npcs WHERE id = ?').get(id)
+    if (!npc) throw new Error('NPC not found')
+
+    const tx = db.transaction(() => {
+      db.prepare('DELETE FROM narration_npcs WHERE npc_id = ?').run(id)
+      db.prepare('DELETE FROM game_table_npcs WHERE id = ?').run(id)
+      if (npc.character_id) this.deleteCharacterRows(npc.character_id)
+    })
+    tx()
+
+    return { success: true, id, character_id: npc.character_id ?? null }
+  }
+
+  /** Remove um personagem (ou a ficha atrás de um NPC) e tudo que o referencia,
+      preservando a cronologia: actions de narração ficam com character_id nulo. */
+  async deleteGameCharacter(id: any): Promise<any> {
+    const character: any = db.prepare('SELECT id FROM game_table_characters WHERE id = ?').get(id)
+    if (!character) throw new Error('Character not found')
+
+    const tx = db.transaction(() => this.deleteCharacterRows(id))
+    tx()
+
+    return { success: true, id }
+  }
+
+  private deleteCharacterRows(characterId: string): void {
+    const npc = db.prepare('SELECT id FROM game_table_npcs WHERE character_id = ?').get(characterId) as any
+    if (npc) {
+      db.prepare('DELETE FROM narration_npcs WHERE npc_id = ?').run(npc.id)
+      db.prepare('DELETE FROM game_table_npcs WHERE character_id = ?').run(characterId)
+    }
+    db.prepare('DELETE FROM game_table_character_sheets WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM game_table_character_images WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM game_table_character_advantages WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM game_table_character_disadvantages WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM game_table_character_skills WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM game_table_characters_quirks WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM character_equipment WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM modifiers WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM visibility WHERE character_id = ?').run(characterId)
+    db.prepare('UPDATE visibility SET other_character_id = NULL WHERE other_character_id = ?').run(characterId)
+    db.prepare('DELETE FROM queue WHERE character_id = ?').run(characterId)
+    db.prepare('UPDATE narration_actions SET character_id = NULL WHERE character_id = ?').run(characterId)
+    db.prepare('UPDATE narration_actions SET target = NULL WHERE target = ?').run(characterId)
+    db.prepare('DELETE FROM narration_characters WHERE character_id = ?').run(characterId)
+    db.prepare('DELETE FROM game_table_characters WHERE id = ?').run(characterId)
   }
 
   async findGameCharacter(id: any, moment?: number, viewer?: any): Promise<any> {
@@ -2604,8 +2829,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
       const actionId = crypto.randomUUID()
       db.prepare(`
-        INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id)
-        VALUES (?, ?, ?, ?, ?, NULL, NULL, 0, ?, ?)
+        INSERT INTO narration_actions (id, narrations_id, queue, result, dice_roll, modificator, target, multitarget, description, character_id, location_id, q, r, facing)
+        VALUES (?, ?, ?, ?, ?, NULL, NULL, 0, ?, ?, ?, ?, ?, ?)
       `).run(
         actionId,
         data.narrations_id || null,
@@ -2613,7 +2838,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         data.result ?? null,
         data.dice_roll ?? null,
         data.description ?? null,
-        data.character_id
+        data.character_id,
+        data.location_id ?? null,
+        data.q != null ? Math.round(data.q) : null,
+        data.r != null ? Math.round(data.r) : null,
+        data.facing ?? 0
       )
 
       db.prepare(`UPDATE queue SET status = 'done', queue = '' WHERE id = ?`).run(front.id)
@@ -2634,8 +2863,52 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       LEFT JOIN game_table_characters gc ON gc.id = q.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = gc.id
       WHERE gc.table_id = ?
-      ORDER BY q.queue ASC
+      ORDER BY (q.status = 'done') ASC, CAST(q.queue AS INTEGER) ASC, q.rowid ASC
     `).all(tableId) as any[]
     return queueItems
+  }
+
+  /* ============ TABLE SETTINGS ============ */
+
+  async findTableSettings(tableId: any): Promise<any> {
+    const defaults = {
+      table_id: tableId,
+      turn_end_mode: 'after_test',
+      item_mode: 'gm',
+      reaction_mode: 'gm',
+      gm_adds_item: 1,
+      money_item_id: null,
+      starting_shop: 0,
+      starting_points: 150
+    }
+    const row = db
+      .prepare(`SELECT * FROM game_table_settings WHERE table_id = ?`)
+      .get(tableId) as any
+    return row ? { ...row } : defaults
+  }
+
+  async updateTableSettings(data: any): Promise<void> {
+    const tableId = data.table_id
+    if (!tableId) throw new Error('table_id is required')
+    const turnEndMode = data.turn_end_mode === 'after_move' ? 'after_move' : 'after_test'
+    const itemMode = data.item_mode === 'points' ? 'points' : 'gm'
+    const reactionMode = data.reaction_mode === 'points' ? 'points' : 'gm'
+    const gmAddsItem = data.gm_adds_item ? 1 : 0
+    const moneyItemId = data.money_item_id || null
+    const startingShop = data.starting_shop ? 1 : 0
+    const startingPoints = Number.isFinite(Number(data.starting_points)) ? Math.max(0, Math.floor(Number(data.starting_points))) : 150
+    db.prepare(`
+      INSERT INTO game_table_settings (
+        table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop, starting_points
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(table_id) DO UPDATE SET
+        turn_end_mode = excluded.turn_end_mode,
+        item_mode = excluded.item_mode,
+        reaction_mode = excluded.reaction_mode,
+        gm_adds_item = excluded.gm_adds_item,
+        money_item_id = excluded.money_item_id,
+        starting_shop = excluded.starting_shop,
+        starting_points = excluded.starting_points
+    `).run(tableId, turnEndMode, itemMode, reactionMode, gmAddsItem, moneyItemId, startingShop, startingPoints)
   }
 }

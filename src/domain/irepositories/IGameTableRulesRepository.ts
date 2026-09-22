@@ -1,13 +1,19 @@
 export interface IGameTableRulesRepository {
-  createGameTableSkills(id: any): Promise<void>
-  editGameTableSkills(id: any): Promise<void>
+  createGameTableSkills(skill: any): Promise<void>
+  editGameTableSkills(skill: any): Promise<void>
+  deleteGameTableSkill(id: any): Promise<any>
   findGameTableSkill(id: any): Promise<void>
   findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any): Promise<any[] | void>
 
   createGameAdvantages(id: any): Promise<void>
   editGameAdvantages(id: any): Promise<void>
+  deleteGameAdvantage(id: any): Promise<any>
   findGameAdvantages(id: any): Promise<void>
   findAllGameAdvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any[] | void>
+
+  createGameDisadvantages(data: any): Promise<void>
+  editGameDisadvantages(data: any): Promise<void>
+  deleteGameDisadvantage(id: any): Promise<any>
   findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any[] | void>
   findGameDisadvantages(id: any): Promise<void>
   
@@ -25,11 +31,13 @@ export interface IGameTableRulesRepository {
   
   createGameItems(id: any): Promise<any>
   editGameItems(id: any): Promise<void>
+  deleteGameItems(id: any): Promise<any>
   findGameItems(id: any): Promise<void>
   findAllGameItems(id: any, search?: string, category?: string, type?: string, viewer?: any, location?: any): Promise<any[] | void>
 
   createGameCharacter(data: any): Promise<any>
   editGameCharacter(id: any): Promise<void>
+  deleteGameCharacter(id: any): Promise<any>
   findGameCharacter(id: any, moment?: number, viewer?: any): Promise<void>
   findGameCharacterHistory(id: any, moment?: number): Promise<any>
   findAllGameCharacters(id: any, viewer?: any): Promise<any[] | void>
@@ -43,6 +51,7 @@ export interface IGameTableRulesRepository {
 
   createGameNPC(data: any): Promise<any>
   editGameNPC(id: any): Promise<void>
+  deleteGameNPC(id: any): Promise<any>
   findGameNPC(id: any): Promise<void>
   findAllGameNPCS(id: any, location?: any): Promise<any[] | void>
   
@@ -55,6 +64,7 @@ export interface IGameTableRulesRepository {
   editGameModifier(data: any): Promise<void>
   findGameModifier(id: any): Promise<any>
   findAllGameModifiers(tableId: any): Promise<any>
+  deleteGameModifier(id: any): Promise<any>
   applyGameSkillEffect(characterId: string, skillId: string): Promise<any[]>
 
   createGameVisibility(data: any): Promise<any>
@@ -67,4 +77,7 @@ export interface IGameTableRulesRepository {
   findGameQueue(id: any): Promise<any>
   findAllGameQueue(tableId: any): Promise<any>
   endPlayerTurn(data: any): Promise<any>
+
+  findTableSettings(tableId: any): Promise<any>
+  updateTableSettings(data: any): Promise<void>
 }

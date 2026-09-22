@@ -34,6 +34,7 @@ import { CreateGameModifierUseCase } from '../../application/use-cases/table-gam
 import { EditGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameModifierUseCase'
 import { FindGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameModifierUseCase'
 import { FindAllGameModifiersUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameModifiersUseCase'
+import { DeleteGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameModifierUseCase'
 import { CreateGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameVisibilityUseCase'
 import { EditGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameVisibilityUseCase'
 import { FindGameVisibilityUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameVisibilityUseCase'
@@ -53,6 +54,18 @@ import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table
 import { EndPlayerTurnUseCase } from '../../application/use-cases/table-game-rules-use-case/EndPlayerTurnUseCase'
 import { GrantGameItemUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameItemUseCase'
 import { AwardGameCharacterPointsUseCase } from '../../application/use-cases/table-game-rules-use-case/AwardGameCharacterPointsUseCase'
+import { FindGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableSettingsUseCase'
+import { EditGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSettingsUseCase'
+import { CreateGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableSkillsUseCase'
+import { EditGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSkillsUseCase'
+import { DeleteGameTableSkillUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableSkillUseCase'
+import { CreateGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableDisadvantagesUseCase'
+import { EditGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableDisadvantagesUseCase'
+import { DeleteGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableDisadvantageUseCase'
+import { DeleteGameTableAdvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableAdvantageUseCase'
+import { DeleteGameTableItemUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableItemUseCase'
+import { DeleteGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableNPCUseCase'
+import { DeleteGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableCharacterUseCase'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -87,6 +100,7 @@ export class GameTableRulesController {
     private editGameModifierUseCase?: EditGameModifierUseCase,
     private findGameModifierUseCase?: FindGameModifierUseCase,
     private findAllGameModifiersUseCase?: FindAllGameModifiersUseCase,
+    private deleteGameModifierUseCase?: DeleteGameModifierUseCase,
     private createGameVisibilityUseCase?: CreateGameVisibilityUseCase,
     private editGameVisibilityUseCase?: EditGameVisibilityUseCase,
     private findGameVisibilityUseCase?: FindGameVisibilityUseCase,
@@ -108,7 +122,19 @@ export class GameTableRulesController {
     private transferGameCharacterEquipmentUseCase?: TransferGameCharacterEquipmentUseCase,
     private sellGameCharacterEquipmentUseCase?: SellGameCharacterEquipmentUseCase,
     private grantGameItemUseCase?: GrantGameItemUseCase,
-    private awardGameCharacterPointsUseCase?: AwardGameCharacterPointsUseCase
+    private awardGameCharacterPointsUseCase?: AwardGameCharacterPointsUseCase,
+    private findGameTableSettingsUseCase?: FindGameTableSettingsUseCase,
+    private editGameTableSettingsUseCase?: EditGameTableSettingsUseCase,
+    private createGameTableSkillsUseCase?: CreateGameTableSkillsUseCase,
+    private editGameTableSkillsUseCase?: EditGameTableSkillsUseCase,
+    private deleteGameTableSkillUseCase?: DeleteGameTableSkillUseCase,
+    private createGameTableDisadvantagesUseCase?: CreateGameTableDisadvantagesUseCase,
+    private editGameTableDisadvantagesUseCase?: EditGameTableDisadvantagesUseCase,
+    private deleteGameTableDisadvantageUseCase?: DeleteGameTableDisadvantageUseCase,
+    private deleteGameTableAdvantageUseCase?: DeleteGameTableAdvantageUseCase,
+    private deleteGameTableItemUseCase?: DeleteGameTableItemUseCase,
+    private deleteGameTableNPCUseCase?: DeleteGameTableNPCUseCase,
+    private deleteGameTableCharacterUseCase?: DeleteGameTableCharacterUseCase
   ) {}
 
   async findSkill(req: Request, res: Response) {
@@ -126,6 +152,96 @@ export class GameTableRulesController {
       viewer as string | undefined
     )
     return res.json(skills)
+  }
+
+  async createSkill(req: Request, res: Response) {
+    try {
+      await this.createGameTableSkillsUseCase!.execute(req.body)
+      return res.json({ success: true })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async editSkill(req: Request, res: Response) {
+    try {
+      await this.editGameTableSkillsUseCase!.execute({ id: req.params.id, ...req.body })
+      return res.json({ success: true })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async deleteSkill(req: Request, res: Response) {
+    try {
+      const result = await this.deleteGameTableSkillUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async createDisadvantage(req: Request, res: Response) {
+    try {
+      await this.createGameTableDisadvantagesUseCase!.execute(req.body)
+      return res.json({ success: true })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async editDisadvantage(req: Request, res: Response) {
+    try {
+      await this.editGameTableDisadvantagesUseCase!.execute({ id: req.params.id, ...req.body })
+      return res.json({ success: true })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async deleteDisadvantage(req: Request, res: Response) {
+    try {
+      const result = await this.deleteGameTableDisadvantageUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async deleteAdvantage(req: Request, res: Response) {
+    try {
+      const result = await this.deleteGameTableAdvantageUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async deleteItem(req: Request, res: Response) {
+    try {
+      const result = await this.deleteGameTableItemUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async deleteNPC(req: Request, res: Response) {
+    try {
+      const result = await this.deleteGameTableNPCUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async deleteCharacter(req: Request, res: Response) {
+    try {
+      const result = await this.deleteGameTableCharacterUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
   }
   
   async findAllAdvantages(req: Request, res: Response) {
@@ -387,6 +503,15 @@ export class GameTableRulesController {
     return res.json(modifiers)
   }
 
+  async deleteModifier(req: Request, res: Response) {
+    try {
+      const result = await this.deleteGameModifierUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (error: any) {
+      return res.status(400).json({ success: false, error: error.message })
+    }
+  }
+
   /* GM quick actions — materialize + log */
   async grantItem(req: Request, res: Response) {
     try {
@@ -475,6 +600,24 @@ export class GameTableRulesController {
     try {
       const result = await this.endPlayerTurnUseCase!.execute(req.body)
       return res.json({ success: true, ...result })
+    } catch (e: any) {
+      return res.status(400).json({ success: false, error: e.message })
+    }
+  }
+
+  /* =============== */
+  /*  TABLE SETTINGS */
+  /* =============== */
+
+  async findTableSettings(req: Request, res: Response) {
+    const settings = await this.findGameTableSettingsUseCase!.execute(req.params.id as string)
+    return res.json(settings)
+  }
+
+  async editTableSettings(req: Request, res: Response) {
+    try {
+      await this.editGameTableSettingsUseCase!.execute(req.body)
+      return res.json({ success: true })
     } catch (e: any) {
       return res.status(400).json({ success: false, error: e.message })
     }

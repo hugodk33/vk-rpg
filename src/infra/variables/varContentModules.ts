@@ -44,9 +44,9 @@ export const contentModules: ContentModuleSeed[] = [
   {
     id: 'fantasy',
     slug: 'fantasy',
-    name: 'Fantasia Medieval',
+    name: 'Módulo Básico',
     techLevel: 'TL0–3',
-    description: 'Reinos, heróis, magia e lendas. O núcleo completo do mundo atual: combate, magia e aventura.',
+    description: 'O kit básico do GURPS: reinos, heróis, magia e aventura. Combate, magia e o essencial para qualquer mesa clássica — pronto para jogar.',
     accent: '#a78bfa',
     sort: 1
   },

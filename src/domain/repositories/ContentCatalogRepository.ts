@@ -29,10 +29,21 @@ export type ContentCatalogCount = {
   count: number
 }
 
+export type ContentReference = {
+  moduleId: string
+  domain: string
+  category: string
+  subcategory: string | null
+  name: string
+  description: string | null
+  kind: string | null
+}
+
 export type ContentCatalog = {
   modules: ContentModuleRow[]
   categories: ContentCategoryRow[]
   counts: ContentCatalogCount[]
+  references: ContentReference[]
 }
 
 export type ContentCategorySelection = {
@@ -92,7 +103,52 @@ export class ContentCatalogRepository {
       }
     }
 
-    return { modules, categories, counts }
+    const references: ContentReference[] = []
+    const refTables = [
+      { domain: 'skill', table: 'game_table_skills' },
+      { domain: 'item', table: 'game_table_items' },
+      { domain: 'advantage', table: 'game_table_advantages' },
+      { domain: 'disadvantage', table: 'game_table_disadvantages' }
+    ]
+    const npcRows = db
+      .prepare(
+        `SELECT n.module_id, n.category, n.subcategory, s.name, s.bio AS description
+         FROM game_table_npcs n
+         LEFT JOIN game_table_character_sheets s ON s.character_id = n.character_id
+         WHERE n.module_id IS NOT NULL`
+      )
+      .all() as any[]
+    for (const row of npcRows) {
+      references.push({
+        moduleId: row.module_id,
+        domain: 'npc',
+        category: row.category,
+        subcategory: row.subcategory ?? null,
+        name: row.name,
+        description: row.description,
+        kind: null
+      })
+    }
+    for (const ref of refTables) {
+      const rows = db
+        .prepare(
+          `SELECT module_id, category, subcategory, name, description FROM ${ref.table} WHERE module_id IS NOT NULL`
+        )
+        .all() as any[]
+      for (const row of rows) {
+        references.push({
+          moduleId: row.module_id,
+          domain: ref.domain,
+          category: row.category,
+          subcategory: row.subcategory ?? null,
+          name: row.name,
+          description: row.description,
+          kind: null
+        })
+      }
+    }
+
+    return { modules, categories, counts, references }
   }
 
   /**
