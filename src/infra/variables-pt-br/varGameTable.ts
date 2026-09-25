@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-import { mainGameTableId , adminId } from './MainUUIDIds/uuidGeral'
+import { mainGameTableId, mainNarratorId, adminId } from './MainUUIDIds/uuidGeral'
 
 import { users } from './varUsers'
 
@@ -13,13 +13,13 @@ type SeedNarrator = {
 
 export const  narrators: SeedNarrator[] = [
   {
-    id: crypto.randomUUID(),
+    id: mainNarratorId,
     userId: adminId,
     name: 'admin'
   }
 ]
 
-const  narratorId = narrators[0]!.id
+const  narratorId = mainNarratorId
 
 type SeedGameTable = {
   id: string
@@ -29,27 +29,13 @@ type SeedGameTable = {
   intro: string
 }
 
-export const  gameTables: [SeedGameTable, SeedGameTable, SeedGameTable] = [
+export const  gameTables: [SeedGameTable] = [
   {
     id: mainGameTableId,
     narratorId,
-    title: 'Sombras do Antigo Reino',
+    title: 'A Sombra do Velho Reino',
     system: 'GURPS',
     intro: 'Nas ruas em ruínas da capital do reino, uma sombra se abate sobre a cidade. As antigas casas nobres sussurram sobre desaparecimentos durante a noite, e o grupo precisa navegar por intrigas, ruínas proibidas e magia sombria para descobrir a verdade antes que o reino caia no caos.'
-  },
-  {
-    id: crypto.randomUUID(),
-    narratorId,
-    title: 'Expedição à Selva',
-    system: 'GURPS',
-    intro: 'Um jogo de exploração para dois jogadores com desafios de sobrevivência.'
-  },
-  {
-    id: crypto.randomUUID(),
-    narratorId,
-    title: 'Caixa de Teste do Admin',
-    system: 'GURPS',
-    intro: 'Uma mesa de teste para cenas de admin.'
   }
 ]
 

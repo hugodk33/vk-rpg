@@ -2247,6 +2247,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       SELECT
         c.id as character_id,
         c.user_id,
+        c.is_active,
         u.type as user_type,
         cs.id as sheet_id,
         cs.name as sheet_name,
@@ -2319,6 +2320,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         id: char.character_id,
         name: char.sheet_name,
         isNpc: !!char.is_npc,
+        is_active: !!char.is_active,
         user: {
           id: char.user_id,
           username: char.username,

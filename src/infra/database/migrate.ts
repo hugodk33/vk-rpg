@@ -1,5 +1,6 @@
 // src/infra/database/migrate.ts
 import { db } from './database'
+import { adminId, playerOneId } from '../variables/MainUUIDIds/uuidGeral'
 
 db.exec(`
 
@@ -38,13 +39,15 @@ CREATE TABLE IF NOT EXISTS narrator_images (
 -- GAME TABLES
 -- =========================
 CREATE TABLE IF NOT EXISTS game_tables (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   narrator_id TEXT,
   title TEXT,
   system TEXT,
   intro TEXT,
   default_location_id TEXT,
   modules TEXT DEFAULT '[]',
+  PRIMARY KEY (id, lang),
   FOREIGN KEY (narrator_id) REFERENCES narrators(id)
 );
 
@@ -52,7 +55,8 @@ CREATE TABLE IF NOT EXISTS game_tables (
 -- TABLE SETTINGS (configurações de cada mesa)
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_settings (
-  table_id TEXT PRIMARY KEY,
+  table_id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   turn_end_mode TEXT NOT NULL DEFAULT 'after_test',   -- 'after_test' | 'after_move' (o turno encerra depois de um teste, ou depois de mover + virar-se)
   item_mode TEXT NOT NULL DEFAULT 'gm',               -- 'points' | 'gm' (gastar pontos da ficha para adicionar itens, ou é o mestre que concede)
   reaction_mode TEXT NOT NULL DEFAULT 'gm',           -- 'points' | 'gm' (teste de reação com pontos, ou é o mestre quem resolve)
@@ -60,14 +64,13 @@ CREATE TABLE IF NOT EXISTS game_table_settings (
   money_item_id TEXT,                                 -- item que representa dinheiro (moeda) para a loja inicial
   starting_shop INTEGER NOT NULL DEFAULT 0,           -- loja inicial habilitada
   starting_points INTEGER NOT NULL DEFAULT 150,       -- orçamento de pontos para a primeira ficha do jogador
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  PRIMARY KEY (table_id, lang)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_players (
   id TEXT PRIMARY KEY,
   table_id TEXT,
   user_id TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -78,8 +81,8 @@ CREATE TABLE IF NOT EXISTS game_table_characters (
   id TEXT PRIMARY KEY,
   user_id TEXT,
   table_id TEXT,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  is_active INTEGER NOT NULL DEFAULT 1,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_character_images (
@@ -93,7 +96,8 @@ CREATE TABLE IF NOT EXISTS game_table_character_images (
 -- CHARACTER SHEET (GURPS)
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_character_sheets (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   character_id TEXT,
   name TEXT,
   bio TEXT,
@@ -106,6 +110,7 @@ CREATE TABLE IF NOT EXISTS game_table_character_sheets (
   ht INTEGER,
   fatigue INTEGER,
   encumbrance TEXT,
+  PRIMARY KEY (id, lang),
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
@@ -113,26 +118,27 @@ CREATE TABLE IF NOT EXISTS game_table_character_sheets (
 -- SCENES
 -- =========================
 CREATE TABLE IF NOT EXISTS scenes (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   table_id TEXT,
   title TEXT,
   chapter INTEGER,
   moment INTEGER,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  PRIMARY KEY (id, lang)
 );
 
 -- =========================
 -- NARRATIONS
 -- =========================
 CREATE TABLE IF NOT EXISTS narrations (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   table_id TEXT,
   scene_id TEXT,
   title TEXT,
   narration TEXT,
   moment INTEGER,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id),
-  FOREIGN KEY (scene_id) REFERENCES scenes(id)
+  PRIMARY KEY (id, lang)
 );
 
 -- =========================
@@ -150,7 +156,8 @@ CREATE TABLE IF NOT EXISTS narrations (
 --   is_battlemap  1 quando hex_size_m <= 2 (escala tática -> mapa de batalha)
 -- =========================
 CREATE TABLE IF NOT EXISTS table_locations (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   table_id TEXT,
   parent_id TEXT,
   kind TEXT,
@@ -177,8 +184,7 @@ CREATE TABLE IF NOT EXISTS table_locations (
   shop_name TEXT,
   tiles TEXT DEFAULT '[]',
   drawing TEXT DEFAULT '[]',
-  FOREIGN KEY (table_id) REFERENCES game_tables(id),
-  FOREIGN KEY (parent_id) REFERENCES table_locations(id)
+  PRIMARY KEY (id, lang)
 );
 
 CREATE TABLE IF NOT EXISTS narration_actions (
@@ -198,7 +204,6 @@ CREATE TABLE IF NOT EXISTS narration_actions (
   r INTEGER,
   facing INTEGER DEFAULT 0, -- direção (0-5) após o movimento
   datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (narrations_id) REFERENCES narrations(id),
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
   FOREIGN KEY (target) REFERENCES game_table_characters(id)
 );
@@ -211,16 +216,13 @@ CREATE TABLE IF NOT EXISTS narration_characters (
   q INTEGER,              -- posição inicial do token na planta baixa
   r INTEGER,
   facing INTEGER DEFAULT 0,
-  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (narrations_id) REFERENCES narrations(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 CREATE TABLE IF NOT EXISTS narration_locations (
   id TEXT PRIMARY KEY,
   location_id TEXT,
-  narrations_id TEXT,
-  FOREIGN KEY (location_id) REFERENCES table_locations(id),
-  FOREIGN KEY (narrations_id) REFERENCES narrations(id)
+  narrations_id TEXT
 );
 
 -- =====================================================================
@@ -240,7 +242,8 @@ CREATE TABLE IF NOT EXISTS narration_locations (
 -- character_equipment.
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS game_table_items (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   table_id TEXT,
   location_id TEXT,     -- vínculo opcional a um local (ex: estoque de uma loja)
   name TEXT,
@@ -254,22 +257,19 @@ CREATE TABLE IF NOT EXISTS game_table_items (
   condition TEXT,       -- domínio: new | worn | damaged | broken
   module_id TEXT,       -- pacote/fonte de conteúdo (ex: fantasy | mid-tech)
   subcategory TEXT,     -- subdivisão da categoria de item (ex: melee | ranged | body)
-  FOREIGN KEY (table_id) REFERENCES game_tables(id),
-  FOREIGN KEY (location_id) REFERENCES table_locations(id)
+  PRIMARY KEY (id, lang)
 );
 
 CREATE TABLE IF NOT EXISTS item_images (
   id TEXT PRIMARY KEY,
   item_id TEXT,
-  url TEXT,
-  FOREIGN KEY (item_id) REFERENCES game_table_items(id)
+  url TEXT
 );
 
 CREATE TABLE IF NOT EXISTS table_images (
   id TEXT PRIMARY KEY,
   table_id TEXT,
-  url TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  url TEXT
 );
 
 -- ---------------------------------------------------------------
@@ -279,7 +279,8 @@ CREATE TABLE IF NOT EXISTS table_images (
 -- pela engine. reach é textual pois pode haver múltiplos (ex: 'C,1').
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS game_table_weapons (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   item_id TEXT,
   skill TEXT,           -- skill recomendada (ex: 'Shortsword') - domínio/texto
   min_st INTEGER,       -- requisito mínimo de ST do personagem
@@ -289,7 +290,7 @@ CREATE TABLE IF NOT EXISTS game_table_weapons (
   parry TEXT,           -- ex: '0', '0U', 'No'
   block TEXT,           -- para escudos: DB genérico textual (ex: '3')
   fit TEXT DEFAULT 'normal', -- domínio: cheap | normal | tailored | loose
-  FOREIGN KEY (item_id) REFERENCES game_table_items(id)
+  PRIMARY KEY (id, lang)
 );
 
 -- ---------------------------------------------------------------
@@ -305,7 +306,8 @@ CREATE TABLE IF NOT EXISTS game_table_weapons (
 --   damage_type    : tipo de dano GURPS (cut/imp/cr/pi/pi-/pi+/burn/tox...)
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS weapon_attacks (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   weapon_id TEXT,
   name TEXT,                -- ex: 'Swing', 'Thrust', 'Shot'
   usage TEXT,               -- ex: 'one-hand' | 'two-hand' | null
@@ -318,7 +320,7 @@ CREATE TABLE IF NOT EXISTS weapon_attacks (
   range TEXT,               -- ex: '1', '150/1600', 'Melee'
   recoil INTEGER,           -- recuo (armas de fogo)
   shots INTEGER,            -- capacidade / calibre específico p/ futura munição
-  FOREIGN KEY (weapon_id) REFERENCES game_table_weapons(id)
+  PRIMARY KEY (id, lang)
 );
 
 -- ---------------------------------------------------------------
@@ -328,13 +330,14 @@ CREATE TABLE IF NOT EXISTS weapon_attacks (
 -- regra de dano final aqui). locations textual p/ liberdade de domínio.
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS game_table_armors (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   item_id TEXT,
   dr INTEGER,           -- Damage Resistance
   flex INTEGER,         -- 1 = flexível (permite camadas)
   locations TEXT,       -- ex: 'torso', 'arms,legs', 'full_body'
   fit TEXT,             -- domínio: cheap | normal | tailored | loose
-  FOREIGN KEY (item_id) REFERENCES game_table_items(id)
+  PRIMARY KEY (id, lang)
 );
 
 -- ---------------------------------------------------------------
@@ -361,8 +364,7 @@ CREATE TABLE IF NOT EXISTS character_equipment (
   status TEXT,          -- domínio: in_inventory | equipped | wielded
   location TEXT,        -- ex: 'right_hand', 'torso', 'back', 'none'
   rendered_st INTEGER,  -- ST efetivo (buff/condição), reservado p/ engine
-  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (item_id) REFERENCES game_table_items(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 -- =========================
@@ -376,8 +378,7 @@ CREATE TABLE IF NOT EXISTS game_table_npcs (
   module_id TEXT,       -- pacote/fonte de conteúdo
   category TEXT,        -- papel do NPC (combatente | atirador | arcano | assassino)
   subcategory TEXT,     -- aliança (ally | neutral | enemy | boss)
-  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (location_id) REFERENCES table_locations(id)
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 CREATE TABLE IF NOT EXISTS narration_npcs (
@@ -387,7 +388,6 @@ CREATE TABLE IF NOT EXISTS narration_npcs (
   q INTEGER,              -- posição inicial do token na planta baixa
   r INTEGER,
   facing INTEGER DEFAULT 0,
-  FOREIGN KEY (narration_id) REFERENCES narrations(id),
   FOREIGN KEY (npc_id) REFERENCES game_table_npcs(id)
 );
 
@@ -395,7 +395,8 @@ CREATE TABLE IF NOT EXISTS narration_npcs (
 -- SKILLS
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_skills (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   table_id TEXT,
   name TEXT,
   category TEXT,
@@ -405,7 +406,7 @@ CREATE TABLE IF NOT EXISTS game_table_skills (
   predefinition_difficulty TEXT,
   description TEXT,
   module_id TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  PRIMARY KEY (id, lang)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_skill_predefinede (
@@ -413,9 +414,7 @@ CREATE TABLE IF NOT EXISTS game_table_skill_predefinede (
   origin_skill_id TEXT,
   depends_on_skill_id TEXT,
   depends_on_skill_value TEXT,
-  depends_on_skill_for_others_attributes TEXT,
-  FOREIGN KEY (origin_skill_id) REFERENCES game_table_skills(id)
-  FOREIGN KEY (depends_on_skill_id) REFERENCES game_table_skills(id)
+  depends_on_skill_for_others_attributes TEXT
 );
 
 CREATE TABLE IF NOT EXISTS game_table_skill_dependencies (
@@ -423,64 +422,68 @@ CREATE TABLE IF NOT EXISTS game_table_skill_dependencies (
   origin_skill_id TEXT,
   depends_on_skill_id TEXT,
   depends_on_skill_value TEXT,
-  depends_type TEXT,
-  FOREIGN KEY (origin_skill_id) REFERENCES game_table_skills(id)
-  FOREIGN KEY (depends_on_skill_id) REFERENCES game_table_skills(id)
+  depends_type TEXT
 );
 
 -- =========================
 -- CHARACTER SKILLS
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_character_skills (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   character_id TEXT,
   skill_id TEXT,
   cost_points INTEGER,
   effect TEXT,
-  FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id)
+  PRIMARY KEY (id, lang),
+  FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 -- =========================
 -- ADVANTAGES
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_character_advantages (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   advantage_id TEXT,
   name TEXT,
   character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
+  PRIMARY KEY (id, lang),
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
-  FOREIGN KEY (advantage_id) REFERENCES game_table_advantages(id)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_character_disadvantages (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   disadvantage_id TEXT,
   name TEXT,
   character_id TEXT,
   cost_points INTEGER,
   effect TEXT,
+  PRIMARY KEY (id, lang),
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
-  FOREIGN KEY (disadvantage_id) REFERENCES game_table_disadvantages(id)
 );
 
 -- =========================
 -- DISADVANTAGES / PECULIARITIES
 -- =========================
 CREATE TABLE IF NOT EXISTS game_table_characters_quirks (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   character_id TEXT,
   name TEXT,
   cost_points INTEGER,
   effect TEXT,
   description TEXT,
+  PRIMARY KEY (id, lang),
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_advantages (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   table_id TEXT,
   name TEXT,
   category TEXT,
@@ -488,11 +491,12 @@ CREATE TABLE IF NOT EXISTS game_table_advantages (
   cost_points INTEGER,
   description TEXT,
   module_id TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  PRIMARY KEY (id, lang)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_disadvantages (
-  id TEXT PRIMARY KEY,
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
   table_id TEXT,
   name TEXT,
   category TEXT,
@@ -501,7 +505,7 @@ CREATE TABLE IF NOT EXISTS game_table_disadvantages (
   effect TEXT,
   description TEXT,
   module_id TEXT,
-  FOREIGN KEY (table_id) REFERENCES game_tables(id)
+  PRIMARY KEY (id, lang)
 );
 
 CREATE TABLE IF NOT EXISTS modifiers (
@@ -545,14 +549,7 @@ CREATE TABLE IF NOT EXISTS modifiers (
   item_status TEXT,
   apply_on_roll INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (item_id) REFERENCES game_table_items(id),
-  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
-  FOREIGN KEY (advantage_id) REFERENCES game_table_advantages(id),
-  FOREIGN KEY (disadvantage_id) REFERENCES game_table_disadvantages(id),
-  FOREIGN KEY (action_id) REFERENCES narration_actions(id),
-  FOREIGN KEY (narration_id) REFERENCES narrations(id),
-  FOREIGN KEY (scene_id) REFERENCES scenes(id),
-  FOREIGN KEY (location_id) REFERENCES table_locations(id)
+  FOREIGN KEY (action_id) REFERENCES narration_actions(id)
 );
 
 CREATE TABLE IF NOT EXISTS visibility (
@@ -573,9 +570,7 @@ CREATE TABLE IF NOT EXISTS visibility (
   moment INTEGER,
   previous_status TEXT,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (other_character_id) REFERENCES game_table_characters(id),
-  FOREIGN KEY (skill_id) REFERENCES game_table_skills(id),
-  FOREIGN KEY (location_id) REFERENCES table_locations(id)
+  FOREIGN KEY (other_character_id) REFERENCES game_table_characters(id)
 );
 
 CREATE TABLE IF NOT EXISTS queue (
@@ -631,6 +626,168 @@ CREATE TABLE IF NOT EXISTS content_categories (
   display_name TEXT,
   sort INTEGER DEFAULT 0,
   FOREIGN KEY (parent_id) REFERENCES content_categories(id)
+);
+
+-- =========================
+-- CONTENT CATALOG GLOBAL (pacotes independentes de mesa)
+-- -------------------------
+-- O catálogo SÓ é povoado pelo seed (en/pt) e é a FONTE que o wizard
+-- consulta (GET /content-modules) e copia para mesas novas via
+-- installContent. Não há table_id: é conteúdo de referência global,
+-- NÃO pertence a nenhuma mesa de jogo (ao contrário do que acontecia
+-- lendo game_table_* com module_id, que enredava o catálogo na mesa
+-- seedada).
+-- =========================
+CREATE TABLE IF NOT EXISTS content_skills (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  name TEXT,
+  category TEXT,
+  subcategory TEXT,
+  type TEXT,
+  predefinition_type TEXT,
+  predefinition_difficulty TEXT,
+  description TEXT,
+  module_id TEXT,
+  PRIMARY KEY (id, lang)
+);
+
+CREATE TABLE IF NOT EXISTS content_items (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  name TEXT,
+  kind TEXT,            -- 'weapon' | 'armor' | 'shield' | 'equipment'
+  category TEXT,
+  weight_lb REAL,
+  cost INTEGER,
+  dimensions TEXT,
+  description TEXT,
+  quality TEXT,
+  condition TEXT,
+  module_id TEXT,
+  subcategory TEXT,
+  PRIMARY KEY (id, lang)
+);
+
+CREATE TABLE IF NOT EXISTS content_weapons (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  item_id TEXT,
+  skill TEXT,
+  min_st INTEGER,
+  rated_st INTEGER,
+  handedness INTEGER,
+  reach TEXT,
+  parry TEXT,
+  block TEXT,
+  fit TEXT DEFAULT 'normal',
+  PRIMARY KEY (id, lang)
+);
+
+CREATE TABLE IF NOT EXISTS content_weapon_attacks (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  weapon_id TEXT,
+  name TEXT,
+  usage TEXT,
+  damage_source TEXT,
+  damage_modifier INTEGER,
+  damage_dice TEXT,
+  damage_type TEXT,
+  armor_penetration INTEGER,
+  accuracy INTEGER,
+  range TEXT,
+  recoil INTEGER,
+  shots INTEGER,
+  PRIMARY KEY (id, lang)
+);
+
+CREATE TABLE IF NOT EXISTS content_armors (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  item_id TEXT,
+  dr INTEGER,
+  flex INTEGER,
+  locations TEXT,
+  fit TEXT,
+  PRIMARY KEY (id, lang)
+);
+
+CREATE TABLE IF NOT EXISTS content_advantages (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  name TEXT,
+  category TEXT,
+  subcategory TEXT,
+  cost_points INTEGER,
+  description TEXT,
+  module_id TEXT,
+  PRIMARY KEY (id, lang)
+);
+
+CREATE TABLE IF NOT EXISTS content_disadvantages (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  name TEXT,
+  category TEXT,
+  subcategory TEXT,
+  cost_points INTEGER,
+  effect TEXT,
+  description TEXT,
+  module_id TEXT,
+  PRIMARY KEY (id, lang)
+);
+
+CREATE TABLE IF NOT EXISTS content_npcs (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  name TEXT,
+  bio TEXT,
+  backstory TEXT,
+  points INTEGER,
+  hp INTEGER,
+  st INTEGER,
+  dx INTEGER,
+  iq INTEGER,
+  ht INTEGER,
+  fatigue INTEGER,
+  encumbrance TEXT,
+  status TEXT,
+  module_id TEXT,
+  category TEXT,
+  subcategory TEXT,
+  PRIMARY KEY (id, lang)
+);
+
+CREATE TABLE IF NOT EXISTS content_locations (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  parent_id TEXT,
+  kind TEXT,
+  level INTEGER,
+  path TEXT,
+  name TEXT,
+  region TEXT,
+  address TEXT,
+  sub_region TEXT,
+  is_indoor INTEGER,
+  other TEXT,
+  country TEXT,
+  area TEXT,
+  dimensions TEXT,
+  description TEXT,
+  hex_size_m REAL,
+  width_hexes INTEGER,
+  height_hexes INTEGER,
+  center_q INTEGER,
+  center_r INTEGER,
+  orientation TEXT DEFAULT 'flat',
+  rotation_deg INTEGER DEFAULT 0,
+  is_battlemap INTEGER DEFAULT 0,
+  shop_name TEXT,
+  tiles TEXT DEFAULT '[]',
+  drawing TEXT DEFAULT '[]',
+  PRIMARY KEY (id, lang)
 );
 
 `)
@@ -835,21 +992,43 @@ if (!(db.prepare("PRAGMA table_info(game_table_settings)").all() as any[]).some(
   db.exec(`ALTER TABLE game_table_settings ADD COLUMN starting_points INTEGER NOT NULL DEFAULT 150`)
 }
 
+// ---- Camada de STATUS de personagem ----
+// migração para banco antigo: personagem desativado (fica na mesa mas fora de jogo)
+const charCols = (db.prepare("PRAGMA table_info(game_table_characters)").all() as any[]).map((c) => c.name)
+if (charCols.length && !charCols.includes('is_active')) {
+  db.exec(`ALTER TABLE game_table_characters ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1`)
+}
+
 // default de configurações para mesas existentes que ainda não têm a linha
 const settingsCols = (db.prepare("PRAGMA table_info(game_table_settings)").all() as any[]).map((c) => c.name)
 if (settingsCols.length) {
   const missingTables = db.prepare(`
-    SELECT id FROM game_tables
-    WHERE id NOT IN (SELECT table_id FROM game_table_settings)
+    SELECT id, lang FROM game_tables
+    WHERE NOT EXISTS (
+      SELECT 1 FROM game_table_settings s
+      WHERE s.table_id = game_tables.id AND s.lang = game_tables.lang
+    )
   `).all() as any[]
   const insertSettings = db.prepare(`
-    INSERT INTO game_table_settings (table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop)
-    VALUES (?, 'after_test', 'gm', 'gm', 1, NULL, 0)
+    INSERT INTO game_table_settings (table_id, lang, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop)
+    VALUES (?, ?, 'after_test', 'gm', 'gm', 1, NULL, 0)
   `)
-  for (const t of missingTables) insertSettings.run(t.id)
+  for (const t of missingTables) insertSettings.run(t.id, t.lang ?? 'pt')
 }
 
 console.log('✅ Full database migrated!')
+
+// ---- USERS BASE (admin + player) sem conteúdo ----
+// A migration cria apenas a modelagem + login de acesso dos dois usuários
+// base; o conteúdo completo é inserido pelos scripts de seed (en/pt).
+const baseUserStmt = db.prepare(`
+  INSERT OR IGNORE INTO users (id, type, username, password, phone, email)
+  VALUES (?, ?, ?, ?, ?, ?)
+`)
+baseUserStmt.run(adminId, 0, 'admin', '123456', '85999999999', 'admin@email.com')
+baseUserStmt.run(playerOneId, 1, 'João Pedro', '123456', '85888888888', 'joao.pedro@email.com')
+
+console.log('👤 Base users (admin + player) inserted!')
 
 // npx ts-node src/infra/database/migrate.ts
 // npx ts-node src/infra/database/seed.ts

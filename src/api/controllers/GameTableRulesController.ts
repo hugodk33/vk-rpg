@@ -66,6 +66,7 @@ import { DeleteGameTableAdvantageUseCase } from '../../application/use-cases/tab
 import { DeleteGameTableItemUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableItemUseCase'
 import { DeleteGameTableNPCUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableNPCUseCase'
 import { DeleteGameTableCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableCharacterUseCase'
+import { publishTable, resolveTableId, resolveLocationTableId } from '../../infra/realtime/TableEvents'
 export class GameTableRulesController {
   constructor(
     private findGameTableSkillUseCase: FindGameTableSkillUseCase,
@@ -363,17 +364,23 @@ export class GameTableRulesController {
 
   async createLocation(req: Request, res: Response) {
     const location = await this.createTableLocationUseCase!.execute(req.body)
+    const tableId = resolveLocationTableId(location?.id) ?? resolveTableId(req.body)
+    if (tableId) publishTable(tableId, 'location')
     return res.json(location)
   }
 
   async editLocation(req: Request, res: Response) {
     await this.editTableLocationUseCase!.execute({ id: req.params.id, ...req.body })
+    const tableId = resolveLocationTableId(req.params.id as string)
+    if (tableId) publishTable(tableId, 'location')
     return res.json({ success: true })
   }
 
   async deleteLocation(req: Request, res: Response) {
     try {
+      const tableId = resolveLocationTableId(req.params.id as string)
       const result = await this.deleteTableLocationUseCase!.execute(req.params.id as string)
+      if (tableId) publishTable(tableId, 'location')
       return res.json(result)
     } catch (err: any) {
       return res.status(400).json({ success: false, error: err.message })
@@ -389,6 +396,7 @@ export class GameTableRulesController {
     if (result?.success === false) {
       return res.status(400).json(result)
     }
+    publishTable(tableId, 'location')
     return res.json(result)
   }
 
@@ -567,11 +575,15 @@ export class GameTableRulesController {
 
   async createQueue(req: Request, res: Response) {
     const result = await this.createGameQueueUseCase!.execute(req.body)
+    const tableId = resolveTableId(req.body)
+    if (tableId) publishTable(tableId, 'queue')
     return res.json({ success: true, ...result })
   }
 
   async editQueue(req: Request, res: Response) {
     await this.editGameQueueUseCase!.execute(req.body)
+    const tableId = resolveTableId(req.body)
+    if (tableId) publishTable(tableId, 'queue')
     return res.json({ success: true })
   }
 
@@ -592,6 +604,8 @@ export class GameTableRulesController {
       return res.status(400).json({ success: false, error: 'character_id and skill_id are required' })
     }
     const applied = await this.applyGameSkillEffectUseCase!.execute(character_id, skill_id)
+    const tableId = resolveTableId({ character_id })
+    if (tableId) publishTable(tableId, 'effect')
     return res.json({ success: true, applied })
   }
 
@@ -599,6 +613,8 @@ export class GameTableRulesController {
   async endPlayerTurn(req: Request, res: Response) {
     try {
       const result = await this.endPlayerTurnUseCase!.execute(req.body)
+      const tableId = resolveTableId(req.body)
+      if (tableId) publishTable(tableId, 'turn')
       return res.json({ success: true, ...result })
     } catch (e: any) {
       return res.status(400).json({ success: false, error: e.message })

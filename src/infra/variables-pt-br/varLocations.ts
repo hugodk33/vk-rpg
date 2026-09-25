@@ -15,6 +15,10 @@ import {
   locDistrictScholarsId,
   locDistrictOldId,
   locTempleId,
+  locWatchBarracksId,
+  locShadowyTankardId,
+  locRooftopsId,
+  locArcaneLibraryId,
 } from "./MainUUIDIds/uuidLocation"
 
 type SeedModifierLocation = {
@@ -321,7 +325,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 1,
   },
   {
-    id: crypto.randomUUID(),
+    id: locWatchBarracksId,
     table_id: mainGameTableId,
     parent_id: locDistrictCentralId,
     kind: 'site',
@@ -343,7 +347,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 1,
   },
   {
-    id: crypto.randomUUID(),
+    id: locShadowyTankardId,
     table_id: mainGameTableId,
     parent_id: locDistrictLowerId,
     kind: 'site',
@@ -387,7 +391,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 1,
   },
   {
-    id: crypto.randomUUID(),
+    id: locRooftopsId,
     table_id: mainGameTableId,
     parent_id: locDistrictCentralId,
     kind: 'site',
@@ -409,7 +413,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 0,
   },
   {
-    id: crypto.randomUUID(),
+    id: locArcaneLibraryId,
     table_id: mainGameTableId,
     parent_id: locDistrictScholarsId,
     kind: 'site',

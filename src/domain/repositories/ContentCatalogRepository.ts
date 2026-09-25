@@ -30,6 +30,7 @@ export type ContentCatalogCount = {
 }
 
 export type ContentReference = {
+  id: string
   moduleId: string
   domain: string
   category: string
@@ -52,9 +53,15 @@ export type ContentCategorySelection = {
   subcategories?: string[]
 }
 
+export type ContentReferenceSelection = {
+  domain: string
+  ids: string[]
+}
+
 export type ContentSelection = {
   modules?: string[]
   categories?: ContentCategorySelection[]
+  references?: ContentReferenceSelection[]
 }
 
 export type ContentInstallSummary = {
@@ -64,14 +71,17 @@ export type ContentInstallSummary = {
   disadvantages: number
   npcs: number
   characters: number
+  locations: number
 }
 
+// Tabelas GLOBAIS do catálogo (povoadas exclusivamente pelo seed).
+// findCatalog e installContent NÃO dependem de mesas de jogo.
 const DOMAIN_TABLES: Record<string, string> = {
-  skill: 'game_table_skills',
-  item: 'game_table_items',
-  advantage: 'game_table_advantages',
-  disadvantage: 'game_table_disadvantages',
-  npc: 'game_table_npcs'
+  skill: 'content_skills',
+  item: 'content_items',
+  advantage: 'content_advantages',
+  disadvantage: 'content_disadvantages',
+  npc: 'content_npcs'
 }
 
 export class ContentCatalogRepository {
@@ -105,21 +115,20 @@ export class ContentCatalogRepository {
 
     const references: ContentReference[] = []
     const refTables = [
-      { domain: 'skill', table: 'game_table_skills' },
-      { domain: 'item', table: 'game_table_items' },
-      { domain: 'advantage', table: 'game_table_advantages' },
-      { domain: 'disadvantage', table: 'game_table_disadvantages' }
+      { domain: 'skill', table: 'content_skills' },
+      { domain: 'item', table: 'content_items' },
+      { domain: 'advantage', table: 'content_advantages' },
+      { domain: 'disadvantage', table: 'content_disadvantages' }
     ]
     const npcRows = db
       .prepare(
-        `SELECT n.module_id, n.category, n.subcategory, s.name, s.bio AS description
-         FROM game_table_npcs n
-         LEFT JOIN game_table_character_sheets s ON s.character_id = n.character_id
-         WHERE n.module_id IS NOT NULL`
+        `SELECT id, module_id, category, subcategory, name, bio AS description
+         FROM content_npcs WHERE module_id IS NOT NULL`
       )
       .all() as any[]
     for (const row of npcRows) {
       references.push({
+        id: row.id,
         moduleId: row.module_id,
         domain: 'npc',
         category: row.category,
@@ -131,12 +140,11 @@ export class ContentCatalogRepository {
     }
     for (const ref of refTables) {
       const rows = db
-        .prepare(
-          `SELECT module_id, category, subcategory, name, description FROM ${ref.table} WHERE module_id IS NOT NULL`
-        )
+        .prepare(`SELECT id, module_id, category, subcategory, name, description FROM ${ref.table} WHERE module_id IS NOT NULL`)
         .all() as any[]
       for (const row of rows) {
         references.push({
+          id: row.id,
           moduleId: row.module_id,
           domain: ref.domain,
           category: row.category,
@@ -148,20 +156,48 @@ export class ContentCatalogRepository {
       }
     }
 
+    // ---- LOCATIONS (árvore do mundo do kit, global) ----
+    const locationRows = db
+      .prepare(
+        `SELECT id, kind, name, description FROM content_locations ORDER BY level, name`
+      )
+      .all() as any[]
+    for (const row of locationRows) {
+      references.push({
+        id: row.id,
+        moduleId: '',
+        domain: 'location',
+        category: row.kind ?? 'site',
+        subcategory: null,
+        name: row.name,
+        description: row.description,
+        kind: null
+      })
+    }
+
     return { modules, categories, counts, references }
   }
 
   /**
-   * Instala conteúdo de catálogo (linhas com module_id preenchido) numa mesa.
+   * Instala conteúdo do CATÁLOGO GLOBAL numa mesa.
    * A seleção é a UNIÃO entre:
-   *   (a) linhas cujo module_id está em selection.modules, e
-   *   (b) linhas cujas categorias/subcategorias foram marcadas.
+   *   (a) linhas cujo module_id está em selection.modules,
+   *   (b) linhas cujas categorias/subcategorias foram marcadas, e
+   *   (c) linhas expressas por id em selection.references (por domínio).
    */
   async installContent(targetTableId: string, selection: ContentSelection): Promise<ContentInstallSummary> {
     const modules: string[] = Array.isArray(selection.modules) ? selection.modules.filter(Boolean) : []
     const categories: ContentCategorySelection[] = Array.isArray(selection.categories)
       ? selection.categories.filter((c) => c && c.domain && c.category)
       : []
+    const refSelections: ContentReferenceSelection[] = Array.isArray(selection.references)
+      ? selection.references.filter((r) => r && r.domain && Array.isArray(r.ids))
+      : []
+    const refIdsByDomain = new Map<string, string[]>()
+    for (const refSel of refSelections) {
+      const ids = refSel.ids.filter(Boolean)
+      if (ids.length) refIdsByDomain.set(refSel.domain, ids)
+    }
 
     const moduleFilter = modules.length ? `module_id IN (${modules.map(() => '?').join(',')})` : null
 
@@ -182,7 +218,6 @@ export class ContentCatalogRepository {
       : null
 
     const whereParts = [moduleFilter, wholeFilter, subFilter].filter(Boolean) as string[]
-    const whereClause = `module_id IS NOT NULL AND (${whereParts.join(' OR ')})`
 
     const pickParams = (): any[] => {
       const params: any[] = [...modules, ...wholeCats]
@@ -190,17 +225,26 @@ export class ContentCatalogRepository {
       return params
     }
 
-    const summary: ContentInstallSummary = { skills: 0, items: 0, advantages: 0, disadvantages: 0, npcs: 0, characters: 0 }
+    const condFor = (domain: string): { clause: string; params: any[] } | null => {
+      const ids = refIdsByDomain.get(domain) ?? []
+      const parts = whereParts.map((p) => p).slice()
+      if (ids.length) parts.push(`id IN (${ids.map(() => '?').join(',')})`)
+      if (!parts.length) return null
+      return { clause: `module_id IS NOT NULL AND (${parts.join(' OR ')})`, params: [...pickParams(), ...ids] }
+    }
+
+    const summary: ContentInstallSummary = { skills: 0, items: 0, advantages: 0, disadvantages: 0, npcs: 0, characters: 0, locations: 0 }
 
     db.transaction(() => {
       // ---- SKILLS ----
-      if (whereParts.length) {
+      const skillCond = condFor('skill')
+      if (skillCond) {
         const skillRows = db
           .prepare(
             `SELECT id, name, category, subcategory, type, predefinition_type, predefinition_difficulty, description, module_id
-             FROM game_table_skills WHERE ${whereClause}`
+             FROM content_skills WHERE ${skillCond.clause}`
           )
-          .all(...pickParams()) as any[]
+          .all(...skillCond.params) as any[]
         const skillStmt = db.prepare(
           `INSERT INTO game_table_skills (id, table_id, name, category, subcategory, type, predefinition_type, predefinition_difficulty, description, module_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -209,14 +253,17 @@ export class ContentCatalogRepository {
           skillStmt.run(crypto.randomUUID(), targetTableId, row.name, row.category, row.subcategory, row.type, row.predefinition_type, row.predefinition_difficulty, row.description, row.module_id)
           summary.skills++
         }
+      }
 
-        // ---- ADVANTAGES ----
+      // ---- ADVANTAGES ----
+      const advantageCond = condFor('advantage')
+      if (advantageCond) {
         const advantageRows = db
           .prepare(
-            `SELECT name, category, subcategory, cost_points, description, module_id FROM game_table_advantages
-             WHERE module_id IS NOT NULL AND (${whereParts.join(' OR ')})`
+            `SELECT name, category, subcategory, cost_points, description, module_id FROM content_advantages
+             WHERE ${advantageCond.clause}`
           )
-          .all(...pickParams()) as any[]
+          .all(...advantageCond.params) as any[]
         const advantageStmt = db.prepare(
           `INSERT INTO game_table_advantages (id, table_id, name, category, subcategory, cost_points, description, module_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
@@ -225,14 +272,17 @@ export class ContentCatalogRepository {
           advantageStmt.run(crypto.randomUUID(), targetTableId, row.name, row.category, row.subcategory, row.cost_points, row.description, row.module_id)
           summary.advantages++
         }
+      }
 
-        // ---- DISADVANTAGES ----
+      // ---- DISADVANTAGES ----
+      const disadvantageCond = condFor('disadvantage')
+      if (disadvantageCond) {
         const disadvantageRows = db
           .prepare(
-            `SELECT name, category, subcategory, cost_points, effect, description, module_id FROM game_table_disadvantages
-             WHERE module_id IS NOT NULL AND (${whereParts.join(' OR ')})`
+            `SELECT name, category, subcategory, cost_points, effect, description, module_id FROM content_disadvantages
+             WHERE ${disadvantageCond.clause}`
           )
-          .all(...pickParams()) as any[]
+          .all(...disadvantageCond.params) as any[]
         const disadvantageStmt = db.prepare(
           `INSERT INTO game_table_disadvantages (id, table_id, name, category, subcategory, cost_points, effect, description, module_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -241,11 +291,14 @@ export class ContentCatalogRepository {
           disadvantageStmt.run(crypto.randomUUID(), targetTableId, row.name, row.category, row.subcategory, row.cost_points, row.effect, row.description, row.module_id)
           summary.disadvantages++
         }
+      }
 
-        // ---- ITEMS (com weapons/attacks/armors aninhados) ----
+      // ---- ITEMS (com weapons/attacks/armors aninhados) ----
+      const itemCond = condFor('item')
+      if (itemCond) {
         const itemRows = db
-          .prepare(`SELECT * FROM game_table_items WHERE module_id IS NOT NULL AND (${whereParts.join(' OR ')})`)
-          .all(...pickParams()) as any[]
+          .prepare(`SELECT * FROM content_items WHERE ${itemCond.clause}`)
+          .all(...itemCond.params) as any[]
         const itemStmt = db.prepare(
           `INSERT INTO game_table_items (id, table_id, location_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -255,14 +308,14 @@ export class ContentCatalogRepository {
           itemStmt.run(newItemId, targetTableId, null, item.name, item.kind, item.category, item.weight_lb, item.cost, item.dimensions, item.description, item.quality, item.condition, item.module_id, item.subcategory)
           summary.items++
 
-          const weapons = db.prepare('SELECT * FROM game_table_weapons WHERE item_id = ?').all(item.id) as any[]
+          const weapons = db.prepare('SELECT * FROM content_weapons WHERE item_id = ?').all(item.id) as any[]
           for (const weapon of weapons) {
             const newWeaponId = crypto.randomUUID()
             db.prepare(
               `INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
             ).run(newWeaponId, newItemId, weapon.skill, weapon.min_st, weapon.rated_st, weapon.handedness, weapon.reach, weapon.parry, weapon.block, weapon.fit)
-            const attacks = db.prepare('SELECT * FROM weapon_attacks WHERE weapon_id = ?').all(weapon.id) as any[]
+            const attacks = db.prepare('SELECT * FROM content_weapon_attacks WHERE weapon_id = ?').all(weapon.id) as any[]
             for (const attack of attacks) {
               db.prepare(
                 `INSERT INTO weapon_attacks (id, weapon_id, name, usage, damage_source, damage_modifier, damage_dice, damage_type, armor_penetration, accuracy, range, recoil, shots)
@@ -275,7 +328,7 @@ export class ContentCatalogRepository {
             }
           }
 
-          const armors = db.prepare('SELECT * FROM game_table_armors WHERE item_id = ?').all(item.id) as any[]
+          const armors = db.prepare('SELECT * FROM content_armors WHERE item_id = ?').all(item.id) as any[]
           for (const armor of armors) {
             db.prepare(
               `INSERT INTO game_table_armors (id, item_id, dr, flex, locations, fit)
@@ -283,38 +336,73 @@ export class ContentCatalogRepository {
             ).run(crypto.randomUUID(), newItemId, armor.dr, armor.flex, armor.locations, armor.fit)
           }
         }
+      }
 
-        // ---- NPCS (bundle: character + sheet + npc) ----
+      // ---- NPCS (bundle: character + sheet + npc) ----
+      const npcCond = condFor('npc')
+      if (npcCond) {
         const npcRows = db
-          .prepare(`SELECT * FROM game_table_npcs WHERE module_id IS NOT NULL AND (${whereParts.join(' OR ')})`)
-          .all(...pickParams()) as any[]
+          .prepare(
+            `SELECT id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance, status, module_id, category, subcategory
+             FROM content_npcs WHERE ${npcCond.clause}`
+          )
+          .all(...npcCond.params) as any[]
         const npcStmt = db.prepare(
           `INSERT INTO game_table_npcs (id, character_id, status, location_id, module_id, category, subcategory)
            VALUES (?, ?, ?, ?, ?, ?, ?)`
         )
         for (const npc of npcRows) {
-          const characterRow = db.prepare('SELECT * FROM game_table_characters WHERE id = ?').get(npc.character_id) as any
-          if (!characterRow) continue
           const newCharacterId = crypto.randomUUID()
           db.prepare(
             `INSERT INTO game_table_characters (id, user_id, table_id)
              VALUES (?, ?, ?)`
-          ).run(newCharacterId, characterRow.user_id ?? null, targetTableId)
+          ).run(newCharacterId, null, targetTableId)
           summary.characters++
 
-          const sheets = db.prepare('SELECT * FROM game_table_character_sheets WHERE character_id = ?').all(npc.character_id) as any[]
-          for (const sheet of sheets) {
-            db.prepare(
-              `INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-            ).run(
-              crypto.randomUUID(), newCharacterId, sheet.name, sheet.bio, sheet.backstory,
-              sheet.points, sheet.hp, sheet.st, sheet.dx, sheet.iq, sheet.ht, sheet.fatigue, sheet.encumbrance
-            )
-          }
+          db.prepare(
+            `INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ).run(
+            crypto.randomUUID(), newCharacterId, npc.name, npc.bio, npc.backstory,
+            npc.points, npc.hp, npc.st, npc.dx, npc.iq, npc.ht, npc.fatigue, npc.encumbrance
+          )
 
           npcStmt.run(crypto.randomUUID(), newCharacterId, npc.status, null, npc.module_id, npc.category, npc.subcategory)
           summary.npcs++
+        }
+      }
+
+      // ---- LOCATIONS (árvore do mundo: copiada inteira, com parent_id remapeado) ----
+      const locationIds = refIdsByDomain.get('location') ?? []
+      if (locationIds.length) {
+        const rows = db.prepare('SELECT * FROM content_locations').all() as any[]
+        const idMap = new Map<string, string>()
+        const insert = db.prepare(
+          `INSERT INTO table_locations (id, table_id, parent_id, kind, level, path, name, region, address, sub_region, is_indoor, other, country, area, dimensions, description, hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap, shop_name, tiles, drawing)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        for (const loc of rows as any[]) {
+          const newId = crypto.randomUUID()
+          idMap.set(loc.id, newId)
+          insert.run(
+            newId, targetTableId, null,
+            loc.kind ?? 'site', loc.level ?? 0, '',
+            loc.name, loc.region ?? null, loc.address ?? null, loc.sub_region ?? null,
+            loc.is_indoor ?? 0, loc.other ?? null, loc.country ?? null, loc.area ?? null, loc.dimensions ?? null,
+            loc.description ?? null, loc.hex_size_m ?? null, loc.width_hexes ?? null, loc.height_hexes ?? null,
+            loc.center_q ?? 0, loc.center_r ?? 0, loc.orientation ?? 'flat', loc.rotation_deg ?? 0,
+            loc.is_battlemap ?? 0, loc.shop_name ?? null, loc.tiles ?? '[]', loc.drawing ?? '[]'
+          )
+          summary.locations++
+        }
+        for (const loc of rows as any[]) {
+          if (!loc.parent_id) continue
+          const newParent = idMap.get(loc.parent_id)
+          const newId = idMap.get(loc.id)
+          if (!newParent || !newId) continue
+          const parentPath = db.prepare('SELECT path FROM table_locations WHERE id = ?').get(newParent) as { path: string } | undefined
+          const path = parentPath ? `${parentPath.path}${newId}/`.replace(/\/{2,}/g, '/') : `/${newId}/`
+          db.prepare('UPDATE table_locations SET parent_id = ?, path = ? WHERE id = ?').run(newParent, path, newId)
         }
       }
 

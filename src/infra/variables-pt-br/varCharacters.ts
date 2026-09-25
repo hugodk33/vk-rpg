@@ -11,6 +11,8 @@ type SeedCharacter = {
     id: string
     userId: string
     tableId: string
+    /** false = personagem permanece na mesa, mas desativado (fora de jogo). */
+    isActive?: boolean
 }
 
 export const characters: SeedCharacter[] = [
@@ -32,12 +34,14 @@ export const characters: SeedCharacter[] = [
     {
         id: characterGarrickId,
         userId: users[2].id,
-        tableId: mainGameTableId
+        tableId: mainGameTableId,
+        isActive: false
     },
     {
         id: characterKasumiId,
         userId: users[3].id,
-        tableId: mainGameTableId
+        tableId: mainGameTableId,
+        isActive: false
     },
     { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId },
     { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: mainGameTableId },

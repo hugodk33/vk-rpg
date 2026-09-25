@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-import { mainGameTableId , adminId } from './MainUUIDIds/uuidGeral'
+import { mainGameTableId, mainNarratorId, adminId } from './MainUUIDIds/uuidGeral'
 
 import { users } from './varUsers'
 
@@ -13,13 +13,13 @@ type SeedNarrator = {
 
 export const  narrators: SeedNarrator[] = [
   {
-    id: crypto.randomUUID(),
+    id: mainNarratorId,
     userId: adminId,
     name: 'admin'
   }
 ]
 
-const  narratorId = narrators[0]!.id
+const  narratorId = mainNarratorId
 
 type SeedGameTable = {
   id: string
@@ -29,27 +29,13 @@ type SeedGameTable = {
   intro: string
 }
 
-export const  gameTables: [SeedGameTable, SeedGameTable, SeedGameTable] = [
+export const  gameTables: [SeedGameTable] = [
   {
     id: mainGameTableId,
     narratorId,
-    title: 'Shadows of the Old Kingdom',
+    title: 'The Shadow of Old King',
     system: 'GURPS',
     intro: 'In the crumbling streets of the kingdom\'s capital, a shadow falls over the city. The ancient noble houses whisper of disappearances in the night, and the party must navigate intrigue, forbidden ruins, and dark magic to uncover the truth before the kingdom falls into chaos.'
-  },
-  {
-    id: crypto.randomUUID(),
-    narratorId,
-    title: 'Jungle Expedition',
-    system: 'GURPS',
-    intro: 'A two-player exploration game with survival challenges.'
-  },
-  {
-    id: crypto.randomUUID(),
-    narratorId,
-    title: 'Admin Sandbox',
-    system: 'GURPS',
-    intro: 'A test table for admin scenes.'
   }
 ]
 

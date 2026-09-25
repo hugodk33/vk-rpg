@@ -3,6 +3,7 @@ import path from 'path'
 import fs from 'fs'
 import userRoutes from './api/routes/userRoutes'
 import viewRoutes from './api/routes/view/main'
+import realtimeRoutes from './api/routes/realtimeRoutes'
 //import './infra/database/migrate'
 
 const app = express()
@@ -10,6 +11,7 @@ const app = express()
 app.use(express.json())
 app.use(userRoutes)
 app.use(viewRoutes)
+app.use(realtimeRoutes)
 
 const viewDistPath = path.join(__dirname, '..', '..', 'dist-view')
 if (fs.existsSync(viewDistPath)) {

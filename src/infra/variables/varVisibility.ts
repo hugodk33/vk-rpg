@@ -28,6 +28,9 @@ export type VisibilitySeed = {
   id: string
   character_id: string
   other_character_id?: string | null
+  skill_id?: string | null
+  advantage_id?: string | null
+  disadvantage_id?: string | null
   attribute?: string | null
   additionals_attributes?: string | null
   item_id?: string | null
