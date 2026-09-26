@@ -76,6 +76,12 @@ export type ContentInstallSummary = {
 
 // Tabelas GLOBAIS do catálogo (povoadas exclusivamente pelo seed).
 // findCatalog e installContent NÃO dependem de mesas de jogo.
+
+// O catálogo global guarda o mesmo conceito em PT e EN (coluna lang).
+// O wizard de criação de mesa e a instalação nas mesas novas usam
+// SOMENTE o acervo em português — os kits não misturam idiomas.
+const CATALOG_LANG = 'pt'
+
 const DOMAIN_TABLES: Record<string, string> = {
   skill: 'content_skills',
   item: 'content_items',
@@ -97,7 +103,7 @@ export class ContentCatalogRepository {
         .prepare(
           `SELECT module_id, category, subcategory, COUNT(*) AS count
            FROM ${table}
-           WHERE module_id IS NOT NULL
+           WHERE module_id IS NOT NULL AND lang = '${CATALOG_LANG}'
            GROUP BY module_id, category, subcategory
            ORDER BY category, subcategory`
         )
@@ -123,7 +129,7 @@ export class ContentCatalogRepository {
     const npcRows = db
       .prepare(
         `SELECT id, module_id, category, subcategory, name, bio AS description
-         FROM content_npcs WHERE module_id IS NOT NULL`
+         FROM content_npcs WHERE module_id IS NOT NULL AND lang = '${CATALOG_LANG}'`
       )
       .all() as any[]
     for (const row of npcRows) {
@@ -140,7 +146,7 @@ export class ContentCatalogRepository {
     }
     for (const ref of refTables) {
       const rows = db
-        .prepare(`SELECT id, module_id, category, subcategory, name, description FROM ${ref.table} WHERE module_id IS NOT NULL`)
+        .prepare(`SELECT id, module_id, category, subcategory, name, description FROM ${ref.table} WHERE module_id IS NOT NULL AND lang = '${CATALOG_LANG}'`)
         .all() as any[]
       for (const row of rows) {
         references.push({
@@ -159,7 +165,7 @@ export class ContentCatalogRepository {
     // ---- LOCATIONS (árvore do mundo do kit, global) ----
     const locationRows = db
       .prepare(
-        `SELECT id, kind, name, description FROM content_locations ORDER BY level, name`
+        `SELECT id, kind, name, description FROM content_locations WHERE lang = '${CATALOG_LANG}' ORDER BY level, name`
       )
       .all() as any[]
     for (const row of locationRows) {
@@ -230,7 +236,7 @@ export class ContentCatalogRepository {
       const parts = whereParts.map((p) => p).slice()
       if (ids.length) parts.push(`id IN (${ids.map(() => '?').join(',')})`)
       if (!parts.length) return null
-      return { clause: `module_id IS NOT NULL AND (${parts.join(' OR ')})`, params: [...pickParams(), ...ids] }
+      return { clause: `module_id IS NOT NULL AND lang = '${CATALOG_LANG}' AND (${parts.join(' OR ')})`, params: [...pickParams(), ...ids] }
     }
 
     const summary: ContentInstallSummary = { skills: 0, items: 0, advantages: 0, disadvantages: 0, npcs: 0, characters: 0, locations: 0 }
@@ -375,7 +381,7 @@ export class ContentCatalogRepository {
       // ---- LOCATIONS (árvore do mundo: copiada inteira, com parent_id remapeado) ----
       const locationIds = refIdsByDomain.get('location') ?? []
       if (locationIds.length) {
-        const rows = db.prepare('SELECT * FROM content_locations').all() as any[]
+        const rows = db.prepare(`SELECT * FROM content_locations WHERE lang = '${CATALOG_LANG}'`).all() as any[]
         const idMap = new Map<string, string>()
         const insert = db.prepare(
           `INSERT INTO table_locations (id, table_id, parent_id, kind, level, path, name, region, address, sub_region, is_indoor, other, country, area, dimensions, description, hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap, shop_name, tiles, drawing)

@@ -6,6 +6,7 @@ import { characterSheets } from './varCharacters'
 import { newNpcs } from './varNPC'
 import { items } from './varItems'
 import { modifierTableLocations } from './varLocations'
+import { modifierNarrationsActions, modifierNarrationsLocations } from './varModifiers'
 
 /* ============================================================
    Seeds de visibilidade da mesa PT-BR.
@@ -174,16 +175,45 @@ for (const observerId of PARTY_IDS) {
   }
 }
 
+/* ---------- Locais (lugar comum + mapas das actions) ---------- */
+// Mapas de combate usados nas narrações/actions: os chars que vistam esses
+// locais (e quem age neles) precisam vê-los no atlas (As Catacumbas Antigas,
+// O Templo Esquecido, ...).
+const actionMapNames = new Set<string>()
+for (const entry of [...modifierNarrationsActions, ...modifierNarrationsLocations]) {
+  if (!entry.location_id) continue
+  const loc = modifierTableLocations.find((l) => l.id === entry.location_id)
+  if (loc) actionMapNames.add(loc.name)
+}
+
+const grantedLocationRules = new Set<string>()
+const grantLocationRule = (charId: string, locId: string, value: string) => {
+  const key = `${charId}|${locId}`
+  if (grantedLocationRules.has(key)) return
+  grantedLocationRules.add(key)
+  visibilityRules.push(newRule(charId, { location_id: locId, value }))
+}
+
 /* ---------- Party → Locais (lugares comuns do mundo) ---------- */
 for (const observerId of PARTY_IDS) {
   for (const name of KNOWN_LOCATIONS) {
     const id = locationIdByName(name)
-    if (!id) continue
-    visibilityRules.push(newRule(observerId, { location_id: id, value: name }))
+    if (id) grantLocationRule(observerId, id, name)
+  }
+  for (const name of actionMapNames) {
+    const id = locationIdByName(name)
+    if (id) grantLocationRule(observerId, id, name)
   }
   for (const al of ALIAS_LOCATIONS) {
     const id = locationIdByName(al.name)
-    if (!id) continue
-    visibilityRules.push(newRule(observerId, { location_id: id, value: al.alias }))
+    if (id) grantLocationRule(observerId, id, al.alias)
   }
+}
+
+/* ---------- Chars das actions → mapas dos combates ---------- */
+// Quem executa uma action num mapa enxerga aquele mapa da própria mesa.
+for (const action of modifierNarrationsActions) {
+  if (!action.location_id || !action.character_id) continue
+  const loc = modifierTableLocations.find((l) => l.id === action.location_id)
+  if (loc) grantLocationRule(action.character_id, action.location_id, loc.name)
 }
