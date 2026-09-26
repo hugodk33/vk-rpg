@@ -222,6 +222,48 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     )
   }
 
+  /** Duplica uma perícia para outra mesa (novo id, mesmo conteúdo). */
+  async duplicateGameSkill(id: string, targetTableId: string): Promise<any> {
+    const skill: any = db.prepare('SELECT * FROM game_table_skills WHERE id = ?').get(id)
+    if (!skill) throw new Error('Skill not found')
+    const copyId = crypto.randomUUID()
+    const tx = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO game_table_skills (id, table_id, name, category, subcategory, type, predefinition_type, predefinition_difficulty, description, module_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        copyId,
+        targetTableId,
+        `${skill.name ?? ''} (cópia)`,
+        skill.category ?? null,
+        skill.subcategory ?? null,
+        skill.type ?? null,
+        skill.predefinition_type ?? null,
+        skill.predefinition_difficulty ?? null,
+        skill.description ?? null,
+        skill.module_id ?? null
+      )
+
+      const predefs = db.prepare(`SELECT * FROM game_table_skill_predefinede WHERE origin_skill_id = ?`).all(id) as any[]
+      for (const p of predefs) {
+        db.prepare(`
+          INSERT INTO game_table_skill_predefinede (id, origin_skill_id, depends_on_skill_id, depends_on_skill_value, depends_on_skill_for_others_attributes)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(crypto.randomUUID(), copyId, p.depends_on_skill_id ?? null, p.depends_on_skill_value ?? null, p.depends_on_skill_for_others_attributes ?? null)
+      }
+
+      const deps = db.prepare(`SELECT * FROM game_table_skill_dependencies WHERE origin_skill_id = ?`).all(id) as any[]
+      for (const d of deps) {
+        db.prepare(`
+          INSERT INTO game_table_skill_dependencies (id, origin_skill_id, depends_on_skill_id, depends_on_skill_value, depends_type)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(crypto.randomUUID(), copyId, d.depends_on_skill_id ?? null, d.depends_on_skill_value ?? null, d.depends_type ?? null)
+      }
+    })
+    tx()
+    return { success: true, id: copyId, name: skill.name }
+  }
+
   /** Remove uma skill e desamarra tudo que a referencia (defs, character_skills,
       modifiers e visibility) para não violar as FKs. */
   async deleteGameTableSkill(id: any): Promise<any> {
@@ -404,6 +446,27 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     )
   }
 
+  /** Duplica uma vantagem para outra mesa (novo id, mesmo conteúdo). */
+  async duplicateGameAdvantage(id: string, targetTableId: string): Promise<any> {
+    const advantage: any = db.prepare('SELECT * FROM game_table_advantages WHERE id = ?').get(id)
+    if (!advantage) throw new Error('Advantage not found')
+    const copyId = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO game_table_advantages (id, table_id, name, category, subcategory, cost_points, description, module_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      copyId,
+      targetTableId,
+      `${advantage.name ?? ''} (cópia)`,
+      advantage.category ?? null,
+      advantage.subcategory ?? null,
+      advantage.cost_points,
+      advantage.description,
+      advantage.module_id ?? null
+    )
+    return { success: true, id: copyId, name: advantage.name }
+  }
+
   /** Remove uma vantagem e desamarra as referências (character_advantages,
       modifiers e visibility) para não violar as FKs. */
   async deleteGameAdvantage(id: any): Promise<any> {
@@ -572,6 +635,28 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.module_id ?? null,
       data.id
     )
+  }
+
+  /** Duplica uma desvantagem para outra mesa (novo id, mesmo conteúdo). */
+  async duplicateGameDisadvantage(id: string, targetTableId: string): Promise<any> {
+    const disadvantage: any = db.prepare('SELECT * FROM game_table_disadvantages WHERE id = ?').get(id)
+    if (!disadvantage) throw new Error('Disadvantage not found')
+    const copyId = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO game_table_disadvantages (id, table_id, name, category, subcategory, cost_points, effect, description, module_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      copyId,
+      targetTableId,
+      `${disadvantage.name ?? ''} (cópia)`,
+      disadvantage.category ?? null,
+      disadvantage.subcategory ?? null,
+      disadvantage.cost_points,
+      disadvantage.effect ?? '',
+      disadvantage.description,
+      disadvantage.module_id ?? null
+    )
+    return { success: true, id: copyId, name: disadvantage.name }
   }
 
   /** Remove uma desvantagem e desamarra as referências (character_disadvantages,
@@ -883,6 +968,70 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     }
   }
 
+  /** Duplica um item (com arma/escudo, ataques, armadura e imagens) para
+      outra mesa — novo id, mesmo conteúdo, sem vínculo de local. */
+  async duplicateGameItems(id: string, targetTableId: string): Promise<any> {
+    const item: any = db.prepare('SELECT * FROM game_table_items WHERE id = ?').get(id)
+    if (!item) throw new Error('Item not found')
+    const copyId = crypto.randomUUID()
+
+    const tx = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id, subcategory)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        copyId,
+        targetTableId,
+        `${item.name ?? ''} (cópia)`,
+        item.kind ?? null,
+        item.category ?? null,
+        item.weight_lb ?? null,
+        item.cost ?? null,
+        item.dimensions ?? null,
+        item.description ?? null,
+        item.quality ?? null,
+        item.condition ?? null,
+        null,
+        item.subcategory ?? null
+      )
+
+      const weapon: any = db.prepare('SELECT * FROM game_table_weapons WHERE item_id = ?').get(id)
+      if (weapon) {
+        const weaponId = crypto.randomUUID()
+        db.prepare(`
+          INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(weaponId, copyId, weapon.skill ?? null, weapon.min_st ?? null, weapon.rated_st ?? null, weapon.handedness ?? 1, weapon.reach || 'C', weapon.parry ?? null, weapon.block ?? null, weapon.fit ?? 'normal')
+
+        const attacks = db.prepare('SELECT * FROM weapon_attacks WHERE weapon_id = ? ORDER BY rowid ASC').all(weapon.id) as any[]
+        for (const atk of attacks) {
+          db.prepare(`
+            INSERT INTO weapon_attacks (id, weapon_id, name, usage, damage_source, damage_modifier, damage_dice, damage_type, armor_penetration, accuracy, range, recoil, shots)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(crypto.randomUUID(), weaponId, atk.name || 'Attack', atk.usage ?? null, atk.damage_source || 'fixed', atk.damage_modifier ?? 0, atk.damage_dice ?? null, atk.damage_type || 'cr', atk.armor_penetration ?? 0, atk.accuracy ?? null, atk.range || 'Melee', atk.recoil ?? null, atk.shots ?? null)
+        }
+      }
+
+      const armor: any = db.prepare('SELECT * FROM game_table_armors WHERE item_id = ?').get(id)
+      if (armor) {
+        db.prepare(`
+          INSERT INTO game_table_armors (id, item_id, dr, flex, locations, fit)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).run(crypto.randomUUID(), copyId, armor.dr ?? null, armor.flex ?? 0, armor.locations || 'torso', armor.fit ?? 'normal')
+      }
+
+      const images = db.prepare('SELECT * FROM item_images WHERE item_id = ?').all(id) as any[]
+      for (const img of images) {
+        db.prepare(`
+          INSERT INTO item_images (id, item_id, url)
+          VALUES (?, ?, ?)
+        `).run(crypto.randomUUID(), copyId, img.url ?? null)
+      }
+    })
+    tx()
+    return { success: true, id: copyId, name: item.name }
+  }
+
   /** Remove um item e tudo que depende dele (weapon/armor/attacks/imagens,
       character_equipment, modifiers e visibility) para não violar as FKs. */
   async deleteGameItems(id: any): Promise<any> {
@@ -1177,6 +1326,75 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { success: true, id, parent_id: row.parent_id ?? null, name: row.name }
   }
 
+  /** Duplica um território (com toda a subárvore) para outra mesa.
+      A raiz ganha "(cópia)"; filhos/níveis e caminhos são recalculados. */
+  async duplicateGameLocation(id: string, targetTableId: string): Promise<any> {
+    const root: any = db.prepare('SELECT * FROM table_locations WHERE id = ?').get(id)
+    if (!root) throw new Error('Location not found')
+
+    const rows: any[] = []
+    const queue: any[] = [id]
+    while (queue.length) {
+      const cur = queue.shift()
+      const row: any = db.prepare('SELECT * FROM table_locations WHERE id = ?').get(cur)
+      if (!row) continue
+      rows.push(row)
+      const kids = db.prepare('SELECT id FROM table_locations WHERE parent_id = ? ORDER BY hex_size_m IS NULL, hex_size_m ASC, name ASC').all(cur) as any[]
+      queue.push(...kids.map((k) => k.id))
+    }
+
+    const idMap = new Map<string, string>()
+    const tx = db.transaction(() => {
+      for (const row of rows) {
+        const newId = crypto.randomUUID()
+        idMap.set(row.id, newId)
+        const parentId = row.parent_id ? (idMap.get(row.parent_id) ?? null) : null
+        const { level, path } = locationAncestry(newId, parentId)
+        const name = row.id === id ? `${row.name ?? ''} (cópia)` : row.name
+        db.prepare(`
+          INSERT INTO table_locations (
+            id, table_id, parent_id, kind, level, path,
+            name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
+            hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
+            shop_name, tiles, drawing
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          newId,
+          targetTableId,
+          parentId,
+          row.kind ?? 'site',
+          level,
+          path,
+          name,
+          row.region ?? null,
+          row.address ?? null,
+          row.sub_region ?? null,
+          row.is_indoor ?? 0,
+          row.other ?? null,
+          row.country ?? null,
+          row.area ?? null,
+          row.dimensions ?? null,
+          row.description ?? null,
+          row.hex_size_m ?? null,
+          row.width_hexes ?? null,
+          row.height_hexes ?? null,
+          row.center_q ?? 0,
+          row.center_r ?? 0,
+          row.orientation ?? 'flat',
+          row.rotation_deg ?? 0,
+          row.is_battlemap ?? 0,
+          row.shop_name ?? null,
+          row.tiles ?? '[]',
+          row.drawing ?? '[]'
+        )
+      }
+    })
+    tx()
+    const copyId = idMap.get(id)
+    return { success: true, id: copyId, name: root.name }
+  }
+
   /** Recalcula level/path de toda a subárvore (após mover de pai). */
   private recomputeLocationSubtree(rootId: string): void {
     const queue: string[] = [rootId]
@@ -1262,6 +1480,88 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     insertTransaction()
     return { character_id: characterId, sheet_id: sheetId }
   }
+  /** Duplica um NPC (ficha + vantagens + desvantagens + perícias + quirks)
+      para outra mesa — novo personagem, sem vínculo de local/inventário. */
+  async duplicateGameNPC(npcId: string, targetTableId: string): Promise<any> {
+    const npc: any = db.prepare('SELECT * FROM game_table_npcs WHERE id = ?').get(npcId)
+    if (!npc) throw new Error('NPC not found')
+    const charId = npc.character_id as string
+    const characterRow: any = db.prepare('SELECT user_id FROM game_table_characters WHERE id = ?').get(charId)
+    const sheet: any = db.prepare('SELECT * FROM game_table_character_sheets WHERE character_id = ?').get(charId)
+    const advantages = db.prepare('SELECT * FROM game_table_character_advantages WHERE character_id = ?').all(charId) as any[]
+    const disadvantages = db.prepare('SELECT * FROM game_table_character_disadvantages WHERE character_id = ?').all(charId) as any[]
+    const skills = db.prepare('SELECT * FROM game_table_character_skills WHERE character_id = ?').all(charId) as any[]
+    const quirks = db.prepare('SELECT * FROM game_table_characters_quirks WHERE character_id = ?').all(charId) as any[]
+
+    const newCharId = crypto.randomUUID()
+    const newNpcId = crypto.randomUUID()
+    const tx = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO game_table_characters (id, user_id, table_id)
+        VALUES (?, ?, ?)
+      `).run(newCharId, characterRow?.user_id ?? null, targetTableId)
+
+      if (sheet) {
+        db.prepare(`
+          INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          crypto.randomUUID(), newCharId,
+          `${sheet.name || ''} (cópia)`,
+          sheet.bio || '',
+          sheet.backstory || '',
+          sheet.points ?? 0,
+          sheet.hp ?? 10,
+          sheet.st ?? 10,
+          sheet.dx ?? 10,
+          sheet.iq ?? 10,
+          sheet.ht ?? 10,
+          sheet.fatigue ?? 10,
+          sheet.encumbrance || 'None'
+        )
+      }
+
+      const insertAdvantage = db.prepare(`
+        INSERT INTO game_table_character_advantages (id, advantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const adv of advantages) {
+        insertAdvantage.run(crypto.randomUUID(), adv.advantage_id ?? null, adv.name ?? null, newCharId, adv.cost_points ?? 0, adv.effect ?? '')
+      }
+
+      const insertDisadvantage = db.prepare(`
+        INSERT INTO game_table_character_disadvantages (id, disadvantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const dis of disadvantages) {
+        insertDisadvantage.run(crypto.randomUUID(), dis.disadvantage_id ?? null, dis.name ?? null, newCharId, dis.cost_points ?? 0, dis.effect ?? '')
+      }
+
+      const insertSkill = db.prepare(`
+        INSERT INTO game_table_character_skills (id, character_id, skill_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?)
+      `)
+      for (const sk of skills) {
+        insertSkill.run(crypto.randomUUID(), newCharId, sk.skill_id ?? null, sk.cost_points ?? 0, sk.effect ?? '')
+      }
+
+      const insertQuirk = db.prepare(`
+        INSERT INTO game_table_characters_quirks (id, character_id, name, cost_points, effect, description)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const q of quirks) {
+        insertQuirk.run(crypto.randomUUID(), newCharId, q.name ?? null, q.cost_points ?? 0, q.effect ?? '', q.description ?? null)
+      }
+
+      db.prepare(`
+        INSERT INTO game_table_npcs (id, character_id, status, location_id, module_id, category, subcategory)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(newNpcId, newCharId, npc.status || 'active', null, npc.module_id ?? null, npc.category ?? null, npc.subcategory ?? null)
+    })
+    tx()
+    return { success: true, id: newNpcId, character_id: newCharId, name: sheet?.name ?? null }
+  }
+
   async editGameNPC(data: any): Promise<void> {
     db.prepare(`
       UPDATE game_table_npcs

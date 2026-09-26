@@ -13,4 +13,9 @@ export interface IGameTableRepository {
   createScene(data: any): Promise<void>
   createNarration(data: any): Promise<void>
   createNarrationAction(data: any): Promise<void>
+  editNarrationAction(id: string, data: any): Promise<any>
+  deleteNarrationAction(id: string): Promise<any>
+  duplicateNarrationAction(id: string): Promise<any>
+  getNarrationTableId(narrationsId: string): Promise<string | null>
+  readNarrationAction(id: string): Promise<any>
 }

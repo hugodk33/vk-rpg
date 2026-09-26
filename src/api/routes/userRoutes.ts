@@ -95,6 +95,7 @@ import { FindUserByIdUseCase } from '../../application/use-cases/users-use-cases
 import { ContentCatalogRepository } from '../../domain/repositories/ContentCatalogRepository'
 import { FindContentCatalogUseCase } from '../../application/use-cases/content-use-cases/FindContentCatalogUseCase'
 import { ContentModuleController } from '../controllers/ContentModuleController'
+import { publishTable } from '../../infra/realtime/TableEvents'
 
 const router = Router()
 
@@ -294,6 +295,73 @@ router.put('/game-table/edit/:id', (req, res) => gameTableController.editGameTab
 router.post('/game-table-scene', (req, res) => gameTableController.createScene(req, res))
 router.post('/game-table-narration', (req, res) => gameTableController.createNarration(req, res))
 router.post('/game-table-action', (req, res) => gameTableController.createNarrationAction(req, res))
+
+/* ações de cena: editar / excluir / duplicar (na mesma narração) */
+const resolveActionTableId = async (id: string): Promise<string | null> => {
+  const action: any = await gameTableRepo.readNarrationAction(id)
+  if (!action) return null
+  return gameTableRepo.getNarrationTableId(action.narrations_id)
+}
+router.put('/game-table-action/:id', async (req, res) => {
+  try {
+    const result = await gameTableRepo.editNarrationAction(req.params.id, req.body)
+    const tableId = await resolveActionTableId(req.params.id)
+    if (tableId) publishTable(tableId, 'action')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+router.delete('/game-table-action/:id', async (req, res) => {
+  try {
+    const tableId = await resolveActionTableId(req.params.id)
+    const result = await gameTableRepo.deleteNarrationAction(req.params.id)
+    if (tableId) publishTable(tableId, 'action')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+router.post('/game-table-action/:id/copy', async (req, res) => {
+  try {
+    const result = await gameTableRepo.duplicateNarrationAction(req.params.id)
+    const tableId = await resolveActionTableId(req.params.id)
+    if (tableId) publishTable(tableId, 'action')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+/* cópia de catálogos para outra mesa */
+const copyHandler = (fn: (id: string, tableId: string) => Promise<any>) => {
+  return async (req: any, res: any) => {
+    try {
+      const targetTableId = req.body?.tableId
+      if (!targetTableId) return res.status(400).json({ error: 'tableId is required' })
+      const result = await fn(req.params.id, targetTableId)
+      res.json(result)
+    } catch (error: any) {
+      res.status(400).json({ error: error.message })
+    }
+  }
+}
+router.post('/game-table-skill/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameSkill(id, tid)))
+router.post('/game-table-advantage/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameAdvantage(id, tid)))
+router.post('/game-table-disadvantage/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameDisadvantage(id, tid)))
+router.post('/game-table-item/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameItems(id, tid)))
+router.post('/game-table-npc/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameNPC(id, tid)))
+router.post('/table-location/:id/copy', async (req, res) => {
+  try {
+    const targetTableId = req.body?.tableId
+    if (!targetTableId) return res.status(400).json({ error: 'tableId is required' })
+    const result = await gameTableRulesRepo.duplicateGameLocation(req.params.id, targetTableId)
+    if (result?.id) publishTable(targetTableId, 'location')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
 
 /* ===== CONTENT MODULES ===== */
 router.get('/content-modules', (req, res) => contentModuleController.findCatalog(req, res))
