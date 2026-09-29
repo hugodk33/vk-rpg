@@ -61,16 +61,49 @@ CREATE TABLE IF NOT EXISTS game_table_settings (
   item_mode TEXT NOT NULL DEFAULT 'gm',               -- 'points' | 'gm' (gastar pontos da ficha para adicionar itens, ou é o mestre que concede)
   reaction_mode TEXT NOT NULL DEFAULT 'gm',           -- 'points' | 'gm' (teste de reação com pontos, ou é o mestre quem resolve)
   gm_adds_item INTEGER NOT NULL DEFAULT 1,            -- o mestre pode adicionar o item diretamente (independente do gasto de pontos)
-  money_item_id TEXT,                                 -- item que representa dinheiro (moeda) para a loja inicial
+  money_item_id TEXT,                                 -- @deprecated Use game_table_currencies (uma mesa pode ter várias moedas)
   starting_shop INTEGER NOT NULL DEFAULT 0,           -- loja inicial habilitada
-  starting_points INTEGER NOT NULL DEFAULT 150,       -- orçamento de pontos para a primeira ficha do jogador
+  starting_points INTEGER NOT NULL DEFAULT 0,         -- orçamento de pontos da primeira ficha; 0 = não configurado (mesa sem sistema de pontos)
   PRIMARY KEY (table_id, lang)
+);
+
+-- =========================
+-- MOEDAS DA MESA (várias por mesa)
+-- Cada linha declara que um item é uma moeda e quanto o mestre dá no
+-- início. O saldo em carteira é a soma de character_equipment.quantity
+-- dos itens declarados aqui.
+-- =========================
+CREATE TABLE IF NOT EXISTS game_table_currencies (
+  table_id TEXT NOT NULL,
+  item_id TEXT NOT NULL,                             -- item que representa a moeda
+  starting_amount INTEGER NOT NULL DEFAULT 0,        -- quanto o mestre dá no início
+  PRIMARY KEY (table_id, item_id)
 );
 
 CREATE TABLE IF NOT EXISTS game_table_players (
   id TEXT PRIMARY KEY,
   table_id TEXT,
   user_id TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- =========================
+-- ACESSO À MESA (narrador convidado)
+-- Uma linha por (mesa, usuário) dizendo quais recursos da mesa aquele
+-- narrador convidado enxerga e em quais pode escrever. A mesa continua
+-- pertencendo ao narrador titular: esta tabela nunca altera game_tables.
+-- permissions = JSON { "characters": "read", "scenes": "write", ... }
+-- Sem FK em table_id porque game_tables tem chave primária composta
+-- (id, lang) — mesmo motivo de game_table_players.
+-- =========================
+CREATE TABLE IF NOT EXISTS game_table_access (
+  id TEXT PRIMARY KEY,
+  table_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  permissions TEXT NOT NULL DEFAULT '{}',
+  granted_by TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (table_id, user_id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -184,6 +217,40 @@ CREATE TABLE IF NOT EXISTS table_locations (
   shop_name TEXT,
   tiles TEXT DEFAULT '[]',
   drawing TEXT DEFAULT '[]',
+  floor INTEGER,
+  floor_name TEXT,
+  PRIMARY KEY (id, lang)
+);
+
+-- =========================
+-- LOCATION CONNECTIONS — ligações entre plantas (portas/escadas/...)
+-- -------------------------
+-- Conecta dois locais de uma MESMA mesa através de um hex em cada
+-- planta (from_q/r na origem, to_q/r no destino). kind discrimina
+-- o tipo (door | stairs | portal | bridge | elevator | trapdoor |
+-- secret); floor_from/floor_to registram o andar de cada ponta
+-- (escala próxima da real usa andares: 0 = térreo, -1 = subsolo...).
+-- bidirectional indica se a passagem vale nos dois sentidos e
+-- sort ordena os marcadores dentro de cada planta. Rows são por
+-- idioma (PRIMARY KEY id, lang) para label/description localizadas.
+-- =========================
+CREATE TABLE IF NOT EXISTS location_connections (
+  id TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'pt',
+  table_id TEXT,
+  from_location_id TEXT,
+  to_location_id TEXT,
+  kind TEXT DEFAULT 'door',
+  label TEXT,
+  from_q INTEGER,
+  from_r INTEGER,
+  to_q INTEGER,
+  to_r INTEGER,
+  floor_from INTEGER,
+  floor_to INTEGER,
+  bidirectional INTEGER DEFAULT 1,
+  sort INTEGER DEFAULT 0,
+  description TEXT,
   PRIMARY KEY (id, lang)
 );
 
@@ -250,7 +317,8 @@ CREATE TABLE IF NOT EXISTS game_table_items (
   kind TEXT,            -- 'weapon' | 'armor' | 'shield' | 'equipment'
   category TEXT,        -- domínio: melee | ranged | clothing | ...
   weight_lb REAL,       -- peso em libras (GURPS)
-  cost INTEGER,         -- custo em $ (GURPS)
+  cost INTEGER,         -- custo na moeda de currency_item_id (GURPS)
+  currency_item_id TEXT,-- item-moeda em que o custo está cotado (1 moeda por item)
   dimensions TEXT,
   description TEXT,
   quality TEXT,         -- domínio: cheap | standard | fine | very_fine
@@ -563,6 +631,7 @@ CREATE TABLE IF NOT EXISTS visibility (
   additionals_attributes TEXT,
   item_id TEXT,
   location_id TEXT,
+  connection_id TEXT,
   value TEXT,
   status TEXT,
   scene_id TEXT,
@@ -819,6 +888,10 @@ if (visibilityCols.length && !visibilityCols.includes('moment')) {
 if (visibilityCols.length && !visibilityCols.includes('previous_status')) {
   db.exec("ALTER TABLE visibility ADD COLUMN previous_status TEXT")
 }
+// visibility.connection_id — regras de conhecimento sobre CONEXÕES (bases antigas)
+if (visibilityCols.length && !visibilityCols.includes('connection_id')) {
+  db.exec("ALTER TABLE visibility ADD COLUMN connection_id TEXT")
+}
 
 // queue.test_* para o teste controlado pelo narrador (bases criadas antes das colunas)
 const queueCols = (db.prepare("PRAGMA table_info(queue)").all() as any[]).map((c) => c.name)
@@ -876,6 +949,8 @@ if (locationCols.length) {
     { col: 'shop_name', ddl: 'TEXT' },
     { col: 'tiles', ddl: "TEXT DEFAULT '[]'" },
     { col: 'drawing', ddl: "TEXT DEFAULT '[]'" },
+    { col: 'floor', ddl: 'INTEGER' },
+    { col: 'floor_name', ddl: 'TEXT' },
   ]
   for (const { col, ddl } of locationAdds) {
     if (!locationCols.includes(col)) {
@@ -888,6 +963,11 @@ if (locationCols.length) {
 const itemCols = (db.prepare("PRAGMA table_info(game_table_items)").all() as any[]).map((c) => c.name)
 if (itemCols.length && !itemCols.includes('location_id')) {
   db.exec("ALTER TABLE game_table_items ADD COLUMN location_id TEXT")
+}
+
+// game_table_items.currency_item_id — em qual moeda o `cost` deste item está
+if (itemCols.length && !itemCols.includes('currency_item_id')) {
+  db.exec("ALTER TABLE game_table_items ADD COLUMN currency_item_id TEXT")
 }
 
 // game_table_npcs.location_id — vínculo npc -> local (equipe de lojas, bases antigas)
@@ -989,7 +1069,7 @@ for (const table of ['narration_characters', 'narration_npcs']) {
 // ---- Camada de TABLE SETTINGS ----
 // migração para mesas existentes: coluna de orçamento de pontos na primeira ficha
 if (!(db.prepare("PRAGMA table_info(game_table_settings)").all() as any[]).some((c) => c.name === 'starting_points')) {
-  db.exec(`ALTER TABLE game_table_settings ADD COLUMN starting_points INTEGER NOT NULL DEFAULT 150`)
+  db.exec(`ALTER TABLE game_table_settings ADD COLUMN starting_points INTEGER NOT NULL DEFAULT 0`)
 }
 
 // ---- Camada de STATUS de personagem ----
@@ -1010,10 +1090,62 @@ if (settingsCols.length) {
     )
   `).all() as any[]
   const insertSettings = db.prepare(`
-    INSERT INTO game_table_settings (table_id, lang, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop)
-    VALUES (?, ?, 'after_test', 'gm', 'gm', 1, NULL, 0)
+    INSERT INTO game_table_settings (table_id, lang, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop, starting_points)
+    VALUES (?, ?, 'after_test', 'gm', 'gm', 1, NULL, 0, 0)
   `)
   for (const t of missingTables) insertSettings.run(t.id, t.lang ?? 'pt')
+}
+
+// ---- moedas: carrega o money_item_id legado para game_table_currencies ----
+// Uma mesa pode ter várias moedas; a coluna antiga só comportava uma.
+if (settingsCols.length) {
+  const legacyMoney = db.prepare(`
+    SELECT table_id, money_item_id FROM game_table_settings
+    WHERE money_item_id IS NOT NULL AND money_item_id != ''
+  `).all() as any[]
+  const insertCurrency = db.prepare(`
+    INSERT OR IGNORE INTO game_table_currencies (table_id, item_id, starting_amount)
+    VALUES (?, ?, 0)
+  `)
+  for (const row of legacyMoney) insertCurrency.run(row.table_id, row.money_item_id)
+}
+
+// ---- starting_points: conserta o DEFAULT gravado no schema ----
+// A coluna nasceu com DEFAULT 150 e o SQLite grava o default no schema da
+// tabela, então o ALTER guardado acima nunca mais roda e toda mesa nova
+// nascia com 150 pontos. 0 = "não configurado" é a semântica do painel de
+// regras, então o default precisa ser 0 de verdade. SQLite não tem
+// ALTER COLUMN ... SET DEFAULT: reconstruímos a tabela preservando as linhas.
+if (settingsCols.length) {
+  const spCol = (db.prepare(`PRAGMA table_info(game_table_settings)`).all() as any[]).find((c) => c.name === 'starting_points')
+  if (spCol && String(spCol.dflt_value ?? '0') !== '0') {
+    const rebuild = db.transaction(() => {
+      db.exec(`
+        CREATE TABLE game_table_settings_spfix (
+          table_id TEXT NOT NULL,
+          lang TEXT NOT NULL DEFAULT 'pt',
+          turn_end_mode TEXT NOT NULL DEFAULT 'after_test',
+          item_mode TEXT NOT NULL DEFAULT 'gm',
+          reaction_mode TEXT NOT NULL DEFAULT 'gm',
+          gm_adds_item INTEGER NOT NULL DEFAULT 1,
+          money_item_id TEXT,
+          starting_shop INTEGER NOT NULL DEFAULT 0,
+          starting_points INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY (table_id, lang)
+        )
+      `)
+      db.exec(`
+        INSERT INTO game_table_settings_spfix
+          (table_id, lang, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop, starting_points)
+        SELECT
+          table_id, lang, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop, starting_points
+        FROM game_table_settings
+      `)
+      db.exec(`DROP TABLE game_table_settings`)
+      db.exec(`ALTER TABLE game_table_settings_spfix RENAME TO game_table_settings`)
+    })
+    rebuild()
+  }
 }
 
 console.log('✅ Full database migrated!')

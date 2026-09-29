@@ -28,3 +28,15 @@ export const locWatchBarracksId = crypto.randomUUID()
 export const locShadowyTankardId = crypto.randomUUID()
 export const locRooftopsId = crypto.randomUUID()
 export const locArcaneLibraryId = crypto.randomUUID()
+
+// Andares de prédios com mapa próximo da escala real (escalas por escada)
+export const locLibraryUpperId = crypto.randomUUID()
+export const locTankardCellarId = crypto.randomUUID()
+export const locWatchUpperId = crypto.randomUUID()
+
+// Conexões entre plantas (porta/escada/alçapão) — ids referenciados pelo seed
+// de visibility para dar aos players o conhecimento das passagens.
+export const connMarketLibraryId = crypto.randomUUID()
+export const connLibraryUpperId = crypto.randomUUID()
+export const connTankardCellarId = crypto.randomUUID()
+export const connWatchUpperId = crypto.randomUUID()

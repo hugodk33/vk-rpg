@@ -1,7 +1,7 @@
 import { db } from '../../infra/database/database'
 import crypto from 'crypto'
 import { IGameTableRulesRepository } from '../irepositories/IGameTableRulesRepository'
-import { shapeCatalogForViewer, shapeCharacterForViewer } from '../services/CharacterVisibility'
+import { shapeCatalogForViewer, shapeCharacterForViewer, shapeLocationConnections } from '../services/CharacterVisibility'
 
 /** Rules an observer holds (any target) — the "knowledge" set that gates
     catalogs and locations. Catalog/location rows are observer-global, but
@@ -102,6 +102,37 @@ function locationToDTO(l: any): any {
     shopName: l.shop_name ?? null,
     tiles: parseJsonArray(l.tiles),
     drawing: parseJsonArray(l.drawing),
+    floor: l.floor ?? null,
+    floorName: l.floor_name ?? null,
+  }
+}
+
+/** Conexão entre plantas — DTO canônico consumido pelo front (marcadores
+    de porta/escada nos dois lados + andar de cada ponta). */
+function connectionToDTO(c: any): any {
+  const fromId = c?.from?.id ?? c?.from_location_id ?? null
+  const toId = c?.to?.id ?? c?.to_location_id ?? null
+  const inHex = (v: any) => (v && typeof v === 'object' ? v : null)
+  return {
+    id: c.id,
+    tableId: c.table_id ?? c.tableId ?? null,
+    kind: c.kind ?? 'door',
+    label: c.label ?? null,
+    description: c.description ?? null,
+    bidirectional: !!c.bidirectional,
+    sort: c.sort ?? 0,
+    floorFrom: c.floor_from ?? c.floorFrom ?? null,
+    floorTo: c.floor_to ?? c.floorTo ?? null,
+    from: {
+      id: fromId,
+      q: inHex(c.from)?.q ?? c.from_q ?? 0,
+      r: inHex(c.from)?.r ?? c.from_r ?? 0,
+    },
+    to: {
+      id: toId,
+      q: inHex(c.to)?.q ?? c.to_q ?? 0,
+      r: inHex(c.to)?.r ?? c.to_r ?? 0,
+    },
   }
 }
 
@@ -724,6 +755,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         table_title: row.table_title,
         ancestors: shape(ancestors),
         children,
+        links: this.locationLinksFor(row, rules),
       }
     }
 
@@ -733,7 +765,49 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       table_title: row.table_title,
       ancestors,
       children,
+      links: this.locationLinksFor(row, null),
     }
+  }
+
+  /** Conexões que tocam este local — o hex "aqui" (porta/escada local) e o
+      local parceiro (shapeado para o viewer). Sob viewer, um link só existe
+      se o parceiro também for conhecido; a regra da própria conexão ainda
+      pode mascarar/remover o marcador. */
+  private locationLinksFor(row: any, rules: any[] | null): any[] {
+    const self = row.id
+    const fetchLoc = (lid: string): any =>
+      db.prepare('SELECT * FROM table_locations WHERE id = ?').get(lid) as any
+    const shape = (dto: any) =>
+      rules ? shapeCatalogForViewer([dto], rules, 'location') : [dto]
+
+    const rows = db.prepare(`
+      SELECT * FROM location_connections
+      WHERE from_location_id = ? OR to_location_id = ?
+      ORDER BY sort ASC, id ASC
+    `).all(self, self) as any[]
+
+    const links: any[] = []
+    for (const c of rows) {
+      const startsHere = c.from_location_id === self
+      const otherRow = startsHere ? fetchLoc(c.to_location_id) : fetchLoc(c.from_location_id)
+      if (!otherRow) continue
+      const otherDto = locationToDTO(otherRow)
+      const partner = shape(otherDto)
+      if (partner.length === 0) continue
+      links.push({
+        id: c.id,
+        kind: c.kind ?? 'door',
+        label: c.label ?? null,
+        description: c.description ?? null,
+        bidirectional: !!c.bidirectional,
+        floorFrom: c.floor_from ?? null,
+        floorTo: c.floor_to ?? null,
+        here: { q: startsHere ? c.from_q ?? 0 : c.to_q ?? 0, r: startsHere ? c.from_r ?? 0 : c.to_r ?? 0 },
+        partner: partner[0],
+      })
+    }
+
+    return rules ? shapeLocationConnections(links, rules) : links
   }
 
   /* =============== */
@@ -805,8 +879,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const itemId = crypto.randomUUID()
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
     db.prepare(`
-      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, currency_item_id, dimensions, description, quality, condition, location_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       itemId,
       data.table_id,
@@ -815,6 +889,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.category,
       data.weight_lb ?? data.weight ?? null,
       data.cost ?? null,
+      data.currency_item_id || null,
       data.dimensions,
       data.description,
       data.quality,
@@ -878,7 +953,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
     db.prepare(`
       UPDATE game_table_items
-      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
+      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, currency_item_id = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
       WHERE id = ?
     `).run(
       data.name,
@@ -886,6 +961,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.category,
       data.weight_lb ?? data.weight ?? null,
       data.cost ?? null,
+      data.currency_item_id || null,
       data.dimensions,
       data.description,
       data.quality,
@@ -1167,9 +1243,24 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       ? shapeCatalogForViewer(locations, viewerRules(viewer), 'location')
       : locations
 
+    const connectionRows = (db.prepare(`
+      SELECT * FROM location_connections
+      WHERE table_id = ?
+      ORDER BY sort ASC, id ASC
+    `).all(id as string) as any[])
+
+    const connections = viewer
+      ? shapeLocationConnections(
+          connectionRows,
+          viewerRules(viewer),
+          new Set(shaped.map((x: any) => String(x.id)))
+        ).map(connectionToDTO)
+      : connectionRows.map(connectionToDTO)
+
     return ({
       table: table,
       locations: shaped,
+      connections,
       tree: viewer
         ? filterTreeVisible(buildLocationTree(shaped), new Set(shaped.map((x: any) => String(x.id))))
         : buildLocationTree(locations),
@@ -1210,9 +1301,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         id, table_id, parent_id, kind, level, path,
         name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
         hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
-        shop_name, tiles, drawing
+        shop_name, tiles, drawing, floor, floor_name
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.table_id,
@@ -1240,7 +1331,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       isBattle,
       data.shop_name ?? data.shopName ?? null,
       JSON.stringify(data.tiles ?? []),
-      JSON.stringify(data.drawing ?? [])
+      JSON.stringify(data.drawing ?? []),
+      data.floor ?? data.hex?.floor ?? null,
+      data.floor_name ?? data.floorName ?? data.hex?.floorName ?? null
     )
 
     return this.findGameLocation(id)
@@ -1268,7 +1361,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         other = ?, country = ?, area = ?, dimensions = ?, description = ?,
         hex_size_m = ?, width_hexes = ?, height_hexes = ?, center_q = ?, center_r = ?,
         orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?,
-        tiles = ?, drawing = ?
+        tiles = ?, drawing = ?, floor = ?, floor_name = ?
       WHERE id = ?
     `).run(
       parentId,
@@ -1296,6 +1389,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.shop_name ?? data.shopName ?? current.shop_name ?? null,
       data.tiles !== undefined ? JSON.stringify(data.tiles ?? []) : current.tiles ?? '[]',
       data.drawing !== undefined ? JSON.stringify(data.drawing ?? []) : current.drawing ?? '[]',
+      data.floor ?? data.hex?.floor ?? current.floor ?? null,
+      data.floor_name ?? data.floorName ?? data.hex?.floorName ?? current.floor_name ?? null,
       data.id
     )
 
@@ -1319,6 +1414,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const tx = db.transaction(() => {
       db.prepare('UPDATE narration_locations SET location_id = NULL WHERE location_id = ?').run(id)
       db.prepare('UPDATE visibility SET location_id = NULL WHERE location_id = ?').run(id)
+      db.prepare('UPDATE visibility SET connection_id = NULL WHERE connection_id = ?').run(id)
+      db.prepare('DELETE FROM location_connections WHERE from_location_id = ? OR to_location_id = ?').run(id, id)
       db.prepare('DELETE FROM table_locations WHERE id = ?').run(id)
     })
     tx()
@@ -1356,9 +1453,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
             id, table_id, parent_id, kind, level, path,
             name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
             hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
-            shop_name, tiles, drawing
+            shop_name, tiles, drawing, floor, floor_name
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
           newId,
           targetTableId,
@@ -1386,8 +1483,55 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
           row.is_battlemap ?? 0,
           row.shop_name ?? null,
           row.tiles ?? '[]',
-          row.drawing ?? '[]'
+          row.drawing ?? '[]',
+          row.floor ?? null,
+          row.floor_name ?? null
         )
+      }
+
+      // Copia conexões cujas DUAS pontas ficam na subárvore duplicada
+      // (as demais ligam para locais fora da mesa-alvo e não fazem sentido).
+      const subtreeIds = new Set(rows.map((r) => r.id).map(String))
+      const connRows = db.prepare('SELECT * FROM location_connections WHERE table_id = ?')
+        .all(root.table_id) as any[]
+      const connByOrigId = new Map<string, any[]>()
+      for (const c of connRows) {
+        const key = String(c.id)
+        if (!connByOrigId.has(key)) connByOrigId.set(key, [])
+        connByOrigId.get(key)!.push(c)
+      }
+      for (const [, langs] of connByOrigId) {
+        const f = langs[0]
+        const fromIn = subtreeIds.has(String(f.from_location_id))
+        const toIn = subtreeIds.has(String(f.to_location_id))
+        if (!fromIn || !toIn) continue
+        const newConnId = crypto.randomUUID()
+        for (const langRow of langs) {
+          db.prepare(`
+            INSERT INTO location_connections (
+              id, lang, table_id, from_location_id, to_location_id,
+              kind, label, from_q, from_r, to_q, to_r,
+              floor_from, floor_to, bidirectional, sort, description
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            newConnId,
+            langRow.lang ?? 'pt',
+            targetTableId,
+            idMap.get(String(langRow.from_location_id)) ?? null,
+            idMap.get(String(langRow.to_location_id)) ?? null,
+            langRow.kind ?? 'door',
+            langRow.label ?? null,
+            langRow.from_q ?? 0,
+            langRow.from_r ?? 0,
+            langRow.to_q ?? 0,
+            langRow.to_r ?? 0,
+            langRow.floor_from ?? null,
+            langRow.floor_to ?? null,
+            langRow.bidirectional ?? 1,
+            langRow.sort ?? 0,
+            langRow.description ?? null
+          )
+        }
       }
     })
     tx()
@@ -1411,6 +1555,111 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         queue.push(child.id)
       }
     }
+  }
+
+  /* ==============================================================
+     LOCATION CONNECTIONS — portas/escadas/portais entre plantas
+     --------------------------------------------------------------
+     Uma conexão aponta de UM hex da planta de origem (from_q/r) para
+     UM hex da planta de destino (to_q/r). O front desenha um marcador
+     em cada ponta; ao clicar, navega para o local parceiro (e destaca
+     o hex em que a conexão "chega"). Rows são por idioma (label e
+     description localizadas); id é compartilhado entre os idiomas.
+     ============================================================== */
+
+  async tableLocationConnections(tableId: string): Promise<any[]> {
+    return (db.prepare(`
+      SELECT * FROM location_connections
+      WHERE table_id = ?
+      ORDER BY sort ASC, id ASC
+    `).all(tableId) as any[]).map(connectionToDTO)
+  }
+
+  /** Conexões que tocam um local (ambas as direções). Usado pela UI de
+      autor (lista de links para editar/remover). */
+  async findLocationConnections(locationId: string): Promise<any[]> {
+    return (db.prepare(`
+      SELECT * FROM location_connections
+      WHERE from_location_id = ? OR to_location_id = ?
+      ORDER BY sort ASC, id ASC
+    `).all(locationId, locationId) as any[]).map(connectionToDTO)
+  }
+
+  async createLocationConnection(data: any): Promise<any> {
+    const tableId = data.table_id ?? data.tableId ?? null
+    const fromId = data.from?.id ?? data.from_location_id ?? null
+    const toId = data.to?.id ?? data.to_location_id ?? null
+    if (!tableId || !fromId || !toId) {
+      throw new Error('Connection requires table_id, from.id and to.id')
+    }
+    const inTable = (lid: string): boolean => {
+      const row: any = db.prepare('SELECT id, table_id FROM table_locations WHERE id = ?').get(lid)
+      return !!row && String(row.table_id) === String(tableId)
+    }
+    if (!inTable(fromId)) throw new Error('From location not found in this table')
+    if (!inTable(toId)) throw new Error('To location not found in this table')
+
+    const id = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO location_connections (
+        id, lang, table_id, from_location_id, to_location_id,
+        kind, label, from_q, from_r, to_q, to_r,
+        floor_from, floor_to, bidirectional, sort, description
+      ) VALUES (?, 'pt', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      tableId,
+      fromId,
+      toId,
+      data.kind ?? 'door',
+      data.label ?? null,
+      data.from?.q ?? data.from_q ?? 0,
+      data.from?.r ?? data.from_r ?? 0,
+      data.to?.q ?? data.to_q ?? 0,
+      data.to?.r ?? data.to_r ?? 0,
+      data.floorFrom ?? data.floor_from ?? null,
+      data.floorTo ?? data.floor_to ?? null,
+      data.bidirectional ? 1 : 0,
+      data.sort ?? 0,
+      data.description ?? null
+    )
+    return this.findGameLocation(fromId)
+  }
+
+  async editLocationConnection(id: string, data: any): Promise<any> {
+    const current: any = db.prepare('SELECT * FROM location_connections WHERE id = ?').get(id)
+    if (!current) throw new Error('Connection not found')
+    db.prepare(`
+      UPDATE location_connections SET
+        kind = ?, label = ?, from_q = ?, from_r = ?, to_q = ?, to_r = ?,
+        floor_from = ?, floor_to = ?, bidirectional = ?, sort = ?, description = ?
+      WHERE id = ?
+    `).run(
+      data.kind ?? current.kind ?? 'door',
+      data.label !== undefined ? data.label : current.label ?? null,
+      data.from?.q ?? data.from_q ?? current.from_q ?? 0,
+      data.from?.r ?? data.from_r ?? current.from_r ?? 0,
+      data.to?.q ?? data.to_q ?? current.to_q ?? 0,
+      data.to?.r ?? data.to_r ?? current.to_r ?? 0,
+      data.floorFrom ?? data.floor_from ?? current.floor_from ?? null,
+      data.floorTo ?? data.floor_to ?? current.floor_to ?? null,
+      data.bidirectional !== undefined ? (data.bidirectional ? 1 : 0) : current.bidirectional ?? 1,
+      data.sort ?? current.sort ?? 0,
+      data.description !== undefined ? data.description : current.description ?? null,
+      id
+    )
+    return this.findGameLocation(current.from_location_id)
+  }
+
+  async deleteLocationConnection(id: string): Promise<any> {
+    const row: any = db.prepare('SELECT id, from_location_id FROM location_connections WHERE id = ?').get(id)
+    if (!row) throw new Error('Connection not found')
+    const tx = db.transaction(() => {
+      db.prepare('UPDATE visibility SET connection_id = NULL WHERE connection_id = ?').run(id)
+      db.prepare('DELETE FROM location_connections WHERE id = ?').run(id)
+    })
+    tx()
+    return { success: true, id, from_location_id: row.from_location_id }
   }
 
   /* =============== */
@@ -1782,12 +2031,15 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const sheetId = crypto.randomUUID()
 
     // A primeira ficha do jogador respeita o orçamento de pontos da mesa.
+    // Orçamento 0 = não configurado, a mesa não usa o sistema de pontos.
     if (data.respect_budget) {
       const settings = await this.findTableSettings(data.table_id)
-      const budget = settings?.starting_points ?? 150
-      const spent = Number(data.sheet?.points ?? 0)
-      if (!Number.isFinite(spent) || spent > budget) {
-        throw new Error(`A ficha gasta ${spent} pontos, mas o orçamento da mesa é ${budget}.`)
+      const budget = settings?.starting_points ?? 0
+      if (budget > 0) {
+        const spent = Number(data.sheet?.points ?? 0)
+        if (!Number.isFinite(spent) || spent > budget) {
+          throw new Error(`A ficha gasta ${spent} pontos, mas o orçamento da mesa é ${budget}.`)
+        }
       }
     }
 
@@ -3173,6 +3425,8 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /* ============ TABLE SETTINGS ============ */
 
   async findTableSettings(tableId: any): Promise<any> {
+    // starting_points = 0 significa "orçamento não configurado": a mesa não
+    // usa o sistema de pontos, então nada de barra nem limite de gasto.
     const defaults = {
       table_id: tableId,
       turn_end_mode: 'after_test',
@@ -3181,12 +3435,29 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       gm_adds_item: 1,
       money_item_id: null,
       starting_shop: 0,
-      starting_points: 150
+      starting_points: 0
     }
     const row = db
       .prepare(`SELECT * FROM game_table_settings WHERE table_id = ?`)
       .get(tableId) as any
-    return row ? { ...row } : defaults
+    // Uma mesa pode ter várias moedas — game_table_currencies é a fonte. O nome
+    // vem junto para o front não precisar resolver o item a cada tela.
+    const currencies = db
+      .prepare(`
+        SELECT c.item_id, c.starting_amount, i.name
+        FROM game_table_currencies c
+        LEFT JOIN game_table_items i ON i.id = c.item_id
+        WHERE c.table_id = ?
+        ORDER BY c.rowid
+      `)
+      .all(tableId) as any[]
+    const settings = row ? { ...row } : { ...defaults, currencies: [] }
+    settings.currencies = currencies.map((c) => ({
+      item_id: c.item_id,
+      name: c.name ?? null,
+      starting_amount: c.starting_amount ?? 0
+    }))
+    return settings
   }
 
   async updateTableSettings(data: any): Promise<void> {
@@ -3196,21 +3467,93 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const itemMode = data.item_mode === 'points' ? 'points' : 'gm'
     const reactionMode = data.reaction_mode === 'points' ? 'points' : 'gm'
     const gmAddsItem = data.gm_adds_item ? 1 : 0
-    const moneyItemId = data.money_item_id || null
     const startingShop = data.starting_shop ? 1 : 0
-    const startingPoints = Number.isFinite(Number(data.starting_points)) ? Math.max(0, Math.floor(Number(data.starting_points))) : 150
-    db.prepare(`
-      INSERT INTO game_table_settings (
-        table_id, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop, starting_points
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(table_id) DO UPDATE SET
-        turn_end_mode = excluded.turn_end_mode,
-        item_mode = excluded.item_mode,
-        reaction_mode = excluded.reaction_mode,
-        gm_adds_item = excluded.gm_adds_item,
-        money_item_id = excluded.money_item_id,
-        starting_shop = excluded.starting_shop,
-        starting_points = excluded.starting_points
-    `).run(tableId, turnEndMode, itemMode, reactionMode, gmAddsItem, moneyItemId, startingShop, startingPoints)
+    const startingPoints = Number.isFinite(Number(data.starting_points)) ? Math.max(0, Math.floor(Number(data.starting_points))) : 0
+
+    // Moedas declaradas: [{ item_id?, name?, starting_amount }]. O padrão do
+    // catálogo pode chegar só com o nome — aí o item é criado na hora, como
+    // quando se adiciona um local. Duplicadas (por id ou por nome) caem fora.
+    const seenIds = new Set<string>()
+    const seenNames = new Set<string>()
+    const currencies: Array<{ item_id?: string; name?: string; starting_amount: number }> = []
+    for (const c of Array.isArray(data.currencies) ? data.currencies : []) {
+      const itemId = typeof c?.item_id === 'string' && c.item_id ? c.item_id : null
+      const name = typeof c?.name === 'string' && c.name.trim() ? c.name.trim() : null
+      if (!itemId && !name) continue
+      const key = itemId ?? name!.toLowerCase()
+      if (seenIds.has(key)) continue
+      seenIds.add(key)
+      if (name) {
+        const nameKey = name.toLowerCase()
+        if (seenNames.has(nameKey)) continue
+        seenNames.add(nameKey)
+      }
+      const amount = Number.isFinite(Number(c?.starting_amount))
+        ? Math.max(0, Math.floor(Number(c.starting_amount)))
+        : 0
+      currencies.push({ item_id: itemId ?? undefined, name: name ?? undefined, starting_amount: amount })
+    }
+
+    const save = db.transaction(() => {
+      // A PK é (table_id, lang) e a API é por mesa (sem lang). Preserva o
+      // lang da linha existente para não criar uma segunda linha por tabela.
+      const current = db
+        .prepare(`SELECT lang FROM game_table_settings WHERE table_id = ? LIMIT 1`)
+        .get(tableId) as any
+      const lang = current?.lang ?? 'pt'
+      db.prepare(`
+        INSERT INTO game_table_settings (
+          table_id, lang, turn_end_mode, item_mode, reaction_mode, gm_adds_item, money_item_id, starting_shop, starting_points
+        ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?)
+        ON CONFLICT(table_id, lang) DO UPDATE SET
+          turn_end_mode = excluded.turn_end_mode,
+          item_mode = excluded.item_mode,
+          reaction_mode = excluded.reaction_mode,
+          gm_adds_item = excluded.gm_adds_item,
+          money_item_id = NULL,
+          starting_shop = excluded.starting_shop,
+          starting_points = excluded.starting_points
+      `).run(tableId, lang, turnEndMode, itemMode, reactionMode, gmAddsItem, startingShop, startingPoints)
+
+      // Resolve a moeda: id válido, item homônimo já existente, ou item novo.
+      const byId = db.prepare(`SELECT id, name FROM game_table_items WHERE table_id = ? AND id = ? LIMIT 1`)
+      const byName = db.prepare(`SELECT id, name FROM game_table_items WHERE table_id = ? AND lower(name) = lower(?) LIMIT 1`)
+      const createCurrency = db.prepare(`
+        INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, description, quality, condition)
+        VALUES (?, ?, ?, 'currency', 'currency', 0, NULL, ?, 'standard', 'new')
+      `)
+
+      const resolved: Array<{ item_id: string; starting_amount: number }> = []
+      for (const c of currencies) {
+        let itemId = c.item_id ?? null
+        let itemName = c.name ?? null
+        if (itemId) {
+          const hit = byId.get(tableId, itemId) as any
+          if (hit) {
+            itemId = hit.id
+            itemName = hit.name
+          } else {
+            itemId = null
+          }
+        }
+        if (!itemId && itemName) {
+          const hit = byName.get(tableId, itemName) as any
+          if (hit) itemId = hit.id
+        }
+        if (!itemId && itemName) {
+          itemId = crypto.randomUUID()
+          createCurrency.run(itemId, tableId, itemName, `Moeda da mesa ${itemName}.`)
+        }
+        if (!itemId) continue
+        resolved.push({ item_id: itemId, starting_amount: c.starting_amount })
+      }
+
+      db.prepare(`DELETE FROM game_table_currencies WHERE table_id = ?`).run(tableId)
+      const insertCurrency = db.prepare(`
+        INSERT INTO game_table_currencies (table_id, item_id, starting_amount) VALUES (?, ?, ?)
+      `)
+      for (const c of resolved) insertCurrency.run(tableId, c.item_id, c.starting_amount)
+    })
+    save()
   }
 }

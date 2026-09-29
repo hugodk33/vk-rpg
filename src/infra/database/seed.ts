@@ -131,12 +131,13 @@ for (const { lang, V } of variants) {
     peculiarities,
     scenes,
     narrations,
-    modifierTableLocations,
     modifierNarrationsActions,
     modifierNarrationsLocations,
     modifierNarrationsCharacters,
-    modifierNarrationsNPCs,
+modifierNarrationsNPCs,
     modifierSeedEntries,
+    modifierTableLocations,
+    modifierTableLocationConnections,
     modifierGameTableSkillsPreDetermined,
     modifierGameTableSkillsDependecies,
     visibilityRules,
@@ -458,8 +459,8 @@ for (const { lang, V } of variants) {
     INSERT INTO table_locations(id, lang, table_id, parent_id, kind, level, path,
       name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
         hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
-      tiles, drawing )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      tiles, drawing, floor, floor_name )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   const locationIds = new Set<string>()
@@ -504,7 +505,50 @@ for (const { lang, V } of variants) {
       modifierTableLocation.rotation_deg ?? 0,
       isBattlemap,
       JSON.stringify(modifierTableLocation.tiles ?? []),
-      JSON.stringify(modifierTableLocation.drawing ?? [])
+      JSON.stringify(modifierTableLocation.drawing ?? []),
+      modifierTableLocation.floor ?? null,
+      modifierTableLocation.floor_name ?? null
+    )
+  }
+
+  // insert location connections (portas/escadas/alçapões entre plantas)
+  const modifierLocationConnectionStmt = db.prepare(`
+    INSERT INTO location_connections (
+      id, lang, table_id, from_location_id, to_location_id,
+      kind, label, from_q, from_r, to_q, to_r,
+      floor_from, floor_to, bidirectional, sort, description
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  const connectionIds = new Set<string>()
+  for (const connection of modifierTableLocationConnections) {
+    const fromOk = locationIds.has(connection.from_location_id)
+    const toOk = locationIds.has(connection.to_location_id)
+    if (!fromOk || !toOk) {
+      console.warn(
+        `[seed:location_connections][${lang}] conexão ${connection.id} ignorada: ` +
+          `from=${connection.from_location_id} (${fromOk}) to=${connection.to_location_id} (${toOk})`
+      )
+      continue
+    }
+    connectionIds.add(connection.id)
+    modifierLocationConnectionStmt.run(
+      connection.id,
+      lang,
+      connection.table_id,
+      connection.from_location_id,
+      connection.to_location_id,
+      connection.kind ?? 'door',
+      connection.label ?? null,
+      connection.from_q ?? 0,
+      connection.from_r ?? 0,
+      connection.to_q ?? 0,
+      connection.to_r ?? 0,
+      connection.floor_from ?? null,
+      connection.floor_to ?? null,
+      connection.bidirectional ?? 1,
+      connection.sort ?? 0,
+      connection.description ?? null
     )
   }
 
@@ -693,8 +737,8 @@ for (const { lang, V } of variants) {
 
   // insert visibility (conhecimento inicial de cada jogador do mundo)
   const visibilityStmt = db.prepare(`
-    INSERT INTO visibility (id, character_id, other_character_id, skill_id, advantage_id, disadvantage_id, attribute, additionals_attributes, item_id, location_id, value, status, scene_id, narration_id, moment, previous_status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO visibility (id, character_id, other_character_id, skill_id, advantage_id, disadvantage_id, attribute, additionals_attributes, item_id, location_id, connection_id, value, status, scene_id, narration_id, moment, previous_status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   for (const visibility of visibilityRules) {
@@ -706,16 +750,18 @@ for (const { lang, V } of variants) {
     const visibilityDisadvantageId = visibility.disadvantage_id ?? null
     const visibilityItemId = visibility.item_id ?? null
     const visibilityLocationId = visibility.location_id ?? null
+    const visibilityConnectionId = visibility.connection_id ?? null
     const hasVisibilityParents =
       (visibilityCharacterId == null || characterIds.has(visibilityCharacterId)) &&
       (visibilityOtherCharacterId == null || characterIds.has(visibilityOtherCharacterId)) &&
       (visibilitySkillId == null || skillIds.has(visibilitySkillId)) &&
-      (visibilityLocationId == null || locationIds.has(visibilityLocationId))
+      (visibilityLocationId == null || locationIds.has(visibilityLocationId)) &&
+      (visibilityConnectionId == null || connectionIds.has(visibilityConnectionId))
     if (!hasVisibilityParents) {
       console.warn(
         `[seed:visibility][${lang}] regra ${visibilityRuleId} ignorada: pai nao existe ` +
           `(character_id=${visibilityCharacterId ?? '-'} other_character_id=${visibilityOtherCharacterId ?? '-'} ` +
-          `skill_id=${visibilitySkillId ?? '-'} location_id=${visibilityLocationId ?? '-'})`
+          `skill_id=${visibilitySkillId ?? '-'} location_id=${visibilityLocationId ?? '-'} connection_id=${visibilityConnectionId ?? '-'})`
       )
       continue
     }
@@ -730,6 +776,7 @@ for (const { lang, V } of variants) {
       visibility.additionals_attributes ?? null,
       visibility.item_id ?? null,
       visibility.location_id ?? null,
+      visibility.connection_id ?? null,
       visibility.value,
       visibility.status,
       null,
