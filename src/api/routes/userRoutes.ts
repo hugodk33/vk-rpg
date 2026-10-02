@@ -66,6 +66,9 @@ import { EditGameTableSettingsUseCase } from '../../application/use-cases/table-
 import { CreateGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableSkillsUseCase'
 import { EditGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSkillsUseCase'
 import { DeleteGameTableSkillUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableSkillUseCase'
+import { CreateSkillRelationUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateSkillRelationUseCase'
+import { EditSkillRelationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditSkillRelationUseCase'
+import { DeleteSkillRelationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteSkillRelationUseCase'
 import { CreateGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableDisadvantagesUseCase'
 import { EditGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableDisadvantagesUseCase'
 import { DeleteGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableDisadvantageUseCase'
@@ -226,6 +229,9 @@ const editGameTableSettingsUseCase = new EditGameTableSettingsUseCase(gameTableR
 const createGameTableSkillsUseCase = new CreateGameTableSkillsUseCase(gameTableRulesRepo)
 const editGameTableSkillsUseCase = new EditGameTableSkillsUseCase(gameTableRulesRepo)
 const deleteGameTableSkillUseCase = new DeleteGameTableSkillUseCase(gameTableRulesRepo)
+const createSkillRelationUseCase = new CreateSkillRelationUseCase(gameTableRulesRepo)
+const editSkillRelationUseCase = new EditSkillRelationUseCase(gameTableRulesRepo)
+const deleteSkillRelationUseCase = new DeleteSkillRelationUseCase(gameTableRulesRepo)
 const createGameTableDisadvantagesUseCase = new CreateGameTableDisadvantagesUseCase(gameTableRulesRepo)
 const editGameTableDisadvantagesUseCase = new EditGameTableDisadvantagesUseCase(gameTableRulesRepo)
 const deleteGameTableDisadvantageUseCase = new DeleteGameTableDisadvantageUseCase(gameTableRulesRepo)
@@ -296,6 +302,9 @@ const gameTableRulesController = new GameTableRulesController(
     createGameTableSkillsUseCase,
     editGameTableSkillsUseCase,
     deleteGameTableSkillUseCase,
+  createSkillRelationUseCase,
+  editSkillRelationUseCase,
+  deleteSkillRelationUseCase,
     createGameTableDisadvantagesUseCase,
     editGameTableDisadvantagesUseCase,
     deleteGameTableDisadvantageUseCase,
@@ -405,6 +414,12 @@ router.get('/game-table-skill/:id', (req, res) => gameTableRulesController.findS
 router.post('/game-table-skill', (req, res) => gameTableRulesController.createSkill(req, res))
 router.put('/game-table-skill/:id', (req, res) => gameTableRulesController.editSkill(req, res))
 router.delete('/game-table-skill/:id', (req, res) => gameTableRulesController.deleteSkill(req, res))
+
+// Relações de skill: `:kind` ∈ {predefinition, dependency}. O controller
+// rejeita qualquer outro valor antes de tocar o banco.
+router.post('/game-table-skill-relation/:kind', (req, res) => gameTableRulesController.createSkillRelation(req, res))
+router.put('/game-table-skill-relation/:kind/:id', (req, res) => gameTableRulesController.editSkillRelation(req, res))
+router.delete('/game-table-skill-relation/:kind/:id', (req, res) => gameTableRulesController.deleteSkillRelation(req, res))
 router.get('/game-table-advantages/:id', (req, res) => gameTableRulesController.findAllAdvantages(req, res))
 router.get('/game-table-advantage/:id', (req, res) => gameTableRulesController.findAdvantage(req, res))
 router.post('/game-table-advantage', (req, res) => gameTableRulesController.createAdvantage(req, res))

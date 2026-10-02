@@ -65,6 +65,9 @@ import { EditGameTableSettingsUseCase } from '../../application/use-cases/table-
 import { CreateGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableSkillsUseCase'
 import { EditGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSkillsUseCase'
 import { DeleteGameTableSkillUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableSkillUseCase'
+import { CreateSkillRelationUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateSkillRelationUseCase'
+import { EditSkillRelationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditSkillRelationUseCase'
+import { DeleteSkillRelationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteSkillRelationUseCase'
 import { CreateGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableDisadvantagesUseCase'
 import { EditGameTableDisadvantagesUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableDisadvantagesUseCase'
 import { DeleteGameTableDisadvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameTableDisadvantageUseCase'
@@ -135,6 +138,9 @@ export class GameTableRulesController {
     private createGameTableSkillsUseCase?: CreateGameTableSkillsUseCase,
     private editGameTableSkillsUseCase?: EditGameTableSkillsUseCase,
     private deleteGameTableSkillUseCase?: DeleteGameTableSkillUseCase,
+    private createSkillRelationUseCase?: CreateSkillRelationUseCase,
+    private editSkillRelationUseCase?: EditSkillRelationUseCase,
+    private deleteSkillRelationUseCase?: DeleteSkillRelationUseCase,
     private createGameTableDisadvantagesUseCase?: CreateGameTableDisadvantagesUseCase,
     private editGameTableDisadvantagesUseCase?: EditGameTableDisadvantagesUseCase,
     private deleteGameTableDisadvantageUseCase?: DeleteGameTableDisadvantageUseCase,
@@ -217,6 +223,55 @@ export class GameTableRulesController {
   async deleteSkill(req: Request, res: Response) {
     try {
       const result = await this.deleteGameTableSkillUseCase!.execute(req.params.id as string)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  /* `kind` e validado na porta: um valor fora do par faria o repositorio
+     consultar uma tabela que nao existe. */
+  private skillRelationKind(raw: unknown): 'predefinition' | 'dependency' | null {
+    return raw === 'predefinition' || raw === 'dependency' ? raw : null
+  }
+
+  async createSkillRelation(req: Request, res: Response) {
+    const kind = this.skillRelationKind(req.params.kind)
+    if (!kind) {
+      return res.status(400).json({ success: false, error: 'Invalid relation kind' })
+    }
+    try {
+      const result = await this.createSkillRelationUseCase!.execute(kind, req.body)
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async editSkillRelation(req: Request, res: Response) {
+    const kind = this.skillRelationKind(req.params.kind)
+    if (!kind) {
+      return res.status(400).json({ success: false, error: 'Invalid relation kind' })
+    }
+    try {
+      const result = await this.editSkillRelationUseCase!.execute(
+        kind,
+        req.params.id as string,
+        req.body
+      )
+      return res.json(result)
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async deleteSkillRelation(req: Request, res: Response) {
+    const kind = this.skillRelationKind(req.params.kind)
+    if (!kind) {
+      return res.status(400).json({ success: false, error: 'Invalid relation kind' })
+    }
+    try {
+      const result = await this.deleteSkillRelationUseCase!.execute(kind, req.params.id as string)
       return res.json(result)
     } catch (err: any) {
       return res.status(400).json({ success: false, error: err.message })

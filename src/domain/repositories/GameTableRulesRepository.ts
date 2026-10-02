@@ -335,6 +335,168 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { success: true, id, name: skill.name }
   }
 
+  /* ============================================================
+     SKILL RELATIONS
+
+     Duas tabelas, uma coluna de diferença:
+       predefinition -> game_table_skill_predefinede  (a skill ORIGEM da
+                        um nivel padrao para a skill alvo)
+       dependency   -> game_table_skill_dependencies  (a skill ORIGEM
+                        exige a skill alvo)
+
+     Ate agora as duas so eram escritas por `duplicateGameSkill` e
+     `deleteGameTableSkill`: nao havia como editar uma relacao isolada, e
+     o ledger so existia se o seed tivesse cidado a linha.
+     ============================================================ */
+
+  private static readonly SKILL_RELATIONS = {
+    predefinition: {
+      table: 'game_table_skill_predefinede',
+      extra: 'depends_on_skill_for_others_attributes'
+    },
+    dependency: {
+      table: 'game_table_skill_dependencies',
+      extra: 'depends_type'
+    }
+  } as const
+
+  /**
+   * Grafo de requisitos: skill -> skills que ela exige.
+   * `excludeRowId` deixa de considerar uma linha ja existente, para que
+   * editar uma relacao nao a tratasse como aresta previa dela mesma.
+   */
+  private skillRequirementGraph(excludeRowId?: string): Map<string, string[]> {
+    const rows = db
+      .prepare('SELECT id, origin_skill_id, depends_on_skill_id FROM game_table_skill_dependencies')
+      .all() as any[]
+    const graph = new Map<string, string[]>()
+    for (const row of rows) {
+      if (!row.origin_skill_id || !row.depends_on_skill_id) continue
+      if (excludeRowId && row.id === excludeRowId) continue
+      const edges = graph.get(row.origin_skill_id)
+      if (edges) edges.push(row.depends_on_skill_id)
+      else graph.set(row.origin_skill_id, [row.depends_on_skill_id])
+    }
+    return graph
+  }
+
+  /** A aresta origin -> target fecha um ciclo se target ja alcanca origin. */
+  wouldCreateSkillDependencyCycle(origin: string, target: string, excludeRowId?: string): boolean {
+    if (origin === target) return true
+    const graph = this.skillRequirementGraph(excludeRowId)
+    const seen = new Set<string>()
+    const stack = [target]
+    while (stack.length > 0) {
+      const current = stack.pop() as string
+      if (current === origin) return true
+      if (seen.has(current)) continue
+      seen.add(current)
+      for (const next of graph.get(current) ?? []) stack.push(next)
+    }
+    return false
+  }
+
+  /**
+   * Regras comuns a create e edit. O ciclo so importa nas `dependency`:
+   * uma "predefinition" nao e um requisito, e A dar padrao a B enquanto B
+   * da padrao a A e um par legitimo (e nao uma corrida infinita).
+   */
+  private assertSkillRelation(
+    kind: 'predefinition' | 'dependency',
+    data: any,
+    excludeRowId?: string
+  ): void {
+    const spec = GameTableRulesRepository.SKILL_RELATIONS[kind]
+    const originId = data.origin_skill_id ?? null
+    if (!originId) throw new Error('origin_skill_id is required')
+
+    const origin = db
+      .prepare('SELECT id, name FROM game_table_skills WHERE id = ?')
+      .get(originId) as any
+    if (!origin) throw new Error('Skill not found')
+
+    const targetId = data.depends_on_skill_id ?? null
+    let target: any = null
+    if (targetId) {
+      target = db.prepare('SELECT id, name FROM game_table_skills WHERE id = ?').get(targetId) as any
+      if (!target) throw new Error('Dependent skill not found')
+      if (
+        kind === 'dependency' &&
+        this.wouldCreateSkillDependencyCycle(originId, targetId, excludeRowId)
+      ) {
+        throw new Error(
+          `Ciclo de requisitos: "${origin.name}" nao pode exigir "${target.name}"`
+        )
+      }
+    }
+
+    const hasPayload =
+      Boolean(targetId) ||
+      Boolean(data.depends_on_skill_value) ||
+      Boolean(data[spec.extra])
+    if (!hasPayload) throw new Error('Relation carries no payload')
+  }
+
+  async createSkillRelation(
+    kind: 'predefinition' | 'dependency',
+    data: any
+  ): Promise<any> {
+    const spec = GameTableRulesRepository.SKILL_RELATIONS[kind]
+    this.assertSkillRelation(kind, data)
+    const id = crypto.randomUUID()
+    db.prepare(
+      `INSERT INTO ${spec.table} (id, origin_skill_id, depends_on_skill_id, depends_on_skill_value, ${spec.extra}) VALUES (?, ?, ?, ?, ?)`
+    ).run(
+      id,
+      data.origin_skill_id,
+      data.depends_on_skill_id ?? null,
+      data.depends_on_skill_value ?? null,
+      data[spec.extra] ?? null
+    )
+    return { success: true, id, kind }
+  }
+
+  async editSkillRelation(
+    kind: 'predefinition' | 'dependency',
+    id: string,
+    data: any
+  ): Promise<any> {
+    const spec = GameTableRulesRepository.SKILL_RELATIONS[kind]
+    const row = db.prepare(`SELECT * FROM ${spec.table} WHERE id = ?`).get(id) as any
+    if (!row) throw new Error('Relation not found')
+
+    /* Distingue "campo ausente" de "campo enviado como null": com `??` a
+       edicao nao conseguiria limpar um valor, so trocar. */
+    const field = (key: string) =>
+      Object.prototype.hasOwnProperty.call(data, key) ? data[key] : row[key]
+
+    const merged = {
+      origin_skill_id: field('origin_skill_id'),
+      depends_on_skill_id: field('depends_on_skill_id'),
+      depends_on_skill_value: field('depends_on_skill_value'),
+      [spec.extra]: field(spec.extra)
+    }
+    this.assertSkillRelation(kind, merged, id)
+
+    db.prepare(
+      `UPDATE ${spec.table} SET origin_skill_id = ?, depends_on_skill_id = ?, depends_on_skill_value = ?, ${spec.extra} = ? WHERE id = ?`
+    ).run(
+      merged.origin_skill_id,
+      merged.depends_on_skill_id,
+      merged.depends_on_skill_value,
+      merged[spec.extra],
+      id
+    )
+    return { success: true, id, kind }
+  }
+
+  async deleteSkillRelation(kind: 'predefinition' | 'dependency', id: string): Promise<any> {
+    const spec = GameTableRulesRepository.SKILL_RELATIONS[kind]
+    const removed = db.prepare(`DELETE FROM ${spec.table} WHERE id = ?`).run(id)
+    if (!removed.changes) throw new Error('Relation not found')
+    return { success: true, id, kind }
+  }
+
 async findGameTableSkill(id: any): Promise<void> {
       const gameTableSkill = db.prepare(`
         SELECT 
@@ -350,6 +512,8 @@ async findGameTableSkill(id: any): Promise<void> {
 
       const predefinitions = db.prepare(`
         SELECT
+          gtsp.id as relation_id,
+          gtsp.depends_on_skill_id,
           gtsp.depends_on_skill_value,
           gtsp.depends_on_skill_for_others_attributes,
           dependent_skill.name as dependent_skill_name
@@ -361,6 +525,8 @@ async findGameTableSkill(id: any): Promise<void> {
 
       const dependencies = db.prepare(`
         SELECT
+          gtsd.id as relation_id,
+          gtsd.depends_on_skill_id,
           gtsd.depends_on_skill_value,
           gtsd.depends_type,
           dependent_skill.name as dependent_skill_name
@@ -372,14 +538,20 @@ async findGameTableSkill(id: any): Promise<void> {
 
       return {
         ...gameTableSkill,
+        /* `skill_id` viaja junto do nome: o front linka /skill/[id], e
+           usar o nome ali produzia 404. */
         predefinition: predefinitions.map((pre) => ({
+          relation_id: pre.relation_id,
           skill: pre.dependent_skill_name || null,
+          skill_id: pre.depends_on_skill_id || null,
           value: pre.depends_on_skill_value || null,
           depends_on_skill_for_others_attributes:
             pre.depends_on_skill_for_others_attributes || null
         })),
         dependencies: dependencies.map((dep) => ({
+          relation_id: dep.relation_id,
           skill: dep.dependent_skill_name || null,
+          skill_id: dep.depends_on_skill_id || null,
           value: dep.depends_on_skill_value || null,
           type: dep.depends_type || null
         }))
@@ -422,6 +594,7 @@ async findGameTableSkill(id: any): Promise<void> {
 
     const predefinitions = db.prepare(`
       SELECT
+        gtsp.id as relation_id,
         gtsp.origin_skill_id,
         gtsp.depends_on_skill_value,
         gtsp.depends_on_skill_for_others_attributes,
@@ -447,6 +620,7 @@ async findGameTableSkill(id: any): Promise<void> {
 
     const dependencies = db.prepare(`
       SELECT
+        gtsd.id as relation_id,
         gtsd.origin_skill_id,
         gtsd.depends_on_skill_value,
         gtsd.depends_type,
@@ -475,7 +649,9 @@ async findGameTableSkill(id: any): Promise<void> {
       const skillPredefinitions = predefinitions
         .filter(pre => pre.origin_skill_id === skill.id)
         .map(pre => ({
+          relation_id: pre.relation_id,
           skill: pre.dependent_skill_name || null,
+          skill_id: pre.dependent_skill_id || null,
           value: pre.depends_on_skill_value || null,
           depends_on_skill_for_others_attributes:
             pre.depends_on_skill_for_others_attributes || null
@@ -484,7 +660,9 @@ async findGameTableSkill(id: any): Promise<void> {
       const skillDependencies = dependencies
         .filter(dep => dep.origin_skill_id === skill.id)
         .map(dep => ({
+          relation_id: dep.relation_id,
           skill: dep.dependent_skill_name || null,
+          skill_id: dep.dependent_skill_id || null,
           value: dep.depends_on_skill_value || null,
           type: dep.depends_type || null
         }))

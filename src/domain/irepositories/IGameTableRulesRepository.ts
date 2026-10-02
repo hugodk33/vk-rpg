@@ -2,7 +2,10 @@ export interface IGameTableRulesRepository {
   createGameTableSkills(skill: any): Promise<void>
   editGameTableSkills(skill: any): Promise<void>
   deleteGameTableSkill(id: any): Promise<any>
-  findGameTableSkill(id: any): Promise<void>
+  findGameTableSkill(id: any): Promise<any>
+  createSkillRelation(kind: 'predefinition' | 'dependency', data: any): Promise<any>
+  editSkillRelation(kind: 'predefinition' | 'dependency', id: string, data: any): Promise<any>
+  deleteSkillRelation(kind: 'predefinition' | 'dependency', id: string): Promise<any>
   findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any): Promise<any[] | void>
 
   createGameAdvantages(id: any): Promise<void>
