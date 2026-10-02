@@ -15,6 +15,13 @@ import {
   locDistrictScholarsId,
   locDistrictOldId,
   locTempleId,
+  locWatchBarracksId,
+  locShadowyTankardId,
+  locRooftopsId,
+  locArcaneLibraryId,
+  locLibraryUpperId,
+  locTankardCellarId,
+  locWatchUpperId,
 } from "./MainUUIDIds/uuidLocation"
 
 type SeedModifierLocation = {
@@ -42,6 +49,8 @@ type SeedModifierLocation = {
   is_battlemap?: number
   tiles?: Array<{ q: number; r: number; t: string }>
   drawing?: Array<Record<string, unknown>>
+  floor?: number | null
+  floor_name?: string | null
 }
 
 export const modifierTableLocations: SeedModifierLocation[] = [
@@ -253,6 +262,8 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 2,
     center_r: 1,
     is_battlemap: 1,
+    floor: 0,
+    floor_name: 'Ground level',
   },
   {
     id: locationId3,
@@ -321,7 +332,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 1,
   },
   {
-    id: crypto.randomUUID(),
+    id: locWatchBarracksId,
     table_id: mainGameTableId,
     parent_id: locDistrictCentralId,
     kind: 'site',
@@ -341,9 +352,11 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 0,
     center_r: 3,
     is_battlemap: 1,
+    floor: 0,
+    floor_name: 'Ground level',
   },
   {
-    id: crypto.randomUUID(),
+    id: locShadowyTankardId,
     table_id: mainGameTableId,
     parent_id: locDistrictLowerId,
     kind: 'site',
@@ -363,6 +376,8 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 1,
     center_r: 2,
     is_battlemap: 1,
+    floor: 0,
+    floor_name: 'Ground level',
   },
   {
     id: crypto.randomUUID(),
@@ -387,7 +402,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 1,
   },
   {
-    id: crypto.randomUUID(),
+    id: locRooftopsId,
     table_id: mainGameTableId,
     parent_id: locDistrictCentralId,
     kind: 'site',
@@ -409,7 +424,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 0,
   },
   {
-    id: crypto.randomUUID(),
+    id: locArcaneLibraryId,
     table_id: mainGameTableId,
     parent_id: locDistrictScholarsId,
     kind: 'site',
@@ -429,6 +444,82 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 1,
     center_r: 1,
     is_battlemap: 1,
+    floor: 0,
+    floor_name: 'Ground level',
+  },
+
+  /* ---------------- ANDARES DE PRÉDIOS (mapas conectados por escada) ---------------- */
+  {
+    id: locLibraryUpperId,
+    table_id: mainGameTableId,
+    parent_id: locDistrictScholarsId,
+    kind: 'site',
+    name: 'The Arcane Library · Sealed Stack',
+    region: 'Scholars Quarter',
+    sub_region: 'Magic District',
+    address: 'Knowledge Street',
+    is_indoor: 1,
+    other: 'Magical interference',
+    country: 'Valorian Empire',
+    area: 'Restricted shelves',
+    dimensions: '30m x 30m',
+    description: 'The restricted upper floor of the library, chained grimoires and a domed skylight.',
+    hex_size_m: 2,
+    width_hexes: 15,
+    height_hexes: 15,
+    center_q: 6,
+    center_r: 6,
+    is_battlemap: 1,
+    floor: 2,
+    floor_name: 'Sealed Stack',
+  },
+  {
+    id: locTankardCellarId,
+    table_id: mainGameTableId,
+    parent_id: locDistrictLowerId,
+    kind: 'site',
+    name: 'The Shadowy Tankard · Cellar',
+    region: 'Lower City',
+    sub_region: 'Dockside',
+    address: 'Under the tavern',
+    is_indoor: 1,
+    other: 'Smuggler tunnels',
+    country: 'Valorian Empire',
+    area: 'Cellar',
+    dimensions: '15m x 12m',
+    description: 'A damp cellar doubling as smugglers’ storage, crates as tall as a man.',
+    hex_size_m: 1,
+    width_hexes: 15,
+    height_hexes: 12,
+    center_q: 4,
+    center_r: 6,
+    is_battlemap: 1,
+    floor: -1,
+    floor_name: 'Cellar',
+  },
+  {
+    id: locWatchUpperId,
+    table_id: mainGameTableId,
+    parent_id: locDistrictCentralId,
+    kind: 'site',
+    name: 'City Watch Barracks · Sergeants’ Floor',
+    region: 'Central District',
+    sub_region: 'Security Zone',
+    address: 'Guard Avenue',
+    is_indoor: 1,
+    other: 'High security',
+    country: 'Valorian Empire',
+    area: 'Officers’ floor',
+    dimensions: '40m x 25m',
+    description: 'The order room and sleeping quarters shared by the watch sergeants.',
+    hex_size_m: 2,
+    width_hexes: 20,
+    height_hexes: 12,
+    center_q: 10,
+    center_r: 6,
+    is_battlemap: 1,
+    floor: 1,
+    floor_name: 'Sergeants’ Floor',
   },
 
   /* ---------------- THE FORGOTTEN TEMPLE — 3×3 vector battlemap ---------------- */

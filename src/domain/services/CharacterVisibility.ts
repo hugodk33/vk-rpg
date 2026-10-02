@@ -79,6 +79,7 @@ interface RuleMap {
   advantages: Map<string, VisRule>
   disadvantages: Map<string, VisRule>
   locations: Map<string, VisRule>
+  connections: Map<string, VisRule>
 }
 
 function buildRuleMap(rules: any[]): RuleMap {
@@ -89,6 +90,7 @@ function buildRuleMap(rules: any[]): RuleMap {
     advantages: new Map(),
     disadvantages: new Map(),
     locations: new Map(),
+    connections: new Map(),
   }
   for (const r of rules ?? []) {
     if (!r) continue
@@ -110,6 +112,7 @@ function buildRuleMap(rules: any[]): RuleMap {
     if (r.advantage_id) map.advantages.set(String(r.advantage_id), rule)
     if (r.disadvantage_id) map.disadvantages.set(String(r.disadvantage_id), rule)
     if (r.location_id) map.locations.set(String(r.location_id), rule)
+    if (r.connection_id) map.connections.set(String(r.connection_id), rule)
   }
   return map
 }
@@ -167,6 +170,38 @@ function maskLocation(loc: any, rule: VisRule): any {
 
 export type CatalogKind = 'item' | 'skill' | 'advantage' | 'disadvantage' | 'location'
 
+/**
+ * Quem está vendo o catálogo, já resolvido no servidor.
+ *
+ * A distinção entre `unfiltered` e `characterId: null` é deliberada: um
+ * jogador sem personagem resolvível precisa ver **nada**, e não o catálogo
+ * inteiro. Tratar "sem viewer" como "sem filtro" é justamente o vazamento que
+ * a resolução por `actor` veio fechar.
+ */
+export interface ViewerScope {
+  /** Narrador dono ou convidado: o catálogo volta como veio do banco. */
+  unfiltered?: boolean
+  /** Personagem cujas regras de conhecimento filtram a resposta. */
+  characterId?: string | null
+}
+
+/**
+ * Normaliza o segundo argumento dos reads para um par inequívoco.
+ *
+ * - `undefined` → narrator, sem filtro (uso interno do servidor)
+ * - string       → filtro por aquele personagem (compatibilidade)
+ * - `{ unfiltered: true }` → narrador, sem filtro
+ * - `{ characterId: null }` → filtro sem personagem: resultado vazio
+ */
+export function resolveViewerScope(
+  scope?: ViewerScope | string | null
+): { filter: boolean; characterId: string | null } {
+  if (scope === undefined) return { filter: false, characterId: null }
+  if (typeof scope === 'string') return { filter: true, characterId: scope }
+  if (scope?.unfiltered) return { filter: false, characterId: null }
+  return { filter: true, characterId: scope?.characterId ?? null }
+}
+
 /** Shape a whole catalog (items/skills/advantages/disadvantages/locations)
     for a viewer. Knowledge rules are observer-global: any visible rule for
     `rules` counts. Possessed items stay accessible even with no rule, but
@@ -207,6 +242,47 @@ export function shapeCatalogForViewer(
       return e
     }
     return e
+  })
+}
+
+/**
+ * Conexões entre locais (portas/escadas/portais...) e knowledge rules:
+ * a passagem só é visível com regra 'known'/'specialist' E com as duas
+ * pontas conhecidas (filtrar por `knownIds`); em 'known' o label vira o
+ * alias (`value`) e a descrição some. Aceita tanto DTOs completos
+ * (`from`/`to`) quanto entradas de link (with `partner`) vindas do
+ * findGameLocation.
+ */
+export const CONNECTION_MASK_KEYS = ['description']
+
+function maskLocationConnection(conn: any, rule: VisRule): any {
+  const masked = { ...conn }
+  for (const k of CONNECTION_MASK_KEYS) masked[k] = null
+  masked.label = rule.value || '?'
+  return masked
+}
+
+export function shapeLocationConnections(
+  connections: any[],
+  rules: any[],
+  knownIds?: Set<string>
+): any[] {
+  const map = buildRuleMap(rules)
+  return (connections ?? []).filter((c: any) => {
+    if (!isVisible(map.connections.get(String(c?.id)))) return false
+    if (knownIds?.size) {
+      const partnerId = c?.partner?.id
+      if (partnerId && !knownIds.has(String(partnerId))) return false
+      const fromId = c?.from?.id ?? c?.from_location_id
+      const toId = c?.to?.id ?? c?.to_location_id
+      if (!partnerId && fromId && toId && (!knownIds.has(String(fromId)) || !knownIds.has(String(toId)))) return false
+    }
+    return true
+  }).map((c: any) => {
+    const rule = map.connections.get(String(c?.id))
+    if (rule?.status === 'specialist') return c
+    if (rule?.status === 'known') return maskLocationConnection(c, rule)
+    return c
   })
 }
 

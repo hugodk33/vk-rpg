@@ -20,10 +20,14 @@ export class CreateGameTableUseCase {
 
     const content: ContentSelection = {
       modules: Array.isArray(data.modules) ? data.modules : undefined,
-      categories: Array.isArray(data.categories) ? data.categories : undefined
+      categories: Array.isArray(data.categories) ? data.categories : undefined,
+      references: Array.isArray(data.references) ? data.references : undefined
     }
 
-    if (this.contentCatalog && (content.modules?.length || content.categories?.length)) {
+    const hasSelection =
+      !!content.modules?.length || !!content.categories?.length || !!content.references?.length
+
+    if (this.contentCatalog && hasSelection) {
       await this.repo.create(gameTable)
       const installed = await this.contentCatalog.installContent(gameTable.id, content)
       return { gameTable, installed }

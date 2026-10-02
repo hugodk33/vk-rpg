@@ -15,6 +15,13 @@ import {
   locDistrictScholarsId,
   locDistrictOldId,
   locTempleId,
+  locWatchBarracksId,
+  locShadowyTankardId,
+  locRooftopsId,
+  locArcaneLibraryId,
+  locLibraryUpperId,
+  locTankardCellarId,
+  locWatchUpperId,
 } from "./MainUUIDIds/uuidLocation"
 
 type SeedModifierLocation = {
@@ -42,6 +49,8 @@ type SeedModifierLocation = {
   is_battlemap?: number
   tiles?: Array<{ q: number; r: number; t: string }>
   drawing?: Array<Record<string, unknown>>
+  floor?: number | null
+  floor_name?: string | null
 }
 
 export const modifierTableLocations: SeedModifierLocation[] = [
@@ -253,6 +262,8 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 2,
     center_r: 1,
     is_battlemap: 1,
+    floor: 0,
+    floor_name: 'Térreo',
   },
   {
     id: locationId3,
@@ -321,7 +332,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 1,
   },
   {
-    id: crypto.randomUUID(),
+    id: locWatchBarracksId,
     table_id: mainGameTableId,
     parent_id: locDistrictCentralId,
     kind: 'site',
@@ -341,9 +352,11 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 0,
     center_r: 3,
     is_battlemap: 1,
+    floor: 0,
+    floor_name: 'Térreo',
   },
   {
-    id: crypto.randomUUID(),
+    id: locShadowyTankardId,
     table_id: mainGameTableId,
     parent_id: locDistrictLowerId,
     kind: 'site',
@@ -363,6 +376,8 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 1,
     center_r: 2,
     is_battlemap: 1,
+    floor: 0,
+    floor_name: 'Térreo',
   },
   {
     id: crypto.randomUUID(),
@@ -387,7 +402,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 1,
   },
   {
-    id: crypto.randomUUID(),
+    id: locRooftopsId,
     table_id: mainGameTableId,
     parent_id: locDistrictCentralId,
     kind: 'site',
@@ -409,7 +424,7 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     is_battlemap: 0,
   },
   {
-    id: crypto.randomUUID(),
+    id: locArcaneLibraryId,
     table_id: mainGameTableId,
     parent_id: locDistrictScholarsId,
     kind: 'site',
@@ -429,6 +444,82 @@ export const modifierTableLocations: SeedModifierLocation[] = [
     center_q: 1,
     center_r: 1,
     is_battlemap: 1,
+    floor: 0,
+    floor_name: 'Térreo',
+  },
+
+  /* ---------------- ANDARES DE PRÉDIOS (mapas conectados por escada) ---------------- */
+  {
+    id: locLibraryUpperId,
+    table_id: mainGameTableId,
+    parent_id: locDistrictScholarsId,
+    kind: 'site',
+    name: 'A Biblioteca Arcana · Acervo Selado',
+    region: 'Distrito dos Estudiosos',
+    sub_region: 'Distrito Mágico',
+    address: 'Rua do Conhecimento',
+    is_indoor: 1,
+    other: 'Interferência mágica',
+    country: 'Valorian Empire',
+    area: 'Estantes restritas',
+    dimensions: '30m x 30m',
+    description: 'O andar restrito da biblioteca, com grimórios acorrentados e uma claraboia em cúpula.',
+    hex_size_m: 2,
+    width_hexes: 15,
+    height_hexes: 15,
+    center_q: 6,
+    center_r: 6,
+    is_battlemap: 1,
+    floor: 2,
+    floor_name: 'Acervo Selado',
+  },
+  {
+    id: locTankardCellarId,
+    table_id: mainGameTableId,
+    parent_id: locDistrictLowerId,
+    kind: 'site',
+    name: 'O Caneco Sombrio · Adega',
+    region: 'Cidade Baixa',
+    sub_region: 'Orla do Porto',
+    address: 'Sob a taverna',
+    is_indoor: 1,
+    other: 'Túneis de contrabando',
+    country: 'Valorian Empire',
+    area: 'Adega',
+    dimensions: '15m x 12m',
+    description: 'Uma adega úmida que serve de depósito para contrabandistas, com caixotes tão altos quanto um homem.',
+    hex_size_m: 1,
+    width_hexes: 15,
+    height_hexes: 12,
+    center_q: 4,
+    center_r: 6,
+    is_battlemap: 1,
+    floor: -1,
+    floor_name: 'Adega',
+  },
+  {
+    id: locWatchUpperId,
+    table_id: mainGameTableId,
+    parent_id: locDistrictCentralId,
+    kind: 'site',
+    name: 'Quartel da Guarda · Andar dos Sargentos',
+    region: 'Distrito Central',
+    sub_region: 'Zona de Segurança',
+    address: 'Avenida da Guarda',
+    is_indoor: 1,
+    other: 'Alta segurança',
+    country: 'Valorian Empire',
+    area: 'Andar dos oficiais',
+    dimensions: '40m x 25m',
+    description: 'A sala de ordens e os dormitórios compartilhados pelos sargentos da guarda.',
+    hex_size_m: 2,
+    width_hexes: 20,
+    height_hexes: 12,
+    center_q: 10,
+    center_r: 6,
+    is_battlemap: 1,
+    floor: 1,
+    floor_name: 'Andar dos Sargentos',
   },
 
   /* ---------------- THE FORGOTTEN TEMPLE — 3×3 vector battlemap ---------------- */

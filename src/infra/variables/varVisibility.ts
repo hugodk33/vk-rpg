@@ -1,11 +1,21 @@
 // src/infra/variables/varVisibility.ts
 import crypto from 'crypto'
 
-import { characterGalarhornId, characterLyraId, characterKaelId, characterGarrickId, characterKasumiId, characterNPCsIds } from './MainUUIDIds/uuidCharacters'
+import { characterGalarhornId, characterLyraId, characterKaelId, characterGarrickId, characterNPCsIds } from './MainUUIDIds/uuidCharacters'
 import { characterSheets } from './varCharacters'
 import { newNpcs } from './varNPC'
 import { items } from './varItems'
 import { modifierTableLocations } from './varLocations'
+import { modifierNarrationsActions, modifierNarrationsLocations } from './varModifiers'
+import {
+  connMarketLibraryId,
+  connLibraryUpperId,
+  connTankardCellarId,
+  connWatchUpperId,
+  locLibraryUpperId,
+  locTankardCellarId,
+  locWatchUpperId,
+} from './MainUUIDIds/uuidLocation'
 
 /* ============================================================
    Seeds de visibilidade da mesa principal.
@@ -28,10 +38,14 @@ export type VisibilitySeed = {
   id: string
   character_id: string
   other_character_id?: string | null
+  skill_id?: string | null
+  advantage_id?: string | null
+  disadvantage_id?: string | null
   attribute?: string | null
   additionals_attributes?: string | null
   item_id?: string | null
   location_id?: string | null
+  connection_id?: string | null
   value: string
   status: 'known' | 'specialist'
 }
@@ -44,7 +58,6 @@ const PARTY_IDS = [
   characterLyraId,
   characterKaelId,
   characterGarrickId,
-  characterKasumiId,
 ]
 
 // Itens conhecidos como "conhecimento comum do mundo": nome real.
@@ -169,16 +182,79 @@ for (const observerId of PARTY_IDS) {
   }
 }
 
+/* ---------- Locais (lugar comum + mapas das actions) ---------- */
+// Mapas de combate usados nas narrações/actions: os chars que vistam esses
+// locais (e quem age neles) precisam vê-los no atlas (The Old Catacombs,
+// The Forgotten Temple, ...).
+const actionMapNames = new Set<string>()
+for (const entry of [...modifierNarrationsActions, ...modifierNarrationsLocations]) {
+  if (!entry.location_id) continue
+  const loc = modifierTableLocations.find((l) => l.id === entry.location_id)
+  if (loc) actionMapNames.add(loc.name)
+}
+
+const grantedLocationRules = new Set<string>()
+const grantLocationRule = (charId: string, locId: string, value: string) => {
+  const key = `${charId}|${locId}`
+  if (grantedLocationRules.has(key)) return
+  grantedLocationRules.add(key)
+  visibilityRules.push(newRule(charId, { location_id: locId, value }))
+}
+
 /* ---------- Party → Locais (lugares comuns do mundo) ---------- */
 for (const observerId of PARTY_IDS) {
   for (const name of KNOWN_LOCATIONS) {
     const id = locationIdByName(name)
-    if (!id) continue
-    visibilityRules.push(newRule(observerId, { location_id: id, value: name }))
+    if (id) grantLocationRule(observerId, id, name)
+  }
+  for (const name of actionMapNames) {
+    const id = locationIdByName(name)
+    if (id) grantLocationRule(observerId, id, name)
   }
   for (const al of ALIAS_LOCATIONS) {
     const id = locationIdByName(al.name)
-    if (!id) continue
-    visibilityRules.push(newRule(observerId, { location_id: id, value: al.alias }))
+    if (id) grantLocationRule(observerId, id, al.alias)
+  }
+}
+
+/* ---------- Party → Andares conectados (portas/escadas entre plantas) ---------- */
+// Os pavimentos alcançados pelas escadas já conhecidas entram no atlas:
+// alguns com nome real (specialist), outros só "de ouvir falar" (known =
+// alias → o front mostra o nome mascarado até o narrador revelar).
+const FLOOR_KNOWLEDGE: Array<{ id: string; value: string; status: 'known' | 'specialist' }> = [
+  { id: locWatchUpperId, value: 'City Watch Barracks · Sergeants’ Floor', status: 'specialist' },
+  { id: locLibraryUpperId, value: 'a chained shelf floor above the reading hall', status: 'known' },
+  { id: locTankardCellarId, value: 'the smuggler hold below the tavern', status: 'known' },
+]
+for (const observerId of PARTY_IDS) {
+  for (const loc of FLOOR_KNOWLEDGE) {
+    visibilityRules.push(
+      newRule(observerId, { location_id: loc.id, value: loc.value, status: loc.status })
+    )
+  }
+}
+
+/* ---------- Chars das actions → mapas dos combates ---------- */
+// Quem executa uma action num mapa enxerga aquele mapa da própria mesa.
+for (const action of modifierNarrationsActions) {
+  if (!action.location_id || !action.character_id) continue
+  const loc = modifierTableLocations.find((l) => l.id === action.location_id)
+  if (loc) grantLocationRule(action.character_id, action.location_id, loc.name)
+}
+
+/* ---------- Party → Conexões (portas/escadas entre plantas) ---------- */
+// A party conhece as passagens públicas (specialist = label real) e as
+// discretas só "de ouvir falar" (known = label mascarado).
+const CONNECTION_KNOWLEDGE: Array<{ id: string; value: string; status: 'known' | 'specialist' }> = [
+  { id: connMarketLibraryId, value: 'Arcade doorway to the library atrium', status: 'specialist' },
+  { id: connWatchUpperId, value: 'Service stairs of the City Watch', status: 'specialist' },
+  { id: connLibraryUpperId, value: 'a narrow stair rising out of sight', status: 'known' },
+  { id: connTankardCellarId, value: 'a trapdoor beneath the barrels', status: 'known' },
+]
+for (const observerId of PARTY_IDS) {
+  for (const conn of CONNECTION_KNOWLEDGE) {
+    visibilityRules.push(
+      newRule(observerId, { connection_id: conn.id, value: conn.value, status: conn.status })
+    )
   }
 }

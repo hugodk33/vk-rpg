@@ -1,6 +1,6 @@
 import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import { users } from "./varUsers"
-import { characterGalarhornId, characterGarrickId, characterKasumiId, characterLyraId, characterKaelId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId, characterGarrickId, characterLyraId, characterKaelId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
 import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as itemsIds from "./MainUUIDIds/uuidItems"
@@ -11,6 +11,8 @@ type SeedCharacter = {
     id: string
     userId: string
     tableId: string
+    /** false = personagem permanece na mesa, mas desativado (fora de jogo). */
+    isActive?: boolean
 }
 
 export const characters: SeedCharacter[] = [
@@ -29,17 +31,13 @@ export const characters: SeedCharacter[] = [
         userId: users[5].id,
         tableId: mainGameTableId
     },
-    {
-        id: characterGarrickId,
-        userId: users[2].id,
-        tableId: mainGameTableId
-    },
-    {
-        id: characterKasumiId,
-        userId: users[3].id,
-        tableId: mainGameTableId
-    },
-    { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId },
+  {
+    id: characterGarrickId,
+    userId: users[2].id,
+    tableId: mainGameTableId,
+    isActive: false
+  },
+  { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId },
     { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: mainGameTableId },
     { id: characterNPCsIds[2] as string, userId: users[0]?.id, tableId: mainGameTableId },
     { id: characterNPCsIds[3] as string, userId: users[0]?.id, tableId: mainGameTableId },
@@ -128,21 +126,6 @@ export const characterSheets: SeedCharacterSheet[] = [
         ht: 12,
         fatigue: 0,
         encumbrance: 'Medium'
-    },
-    {
-        id: crypto.randomUUID(),
-        characterId: characterKasumiId,
-        name: 'Kasumi Swiftblade',
-        bio: 'Uma batedora que se move como o vento e ataca antes que as sombras se assentem.',
-        backstory: 'Criada na sela das trilhas da fronteira, Kasumi lê a terra como outros leem um mapa.',
-        points: 150,
-        hp: 10,
-        st: 10,
-        dx: 14,
-        iq: 11,
-        ht: 11,
-        fatigue: 0,
-        encumbrance: 'None'
     },
     {
         id: crypto.randomUUID(),

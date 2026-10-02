@@ -622,6 +622,61 @@ export class GameTableRepository implements IGameTableRepository {
     )
   }
 
+  async editNarrationAction(id: string, data: any): Promise<any> {
+    const exists: any = db.prepare('SELECT id FROM narration_actions WHERE id = ?').get(id)
+    if (!exists) throw new Error('Action not found')
+    db.prepare(`
+      UPDATE narration_actions SET
+        queue = ?, result = ?, description = ?, target = ?, multitarget = ?,
+        dice_roll = ?, modificator = ?, q = ?, r = ?, facing = ?
+      WHERE id = ?
+    `).run(
+      data.queue ?? 0,
+      data.result ?? null,
+      data.description ?? null,
+      data.target ?? null,
+      data.multitarget ? 1 : 0,
+      data.dice_roll ?? null,
+      data.modificator ?? null,
+      data.q != null ? Math.round(data.q) : null,
+      data.r != null ? Math.round(data.r) : null,
+      data.facing ?? 0,
+      id
+    )
+    return { success: true, id }
+  }
+
+  async deleteNarrationAction(id: string): Promise<any> {
+    const exists: any = db.prepare('SELECT id FROM narration_actions WHERE id = ?').get(id)
+    if (!exists) throw new Error('Action not found')
+    db.prepare('DELETE FROM narration_actions WHERE id = ?').run(id)
+    return { success: true, id }
+  }
+
+  async duplicateNarrationAction(id: string): Promise<any> {
+    const action: any = db.prepare('SELECT * FROM narration_actions WHERE id = ?').get(id)
+    if (!action) throw new Error('Action not found')
+    const copyId = crypto.randomUUID()
+    db.prepare(GameTableDBStrings.NarrationActionCreate as string).run(
+      copyId,
+      action.narrations_id,
+      action.queue ?? 0,
+      action.moment ?? 0,
+      action.result ?? null,
+      action.dice_roll ?? null,
+      action.modificator ?? null,
+      action.target ?? null,
+      action.multitarget ? 1 : 0,
+      `${action.description ?? 'Action'} (cópia)`,
+      action.character_id ?? null,
+      action.location_id ?? null,
+      action.q != null ? Math.round(action.q) : null,
+      action.r != null ? Math.round(action.r) : null,
+      action.facing ?? 0
+    )
+    return { success: true, id: copyId }
+  }
+
   async createNarration(data: any): Promise<void> {
     const insertTransaction = db.transaction((): void => {
       db.prepare(GameTableDBStrings.NarrationCreate as string).run(
@@ -739,5 +794,14 @@ export class GameTableRepository implements IGameTableRepository {
       data.r != null ? Math.round(data.r) : null,
       data.facing ?? 0
     )
+  }
+
+  async getNarrationTableId(narrationsId: string): Promise<string | null> {
+    const row: any = db.prepare('SELECT table_id FROM narrations WHERE id = ?').get(narrationsId)
+    return row?.table_id ?? null
+  }
+
+  async readNarrationAction(id: string): Promise<any> {
+    return db.prepare('SELECT * FROM narration_actions WHERE id = ?').get(id) ?? null
   }
 }

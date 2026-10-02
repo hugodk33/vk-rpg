@@ -7,6 +7,7 @@ import { EditGameTableUseCase } from '../../application/use-cases/tables-use-cas
 import { CreateSceneUseCase } from '../../application/use-cases/tables-use-cases/CreateSceneUseCase'
 import { CreateNarrationUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationUseCase'
 import { CreateNarrationActionUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationActionUseCase'
+import { publishTable, resolveTableId } from '../../infra/realtime/TableEvents'
 
 export class GameTableController {
   constructor(
@@ -49,6 +50,8 @@ export class GameTableController {
   async createScene(req: Request, res: Response) {
     try {
       const scene = await this.createSceneUseCase.execute(req.body)
+      const tableId = resolveTableId(req.body)
+      if (tableId) publishTable(tableId, 'scene')
       return res.json({ success: true, scene })
     } catch (e: any) {
       return res.status(500).json({ success: false, error: e.message })
@@ -58,6 +61,8 @@ export class GameTableController {
   async createNarration(req: Request, res: Response) {
     try {
       const narration = await this.createNarrationUseCase.execute(req.body)
+      const tableId = resolveTableId(req.body)
+      if (tableId) publishTable(tableId, 'narration')
       return res.json({ success: true, narration })
     } catch (e: any) {
       return res.status(500).json({ success: false, error: e.message })
@@ -67,6 +72,8 @@ export class GameTableController {
   async createNarrationAction(req: Request, res: Response) {
     try {
       const action = await this.createNarrationActionUseCase.execute(req.body)
+      const tableId = resolveTableId(req.body)
+      if (tableId) publishTable(tableId, 'action')
       return res.json({ success: true, action })
     } catch (e: any) {
       return res.status(500).json({ success: false, error: e.message })

@@ -1,6 +1,6 @@
 ﻿import { mainGameTableId } from "./MainUUIDIds/uuidGeral"
 import { users } from "./varUsers"
-import { characterGalarhornId, characterGarrickId, characterKasumiId, characterLyraId, characterKaelId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
+import { characterGalarhornId, characterGarrickId, characterLyraId, characterKaelId, characterNPCsIds } from "./MainUUIDIds/uuidCharacters"
 import * as skillsIds from './MainUUIDIds/uuidSkills'
 import * as advantagesIds from "./MainUUIDIds/uuidAdvantages"
 import * as itemsIds from "./MainUUIDIds/uuidItems"
@@ -11,6 +11,8 @@ type SeedCharacter = {
   id: string
   userId: string
   tableId: string
+  /** false = personagem permanece na mesa, mas desativado (fora de jogo). */
+  isActive?: boolean
 }
 
 export const characters: SeedCharacter[] = [
@@ -32,12 +34,8 @@ export const characters: SeedCharacter[] = [
   {
     id: characterGarrickId,
     userId: users[2].id,
-    tableId: mainGameTableId
-  },
-  {
-    id: characterKasumiId,
-    userId: users[3].id,
-    tableId: mainGameTableId
+    tableId: mainGameTableId,
+    isActive: false
   },
   { id: characterNPCsIds[0] as string, userId: users[0]?.id, tableId: mainGameTableId },
   { id: characterNPCsIds[1] as string, userId: users[0]?.id, tableId: mainGameTableId },
@@ -128,21 +126,6 @@ export const characterSheets: SeedCharacterSheet[] = [
     ht: 12,
     fatigue: 0,
     encumbrance: 'Medium'
-  },
-  {
-    id: crypto.randomUUID(),
-    characterId: characterKasumiId,
-    name: 'Kasumi Swiftblade',
-    bio: 'A scout who moves like the wind and strikes before shadows settle.',
-    backstory: 'Raised in the saddle of frontier trails, Kasumi reads the land the way others read a map.',
-    points: 150,
-    hp: 10,
-    st: 10,
-    dx: 14,
-    iq: 11,
-    ht: 11,
-    fatigue: 0,
-    encumbrance: 'None'
   },
   {
     id: crypto.randomUUID(),

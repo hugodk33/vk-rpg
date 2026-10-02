@@ -17,6 +17,8 @@ export const  users: [
   SeedUser,
   SeedUser,
   SeedUser,
+  SeedUser,
+  SeedUser,
   SeedUser
 ] = [
   {
@@ -74,5 +76,21 @@ export const  users: [
     password: '123456',
     phone: '85333333333',
     email: 'dan.smith@email.com'
+  },
+  {
+    id: crypto.randomUUID(),
+    type: 1,
+    username: 'Player Test One',
+    password: '123456',
+    phone: '85222222222',
+    email: 'player.one@email.com'
+  },
+  {
+    id: crypto.randomUUID(),
+    type: 1,
+    username: 'Player Test Two',
+    password: '123456',
+    phone: '85111111111',
+    email: 'player.two@email.com'
   }
 ]

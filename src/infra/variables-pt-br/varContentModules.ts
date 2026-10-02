@@ -1,10 +1,10 @@
 // src/infra/variables-pt-br/varContentModules.ts
 // Variante pt-BR da camada de conteúdo: mesmas regras de tag do arquivo em
-// inglês, mas indexadas pelos nomes traduzidos. O "zip" entre variantes é:
-//   - skills/items  -> por id (ids fixos, estáveis entre variantes)
-//   - advantages/disadvantages -> por POSIÇÃO no array (os dois arquivos
-//     espelham a mesma ordem, pois vantagens/desvantagens usam
-//     crypto.randomUUID() no seed e não têm id estável).
+// inglês, mas indexadas pelos nomes traduzidos. Como cada variante agora é
+// dona dos SEUS ids (bundles MainUUIDIds independentes), o "zip" entre
+// variantes é feito por POSIÇÃO no array (os arquivos pt-BR espelham a
+// mesma ordem dos EN) — tanto para skills/items quanto para
+// advantages/disadvantages.
 
 import {
   contentModules,
@@ -31,19 +31,13 @@ export { contentModules, contentCategories, npcTagBy }
 
 type SkillTag = { category: string; subcategory: string | undefined; moduleId: string }
 
-const indexById = <T extends { id: string }>(rows: T[]): Map<string, T> =>
-  new Map(rows.map((row) => [row.id, row]))
-
-const enSkillById = indexById(enSkills)
-const enItemById = indexById(enItems)
-
 // =========================
-// TAGS DE SKILLS (regra por nome; paridade via id EN -> PT)
+// TAGS DE SKILLS (regra por nome; paridade via POSIÇÃO EN -> PT)
 // =========================
 export const skillTag: Record<string, SkillTag> = Object.fromEntries(
   skills
-    .map((skill) => {
-      const enName = enSkillById.get(skill.id)?.name
+    .map((skill, index) => {
+      const enName = enSkills[index]?.name
       const tag = enName ? enSkillTag[enName] : undefined
       return tag ? [skill.name, tag] : null
     })
@@ -91,10 +85,16 @@ export const disadvantageTagBy = (name: string): ContentTag => {
 }
 
 // =========================
-// TAGS DE ITEMS (delega ao EN pelo id; kind/category são constantes EN)
+// TAGS DE ITEMS (delega ao EN pela posição no array)
 // =========================
+const enItemAt = (item: { id: string }): { name: string; kind: string; category: string } | undefined => {
+  const index = items.findIndex((pt) => pt.id === item.id)
+  const en = index >= 0 ? enItems[index] : undefined
+  return en ? { name: en.name, kind: en.kind, category: en.category } : undefined
+}
+
 export const itemTagBy = (item: { id: string; name: string; kind: string; category: string }): ContentTag => {
-  const en = enItemById.get(item.id)
-  if (en) return enItemTagBy({ name: en.name, kind: en.kind, category: en.category })
-  return enItemTagBy(item)
+  const en = enItemAt(item)
+  if (en) return enItemTagBy(en)
+  return enItemTagBy({ name: item.name, kind: item.kind, category: item.category })
 }

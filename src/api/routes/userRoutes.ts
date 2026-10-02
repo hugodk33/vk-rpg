@@ -95,6 +95,15 @@ import { FindUserByIdUseCase } from '../../application/use-cases/users-use-cases
 import { ContentCatalogRepository } from '../../domain/repositories/ContentCatalogRepository'
 import { FindContentCatalogUseCase } from '../../application/use-cases/content-use-cases/FindContentCatalogUseCase'
 import { ContentModuleController } from '../controllers/ContentModuleController'
+import { TableAccessController } from '../controllers/TableAccessController'
+import { TableAccessRepository } from '../../domain/repositories/TableAccessRepository'
+import {
+  ListTableAccessUseCase,
+  ResolveTableViewerUseCase,
+  RevokeTableAccessUseCase,
+  SaveTableAccessUseCase,
+} from '../../application/use-cases/table-access-use-cases/TableAccessUseCases'
+import { publishTable, resolveLocationTableId } from '../../infra/realtime/TableEvents'
 
 const router = Router()
 
@@ -137,6 +146,24 @@ const gameTableController = new GameTableController(createGameTableUseCase, find
 const findContentCatalogUseCase = new FindContentCatalogUseCase(contentCatalogRepo)
 /* ========== */
 const contentModuleController = new ContentModuleController(findContentCatalogUseCase)
+
+/* TABLE ACCESS (narrador convidado) */
+const tableAccessRepo = new TableAccessRepository()
+const listTableAccessUseCase = new ListTableAccessUseCase(tableAccessRepo, repo)
+const saveTableAccessUseCase = new SaveTableAccessUseCase(tableAccessRepo, repo)
+const revokeTableAccessUseCase = new RevokeTableAccessUseCase(tableAccessRepo, repo)
+/* Resolve quem está pedindo a partir do `actor` — usado no filtro de locations. */
+const resolveTableViewerUseCase = new ResolveTableViewerUseCase(
+    tableAccessRepo,
+    repo,
+    gameTableRulesRepo
+)
+/* ========== */
+const tableAccessController = new TableAccessController(
+    listTableAccessUseCase,
+    saveTableAccessUseCase,
+    revokeTableAccessUseCase
+)
 
 /* GAME TABLE RULES*/
 const findGameTableSkillsUseCase = new FindGameTableSkillUseCase(gameTableRulesRepo)   
@@ -275,7 +302,8 @@ const gameTableRulesController = new GameTableRulesController(
     deleteGameTableAdvantageUseCase,
     deleteGameTableItemUseCase,
     deleteGameTableNPCUseCase,
-    deleteGameTableCharacterUseCase)
+    deleteGameTableCharacterUseCase,
+    resolveTableViewerUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -295,6 +323,80 @@ router.post('/game-table-scene', (req, res) => gameTableController.createScene(r
 router.post('/game-table-narration', (req, res) => gameTableController.createNarration(req, res))
 router.post('/game-table-action', (req, res) => gameTableController.createNarrationAction(req, res))
 
+/* ===== TABLE ACCESS (narrador convidado) ===== */
+router.get('/table-access/resources', (req, res) => tableAccessController.resources(req, res))
+router.get('/game-table/:id/access', (req, res) => tableAccessController.list(req, res))
+router.post('/game-table/:id/access', (req, res) => tableAccessController.save(req, res))
+router.put('/game-table/:id/access', (req, res) => tableAccessController.save(req, res))
+router.delete('/game-table/:id/access/:userId', (req, res) => tableAccessController.revoke(req, res))
+
+/* ações de cena: editar / excluir / duplicar (na mesma narração) */
+const resolveActionTableId = async (id: string): Promise<string | null> => {
+  const action: any = await gameTableRepo.readNarrationAction(id)
+  if (!action) return null
+  return gameTableRepo.getNarrationTableId(action.narrations_id)
+}
+router.put('/game-table-action/:id', async (req, res) => {
+  try {
+    const result = await gameTableRepo.editNarrationAction(req.params.id, req.body)
+    const tableId = await resolveActionTableId(req.params.id)
+    if (tableId) publishTable(tableId, 'action')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+router.delete('/game-table-action/:id', async (req, res) => {
+  try {
+    const tableId = await resolveActionTableId(req.params.id)
+    const result = await gameTableRepo.deleteNarrationAction(req.params.id)
+    if (tableId) publishTable(tableId, 'action')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+router.post('/game-table-action/:id/copy', async (req, res) => {
+  try {
+    const result = await gameTableRepo.duplicateNarrationAction(req.params.id)
+    const tableId = await resolveActionTableId(req.params.id)
+    if (tableId) publishTable(tableId, 'action')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+/* cópia de catálogos para outra mesa */
+const copyHandler = (fn: (id: string, tableId: string) => Promise<any>) => {
+  return async (req: any, res: any) => {
+    try {
+      const targetTableId = req.body?.tableId
+      if (!targetTableId) return res.status(400).json({ error: 'tableId is required' })
+      const result = await fn(req.params.id, targetTableId)
+      res.json(result)
+    } catch (error: any) {
+      res.status(400).json({ error: error.message })
+    }
+  }
+}
+router.post('/game-table-skill/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameSkill(id, tid)))
+router.post('/game-table-advantage/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameAdvantage(id, tid)))
+router.post('/game-table-disadvantage/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameDisadvantage(id, tid)))
+router.post('/game-table-item/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameItems(id, tid)))
+router.post('/game-table-npc/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameNPC(id, tid)))
+router.post('/table-location/:id/copy', async (req, res) => {
+  try {
+    const targetTableId = req.body?.tableId
+    if (!targetTableId) return res.status(400).json({ error: 'tableId is required' })
+    const result = await gameTableRulesRepo.duplicateGameLocation(req.params.id, targetTableId)
+    if (result?.id) publishTable(targetTableId, 'location')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
 /* ===== CONTENT MODULES ===== */
 router.get('/content-modules', (req, res) => contentModuleController.findCatalog(req, res))
 
@@ -305,6 +407,8 @@ router.put('/game-table-skill/:id', (req, res) => gameTableRulesController.editS
 router.delete('/game-table-skill/:id', (req, res) => gameTableRulesController.deleteSkill(req, res))
 router.get('/game-table-advantages/:id', (req, res) => gameTableRulesController.findAllAdvantages(req, res))
 router.get('/game-table-advantage/:id', (req, res) => gameTableRulesController.findAdvantage(req, res))
+router.post('/game-table-advantage', (req, res) => gameTableRulesController.createAdvantage(req, res))
+router.put('/game-table-advantage/:id', (req, res) => gameTableRulesController.editAdvantage(req, res))
 router.delete('/game-table-advantage/:id', (req, res) => gameTableRulesController.deleteAdvantage(req, res))
 router.get('/game-table-disadvantages/:id', (req, res) => gameTableRulesController.findAllDisadvantages(req, res))
 router.get('/game-table-disadvantage/:id', (req, res) => gameTableRulesController.findDisadvantage(req, res))
@@ -321,11 +425,64 @@ router.post('/game-table-item', (req, res) => gameTableRulesController.createIte
 router.put('/game-table-item', (req, res) => gameTableRulesController.editItem(req, res))
 router.delete('/game-table-item/:id', (req, res) => gameTableRulesController.deleteItem(req, res))
 router.get('/table-location/:id', (req, res) => gameTableRulesController.findLocation(req, res))
+/* Só a mesa dona de um local. Existe para o front resolver qual `actor` usar
+   antes de ler o local — sem devolver nenhum dado do catálogo. */
+router.get('/table-location/:id/table', (req, res) => {
+  const tableId = resolveLocationTableId(req.params.id as string)
+  if (!tableId) return res.status(404).json({ error: 'Local não encontrado.' })
+  return res.json({ tableId })
+})
 router.get('/game-table-locations/:id', (req, res) => gameTableRulesController.findAllLocations(req, res))
 router.post('/table-location', (req, res) => gameTableRulesController.createLocation(req, res))
 router.put('/table-location/:id', (req, res) => gameTableRulesController.editLocation(req, res))
 router.delete('/table-location/:id', (req, res) => gameTableRulesController.deleteLocation(req, res))
 router.post('/game-table-locations/default', (req, res) => gameTableRulesController.setDefaultLocation(req, res))
+
+/* ===== LOCATION CONNECTIONS (portas/escadas/portais entre plantas) ===== */
+router.get('/table-location/:id/links', async (req, res) => {
+  try {
+    const links = await gameTableRulesRepo.findLocationConnections(req.params.id)
+    res.json({ links })
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+router.post('/table-location/:id/link', async (req, res) => {
+  try {
+    const self = await gameTableRulesRepo.findGameLocation(req.params.id)
+    const tableId = req.body?.tableId ?? self?.table_id ?? null
+    const result = await gameTableRulesRepo.createLocationConnection({
+      ...req.body,
+      tableId,
+      from: { ...(req.body?.from ?? {}), id: req.params.id },
+    })
+    const target = result?.table_id ?? tableId
+    if (target) publishTable(target, 'location')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+router.put('/table-location-link/:id', async (req, res) => {
+  try {
+    const result = await gameTableRulesRepo.editLocationConnection(req.params.id, req.body)
+    const tableId = result?.table_id ?? (await gameTableRulesRepo.findLocationConnections(req.params.id))[0]?.tableId ?? null
+    if (tableId) publishTable(tableId, 'location')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+router.delete('/table-location-link/:id', async (req, res) => {
+  try {
+    const existing = (await gameTableRulesRepo.findLocationConnections(req.params.id))[0]
+    const result = await gameTableRulesRepo.deleteLocationConnection(req.params.id)
+    if (existing?.tableId) publishTable(existing.tableId, 'location')
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
 router.get('/game-table-npcs/:id', (req, res) => gameTableRulesController.findAllNPCS(req, res))
 router.get('/game-table-npc/:id', (req, res) => gameTableRulesController.findNPC(req, res))
 router.post('/game-table-npc', (req, res) => gameTableRulesController.createNPC(req, res))
