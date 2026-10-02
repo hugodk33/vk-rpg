@@ -1121,14 +1121,45 @@ async findGameTableSkill(id: any): Promise<void> {
   /*      ITEMS      */
   /* =============== */
 
+  /* weapons.skill e' texto solto (GURPS: 'Shortsword', 'Axe', ...). A
+     ligacao que importa e' o id: aceitamos o id que o form mandou ou
+     resolvemos pelo nome, sempre checando mesa + idioma para a arma nao
+     apontar para a pericia de outra mesa. Id invalido vira null em vez de
+     ser gravado -- e o texto solto continua salvo em weapons.skill. */
+  private resolveItemSkillId(
+    tableId: any,
+    lang: string,
+    skillId?: string | null,
+    skillName?: string | null
+  ): string | null {
+    if (skillId) {
+      const byId = db
+        .prepare('SELECT id FROM game_table_skills WHERE id = ? AND table_id IS ? AND lang = ?')
+        .get(skillId, tableId, lang) as any
+      return byId ? String(byId.id) : null
+    }
+    if (!skillName) return null
+    const byName = db
+      .prepare('SELECT id FROM game_table_skills WHERE table_id IS ? AND lang = ? AND name = ? LIMIT 1')
+      .get(tableId, lang, skillName) as any
+    return byName ? String(byName.id) : null
+  }
+
   async createGameItems(data: any): Promise<any> {
     const itemId = crypto.randomUUID()
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
+    // Antes o INSERT nao citava `lang`, e a coluna tem NOT NULL DEFAULT 'pt':
+    // todo item criado pela API nascia 'pt' independente da mesa. A resolucao
+    // de skill_id depende disso, entao o idioma agora trafega explicito.
+    const lang = data.lang || 'pt'
+    const skillName = data.weapon_skill || data.skill_level || null
+    const skillId = this.resolveItemSkillId(data.table_id, lang, data.skill_id, skillName)
     db.prepare(`
-      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, currency_item_id, dimensions, description, quality, condition, location_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO game_table_items (id, lang, table_id, name, kind, category, weight_lb, cost, currency_item_id, skill_id, dimensions, description, quality, condition, location_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       itemId,
+      lang,
       data.table_id,
       data.name,
       kind,
@@ -1136,6 +1167,7 @@ async findGameTableSkill(id: any): Promise<void> {
       data.weight_lb ?? data.weight ?? null,
       data.cost ?? null,
       data.currency_item_id || null,
+      skillId,
       data.dimensions,
       data.description,
       data.quality,
@@ -1147,11 +1179,12 @@ async findGameTableSkill(id: any): Promise<void> {
     if (kind === 'weapon' || kind === 'shield') {
       const weaponId = crypto.randomUUID()
       db.prepare(`
-        INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_table_weapons (id, lang, item_id, skill, skill_id, min_st, rated_st, handedness, reach, parry, block, fit)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
-        weaponId, itemId,
-        data.weapon_skill || (data.skill_level || null),
+        weaponId, lang, itemId,
+        skillName,
+        skillId,
         data.min_st ?? null,
         data.rated_st ?? null,
         data.handedness ?? 1,
@@ -1197,9 +1230,18 @@ async findGameTableSkill(id: any): Promise<void> {
 
   async editGameItems(data: any): Promise<void> {
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
+    // O UPDATE de items so vai por `id`, entao mesa e idioma sao lidos da
+    // linha existente para resolver a skill contra a mesa certa.
+    const currentItem = db
+      .prepare('SELECT table_id, lang FROM game_table_items WHERE id = ? LIMIT 1')
+      .get(data.id) as any
+    const lang = data.lang || currentItem?.lang || 'pt'
+    const tableId = data.table_id || currentItem?.table_id || null
+    const skillName = data.weapon_skill || data.skill_level || null
+    const skillId = this.resolveItemSkillId(tableId, lang, data.skill_id, skillName)
     db.prepare(`
       UPDATE game_table_items
-      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, currency_item_id = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
+      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, currency_item_id = ?, skill_id = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
       WHERE id = ?
     `).run(
       data.name,
@@ -1208,6 +1250,7 @@ async findGameTableSkill(id: any): Promise<void> {
       data.weight_lb ?? data.weight ?? null,
       data.cost ?? null,
       data.currency_item_id || null,
+      skillId,
       data.dimensions,
       data.description,
       data.quality,
@@ -1223,10 +1266,11 @@ async findGameTableSkill(id: any): Promise<void> {
       const weaponId = existingWeapon?.id || crypto.randomUUID()
       if (existingWeapon) {
         db.prepare(`
-          UPDATE game_table_weapons SET skill = ?, min_st = ?, rated_st = ?, handedness = ?, reach = ?, parry = ?, block = ?, fit = ?
+          UPDATE game_table_weapons SET skill = ?, skill_id = ?, min_st = ?, rated_st = ?, handedness = ?, reach = ?, parry = ?, block = ?, fit = ?
           WHERE id = ?
         `).run(
-          data.weapon_skill || data.skill_level || null,
+          skillName,
+          skillId,
           data.min_st ?? null,
           data.rated_st ?? null,
           data.handedness ?? 1,
@@ -1238,9 +1282,9 @@ async findGameTableSkill(id: any): Promise<void> {
         )
       } else {
         db.prepare(`
-          INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(weaponId, data.id, data.weapon_skill || data.skill_level || null, data.min_st ?? null, data.rated_st ?? null, data.handedness ?? 1, data.reach || 'C', data.parry || null, data.block || null, data.weapon_fit || 'normal')
+          INSERT INTO game_table_weapons (id, lang, item_id, skill, skill_id, min_st, rated_st, handedness, reach, parry, block, fit)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(weaponId, lang, data.id, skillName, skillId, data.min_st ?? null, data.rated_st ?? null, data.handedness ?? 1, data.reach || 'C', data.parry || null, data.block || null, data.weapon_fit || 'normal')
       }
 
       // Substitui os ataques (recreate por simplicidade de edição)
@@ -1296,13 +1340,23 @@ async findGameTableSkill(id: any): Promise<void> {
     const item: any = db.prepare('SELECT * FROM game_table_items WHERE id = ?').get(id)
     if (!item) throw new Error('Item not found')
     const copyId = crypto.randomUUID()
+    const lang = item.lang || 'pt'
+    const weapon: any = db.prepare('SELECT * FROM game_table_weapons WHERE item_id = ?').get(id)
+    // O skill_id da origem aponta para a pericia da mesa de origem, entao
+    // copiar o id deixaria a arma da mesa nova apontando para a skill de
+    // outra mesa. Resolve de novo pelo nome contra o destino; se a mesa
+    // destino nao tiver a pericia, fica null em vez de ponteiro morto.
+    const copiedSkillId = weapon
+      ? this.resolveItemSkillId(targetTableId, lang, null, weapon.skill ?? null)
+      : null
 
     const tx = db.transaction(() => {
       db.prepare(`
-        INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id, subcategory)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_table_items (id, lang, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id, subcategory, skill_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         copyId,
+        lang,
         targetTableId,
         `${item.name ?? ''} (cópia)`,
         item.kind ?? null,
@@ -1314,16 +1368,16 @@ async findGameTableSkill(id: any): Promise<void> {
         item.quality ?? null,
         item.condition ?? null,
         null,
-        item.subcategory ?? null
+        item.subcategory ?? null,
+        copiedSkillId
       )
 
-      const weapon: any = db.prepare('SELECT * FROM game_table_weapons WHERE item_id = ?').get(id)
       if (weapon) {
         const weaponId = crypto.randomUUID()
         db.prepare(`
-          INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(weaponId, copyId, weapon.skill ?? null, weapon.min_st ?? null, weapon.rated_st ?? null, weapon.handedness ?? 1, weapon.reach || 'C', weapon.parry ?? null, weapon.block ?? null, weapon.fit ?? 'normal')
+          INSERT INTO game_table_weapons (id, lang, item_id, skill, skill_id, min_st, rated_st, handedness, reach, parry, block, fit)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(weaponId, lang, copyId, weapon.skill ?? null, copiedSkillId, weapon.min_st ?? null, weapon.rated_st ?? null, weapon.handedness ?? 1, weapon.reach || 'C', weapon.parry ?? null, weapon.block ?? null, weapon.fit ?? 'normal')
 
         const attacks = db.prepare('SELECT * FROM weapon_attacks WHERE weapon_id = ? ORDER BY rowid ASC').all(weapon.id) as any[]
         for (const atk of attacks) {

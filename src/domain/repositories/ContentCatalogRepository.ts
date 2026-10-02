@@ -241,6 +241,27 @@ export class ContentCatalogRepository {
 
     const summary: ContentInstallSummary = { skills: 0, items: 0, advantages: 0, disadvantages: 0, npcs: 0, characters: 0, locations: 0 }
 
+    // Nome -> id da skill recem-criada na mesa de destino. As skills do
+    // catalogo ganham UUID novo a cada instalacao, entao weapons.skill_id
+    // da origem nao pode ser reaproveitado: so o nome sobrevive.
+    const installedSkillIds = new Map<string, string>()
+
+    // Resolve o nome solto de weapons.skill contra as skills da mesa de
+    // destino: primeiro o mapa do que acabou de ser inserido, depois a skill
+    // que ja existia na mesa (quando so o modulo de itens foi instalado).
+    const resolveInstalledSkill = (skillName?: string | null): string | null => {
+      if (!skillName) return null
+      const fromMap = installedSkillIds.get(skillName)
+      if (fromMap) return fromMap
+      const row = db
+        .prepare(
+          `SELECT id FROM game_table_skills
+           WHERE table_id = ? AND lang = ? AND name = ? LIMIT 1`
+        )
+        .get(targetTableId, CATALOG_LANG, skillName) as any
+      return row?.id ?? null
+    }
+
     db.transaction(() => {
       // ---- SKILLS ----
       const skillCond = condFor('skill')
@@ -256,7 +277,11 @@ export class ContentCatalogRepository {
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         for (const row of skillRows) {
-          skillStmt.run(crypto.randomUUID(), targetTableId, row.name, row.category, row.subcategory, row.type, row.predefinition_type, row.predefinition_difficulty, row.description, row.module_id)
+          const newSkillId = crypto.randomUUID()
+          skillStmt.run(newSkillId, targetTableId, row.name, row.category, row.subcategory, row.type, row.predefinition_type, row.predefinition_difficulty, row.description, row.module_id)
+          // Nome -> id recem-criado. Todo INSERT deste metodo deixa `lang` no
+          // default 'pt', entao a resolucao abaixo usa o mesmo idioma.
+          installedSkillIds.set(row.name, newSkillId)
           summary.skills++
         }
       }
@@ -306,21 +331,28 @@ export class ContentCatalogRepository {
           .prepare(`SELECT * FROM content_items WHERE ${itemCond.clause}`)
           .all(...itemCond.params) as any[]
         const itemStmt = db.prepare(
-          `INSERT INTO game_table_items (id, table_id, location_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO game_table_items (id, table_id, location_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory, skill_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         for (const item of itemRows) {
           const newItemId = crypto.randomUUID()
-          itemStmt.run(newItemId, targetTableId, null, item.name, item.kind, item.category, item.weight_lb, item.cost, item.dimensions, item.description, item.quality, item.condition, item.module_id, item.subcategory)
+          const catalogWeapons = db.prepare('SELECT * FROM content_weapons WHERE item_id = ?').all(item.id) as any[]
+          // O item espelha a skill da arma para ser legivel sem join.
+          const itemSkillId = resolveInstalledSkill(catalogWeapons[0]?.skill)
+          itemStmt.run(newItemId, targetTableId, null, item.name, item.kind, item.category, item.weight_lb, item.cost, item.dimensions, item.description, item.quality, item.condition, item.module_id, item.subcategory, itemSkillId)
           summary.items++
 
-          const weapons = db.prepare('SELECT * FROM content_weapons WHERE item_id = ?').all(item.id) as any[]
+          const weapons = catalogWeapons
           for (const weapon of weapons) {
             const newWeaponId = crypto.randomUUID()
+            // Preferimos o mapa populado acima; se o modulo de skills nao foi
+            // instalado nesta chamada, cai para a skill ja existente na mesa
+            // com o mesmo nome. Se nao houver nenhuma, fica null.
+            const installedSkillId = resolveInstalledSkill(weapon.skill)
             db.prepare(
-              `INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-            ).run(newWeaponId, newItemId, weapon.skill, weapon.min_st, weapon.rated_st, weapon.handedness, weapon.reach, weapon.parry, weapon.block, weapon.fit)
+              `INSERT INTO game_table_weapons (id, item_id, skill, skill_id, min_st, rated_st, handedness, reach, parry, block, fit)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).run(newWeaponId, newItemId, weapon.skill, installedSkillId, weapon.min_st, weapon.rated_st, weapon.handedness, weapon.reach, weapon.parry, weapon.block, weapon.fit)
             const attacks = db.prepare('SELECT * FROM content_weapon_attacks WHERE weapon_id = ?').all(weapon.id) as any[]
             for (const attack of attacks) {
               db.prepare(
