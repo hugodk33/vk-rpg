@@ -335,14 +335,56 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { success: true, id, name: skill.name }
   }
 
-  async findGameTableSkill(id: any): Promise<void> {
-    const gameTableSkill = db.prepare(`
-      SELECT 
-      * FROM 
-      game_table_skills WHERE id = ?
-    `).get(id) as any
-    return gameTableSkill
-  }
+async findGameTableSkill(id: any): Promise<void> {
+      const gameTableSkill = db.prepare(`
+        SELECT 
+        * FROM 
+        game_table_skills WHERE id = ?
+      `).get(id) as any
+
+      if (!gameTableSkill) return gameTableSkill
+
+      /* O detalhe precisa dos mesmos dois arrays que `findAllGameTableSkills`
+         monta, senao a ficha individual cai no fallback `?? []` e esconde
+         o painel "Requer / Oferece padrao" inteiro. */
+
+      const predefinitions = db.prepare(`
+        SELECT
+          gtsp.depends_on_skill_value,
+          gtsp.depends_on_skill_for_others_attributes,
+          dependent_skill.name as dependent_skill_name
+        FROM game_table_skill_predefinede gtsp
+        LEFT JOIN game_table_skills dependent_skill
+          ON dependent_skill.id = gtsp.depends_on_skill_id
+        WHERE gtsp.origin_skill_id = ?
+      `).all(id) as any[]
+
+      const dependencies = db.prepare(`
+        SELECT
+          gtsd.depends_on_skill_value,
+          gtsd.depends_type,
+          dependent_skill.name as dependent_skill_name
+        FROM game_table_skill_dependencies gtsd
+        LEFT JOIN game_table_skills dependent_skill
+          ON dependent_skill.id = gtsd.depends_on_skill_id
+        WHERE gtsd.origin_skill_id = ?
+      `).all(id) as any[]
+
+      return {
+        ...gameTableSkill,
+        predefinition: predefinitions.map((pre) => ({
+          skill: pre.dependent_skill_name || null,
+          value: pre.depends_on_skill_value || null,
+          depends_on_skill_for_others_attributes:
+            pre.depends_on_skill_for_others_attributes || null
+        })),
+        dependencies: dependencies.map((dep) => ({
+          skill: dep.dependent_skill_name || null,
+          value: dep.depends_on_skill_value || null,
+          type: dep.depends_type || null
+        }))
+      }
+    }
 
   async findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any): Promise<any> {
 
