@@ -335,14 +335,228 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { success: true, id, name: skill.name }
   }
 
-  async findGameTableSkill(id: any): Promise<void> {
-    const gameTableSkill = db.prepare(`
-      SELECT 
-      * FROM 
-      game_table_skills WHERE id = ?
-    `).get(id) as any
-    return gameTableSkill
+  /* ============================================================
+     SKILL RELATIONS
+
+     Duas tabelas, uma coluna de diferença:
+       predefinition -> game_table_skill_predefinede  (a skill ORIGEM da
+                        um nivel padrao para a skill alvo)
+       dependency   -> game_table_skill_dependencies  (a skill ORIGEM
+                        exige a skill alvo)
+
+     Ate agora as duas so eram escritas por `duplicateGameSkill` e
+     `deleteGameTableSkill`: nao havia como editar uma relacao isolada, e
+     o ledger so existia se o seed tivesse cidado a linha.
+     ============================================================ */
+
+  private static readonly SKILL_RELATIONS = {
+    predefinition: {
+      table: 'game_table_skill_predefinede',
+      extra: 'depends_on_skill_for_others_attributes'
+    },
+    dependency: {
+      table: 'game_table_skill_dependencies',
+      extra: 'depends_type'
+    }
+  } as const
+
+  /**
+   * Grafo de requisitos: skill -> skills que ela exige.
+   * `excludeRowId` deixa de considerar uma linha ja existente, para que
+   * editar uma relacao nao a tratasse como aresta previa dela mesma.
+   */
+  private skillRequirementGraph(excludeRowId?: string): Map<string, string[]> {
+    const rows = db
+      .prepare('SELECT id, origin_skill_id, depends_on_skill_id FROM game_table_skill_dependencies')
+      .all() as any[]
+    const graph = new Map<string, string[]>()
+    for (const row of rows) {
+      if (!row.origin_skill_id || !row.depends_on_skill_id) continue
+      if (excludeRowId && row.id === excludeRowId) continue
+      const edges = graph.get(row.origin_skill_id)
+      if (edges) edges.push(row.depends_on_skill_id)
+      else graph.set(row.origin_skill_id, [row.depends_on_skill_id])
+    }
+    return graph
   }
+
+  /** A aresta origin -> target fecha um ciclo se target ja alcanca origin. */
+  wouldCreateSkillDependencyCycle(origin: string, target: string, excludeRowId?: string): boolean {
+    if (origin === target) return true
+    const graph = this.skillRequirementGraph(excludeRowId)
+    const seen = new Set<string>()
+    const stack = [target]
+    while (stack.length > 0) {
+      const current = stack.pop() as string
+      if (current === origin) return true
+      if (seen.has(current)) continue
+      seen.add(current)
+      for (const next of graph.get(current) ?? []) stack.push(next)
+    }
+    return false
+  }
+
+  /**
+   * Regras comuns a create e edit. O ciclo so importa nas `dependency`:
+   * uma "predefinition" nao e um requisito, e A dar padrao a B enquanto B
+   * da padrao a A e um par legitimo (e nao uma corrida infinita).
+   */
+  private assertSkillRelation(
+    kind: 'predefinition' | 'dependency',
+    data: any,
+    excludeRowId?: string
+  ): void {
+    const spec = GameTableRulesRepository.SKILL_RELATIONS[kind]
+    const originId = data.origin_skill_id ?? null
+    if (!originId) throw new Error('origin_skill_id is required')
+
+    const origin = db
+      .prepare('SELECT id, name FROM game_table_skills WHERE id = ?')
+      .get(originId) as any
+    if (!origin) throw new Error('Skill not found')
+
+    const targetId = data.depends_on_skill_id ?? null
+    let target: any = null
+    if (targetId) {
+      target = db.prepare('SELECT id, name FROM game_table_skills WHERE id = ?').get(targetId) as any
+      if (!target) throw new Error('Dependent skill not found')
+      if (
+        kind === 'dependency' &&
+        this.wouldCreateSkillDependencyCycle(originId, targetId, excludeRowId)
+      ) {
+        throw new Error(
+          `Ciclo de requisitos: "${origin.name}" nao pode exigir "${target.name}"`
+        )
+      }
+    }
+
+    const hasPayload =
+      Boolean(targetId) ||
+      Boolean(data.depends_on_skill_value) ||
+      Boolean(data[spec.extra])
+    if (!hasPayload) throw new Error('Relation carries no payload')
+  }
+
+  async createSkillRelation(
+    kind: 'predefinition' | 'dependency',
+    data: any
+  ): Promise<any> {
+    const spec = GameTableRulesRepository.SKILL_RELATIONS[kind]
+    this.assertSkillRelation(kind, data)
+    const id = crypto.randomUUID()
+    db.prepare(
+      `INSERT INTO ${spec.table} (id, origin_skill_id, depends_on_skill_id, depends_on_skill_value, ${spec.extra}) VALUES (?, ?, ?, ?, ?)`
+    ).run(
+      id,
+      data.origin_skill_id,
+      data.depends_on_skill_id ?? null,
+      data.depends_on_skill_value ?? null,
+      data[spec.extra] ?? null
+    )
+    return { success: true, id, kind }
+  }
+
+  async editSkillRelation(
+    kind: 'predefinition' | 'dependency',
+    id: string,
+    data: any
+  ): Promise<any> {
+    const spec = GameTableRulesRepository.SKILL_RELATIONS[kind]
+    const row = db.prepare(`SELECT * FROM ${spec.table} WHERE id = ?`).get(id) as any
+    if (!row) throw new Error('Relation not found')
+
+    /* Distingue "campo ausente" de "campo enviado como null": com `??` a
+       edicao nao conseguiria limpar um valor, so trocar. */
+    const field = (key: string) =>
+      Object.prototype.hasOwnProperty.call(data, key) ? data[key] : row[key]
+
+    const merged = {
+      origin_skill_id: field('origin_skill_id'),
+      depends_on_skill_id: field('depends_on_skill_id'),
+      depends_on_skill_value: field('depends_on_skill_value'),
+      [spec.extra]: field(spec.extra)
+    }
+    this.assertSkillRelation(kind, merged, id)
+
+    db.prepare(
+      `UPDATE ${spec.table} SET origin_skill_id = ?, depends_on_skill_id = ?, depends_on_skill_value = ?, ${spec.extra} = ? WHERE id = ?`
+    ).run(
+      merged.origin_skill_id,
+      merged.depends_on_skill_id,
+      merged.depends_on_skill_value,
+      merged[spec.extra],
+      id
+    )
+    return { success: true, id, kind }
+  }
+
+  async deleteSkillRelation(kind: 'predefinition' | 'dependency', id: string): Promise<any> {
+    const spec = GameTableRulesRepository.SKILL_RELATIONS[kind]
+    const removed = db.prepare(`DELETE FROM ${spec.table} WHERE id = ?`).run(id)
+    if (!removed.changes) throw new Error('Relation not found')
+    return { success: true, id, kind }
+  }
+
+async findGameTableSkill(id: any): Promise<void> {
+      const gameTableSkill = db.prepare(`
+        SELECT 
+        * FROM 
+        game_table_skills WHERE id = ?
+      `).get(id) as any
+
+      if (!gameTableSkill) return gameTableSkill
+
+      /* O detalhe precisa dos mesmos dois arrays que `findAllGameTableSkills`
+         monta, senao a ficha individual cai no fallback `?? []` e esconde
+         o painel "Requer / Oferece padrao" inteiro. */
+
+      const predefinitions = db.prepare(`
+        SELECT
+          gtsp.id as relation_id,
+          gtsp.depends_on_skill_id,
+          gtsp.depends_on_skill_value,
+          gtsp.depends_on_skill_for_others_attributes,
+          dependent_skill.name as dependent_skill_name
+        FROM game_table_skill_predefinede gtsp
+        LEFT JOIN game_table_skills dependent_skill
+          ON dependent_skill.id = gtsp.depends_on_skill_id
+        WHERE gtsp.origin_skill_id = ?
+      `).all(id) as any[]
+
+      const dependencies = db.prepare(`
+        SELECT
+          gtsd.id as relation_id,
+          gtsd.depends_on_skill_id,
+          gtsd.depends_on_skill_value,
+          gtsd.depends_type,
+          dependent_skill.name as dependent_skill_name
+        FROM game_table_skill_dependencies gtsd
+        LEFT JOIN game_table_skills dependent_skill
+          ON dependent_skill.id = gtsd.depends_on_skill_id
+        WHERE gtsd.origin_skill_id = ?
+      `).all(id) as any[]
+
+      return {
+        ...gameTableSkill,
+        /* `skill_id` viaja junto do nome: o front linka /skill/[id], e
+           usar o nome ali produzia 404. */
+        predefinition: predefinitions.map((pre) => ({
+          relation_id: pre.relation_id,
+          skill: pre.dependent_skill_name || null,
+          skill_id: pre.depends_on_skill_id || null,
+          value: pre.depends_on_skill_value || null,
+          depends_on_skill_for_others_attributes:
+            pre.depends_on_skill_for_others_attributes || null
+        })),
+        dependencies: dependencies.map((dep) => ({
+          relation_id: dep.relation_id,
+          skill: dep.dependent_skill_name || null,
+          skill_id: dep.depends_on_skill_id || null,
+          value: dep.depends_on_skill_value || null,
+          type: dep.depends_type || null
+        }))
+      }
+    }
 
   async findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any): Promise<any> {
 
@@ -380,6 +594,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
     const predefinitions = db.prepare(`
       SELECT
+        gtsp.id as relation_id,
         gtsp.origin_skill_id,
         gtsp.depends_on_skill_value,
         gtsp.depends_on_skill_for_others_attributes,
@@ -405,6 +620,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
     const dependencies = db.prepare(`
       SELECT
+        gtsd.id as relation_id,
         gtsd.origin_skill_id,
         gtsd.depends_on_skill_value,
         gtsd.depends_type,
@@ -433,7 +649,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       const skillPredefinitions = predefinitions
         .filter(pre => pre.origin_skill_id === skill.id)
         .map(pre => ({
+          relation_id: pre.relation_id,
           skill: pre.dependent_skill_name || null,
+          skill_id: pre.dependent_skill_id || null,
           value: pre.depends_on_skill_value || null,
           depends_on_skill_for_others_attributes:
             pre.depends_on_skill_for_others_attributes || null
@@ -442,7 +660,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       const skillDependencies = dependencies
         .filter(dep => dep.origin_skill_id === skill.id)
         .map(dep => ({
+          relation_id: dep.relation_id,
           skill: dep.dependent_skill_name || null,
+          skill_id: dep.dependent_skill_id || null,
           value: dep.depends_on_skill_value || null,
           type: dep.depends_type || null
         }))
@@ -901,14 +1121,45 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /*      ITEMS      */
   /* =============== */
 
+  /* weapons.skill e' texto solto (GURPS: 'Shortsword', 'Axe', ...). A
+     ligacao que importa e' o id: aceitamos o id que o form mandou ou
+     resolvemos pelo nome, sempre checando mesa + idioma para a arma nao
+     apontar para a pericia de outra mesa. Id invalido vira null em vez de
+     ser gravado -- e o texto solto continua salvo em weapons.skill. */
+  private resolveItemSkillId(
+    tableId: any,
+    lang: string,
+    skillId?: string | null,
+    skillName?: string | null
+  ): string | null {
+    if (skillId) {
+      const byId = db
+        .prepare('SELECT id FROM game_table_skills WHERE id = ? AND table_id IS ? AND lang = ?')
+        .get(skillId, tableId, lang) as any
+      return byId ? String(byId.id) : null
+    }
+    if (!skillName) return null
+    const byName = db
+      .prepare('SELECT id FROM game_table_skills WHERE table_id IS ? AND lang = ? AND name = ? LIMIT 1')
+      .get(tableId, lang, skillName) as any
+    return byName ? String(byName.id) : null
+  }
+
   async createGameItems(data: any): Promise<any> {
     const itemId = crypto.randomUUID()
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
+    // Antes o INSERT nao citava `lang`, e a coluna tem NOT NULL DEFAULT 'pt':
+    // todo item criado pela API nascia 'pt' independente da mesa. A resolucao
+    // de skill_id depende disso, entao o idioma agora trafega explicito.
+    const lang = data.lang || 'pt'
+    const skillName = data.weapon_skill || data.skill_level || null
+    const skillId = this.resolveItemSkillId(data.table_id, lang, data.skill_id, skillName)
     db.prepare(`
-      INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, currency_item_id, dimensions, description, quality, condition, location_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO game_table_items (id, lang, table_id, name, kind, category, weight_lb, cost, currency_item_id, skill_id, dimensions, description, quality, condition, location_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       itemId,
+      lang,
       data.table_id,
       data.name,
       kind,
@@ -916,6 +1167,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.weight_lb ?? data.weight ?? null,
       data.cost ?? null,
       data.currency_item_id || null,
+      skillId,
       data.dimensions,
       data.description,
       data.quality,
@@ -927,11 +1179,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     if (kind === 'weapon' || kind === 'shield') {
       const weaponId = crypto.randomUUID()
       db.prepare(`
-        INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_table_weapons (id, lang, item_id, skill, skill_id, min_st, rated_st, handedness, reach, parry, block, fit)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
-        weaponId, itemId,
-        data.weapon_skill || (data.skill_level || null),
+        weaponId, lang, itemId,
+        skillName,
+        skillId,
         data.min_st ?? null,
         data.rated_st ?? null,
         data.handedness ?? 1,
@@ -977,9 +1230,18 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
 
   async editGameItems(data: any): Promise<void> {
     const kind = data.kind || (data.type === 1 ? 'weapon' : data.type === 2 ? 'armor' : 'equipment')
+    // O UPDATE de items so vai por `id`, entao mesa e idioma sao lidos da
+    // linha existente para resolver a skill contra a mesa certa.
+    const currentItem = db
+      .prepare('SELECT table_id, lang FROM game_table_items WHERE id = ? LIMIT 1')
+      .get(data.id) as any
+    const lang = data.lang || currentItem?.lang || 'pt'
+    const tableId = data.table_id || currentItem?.table_id || null
+    const skillName = data.weapon_skill || data.skill_level || null
+    const skillId = this.resolveItemSkillId(tableId, lang, data.skill_id, skillName)
     db.prepare(`
       UPDATE game_table_items
-      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, currency_item_id = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
+      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, currency_item_id = ?, skill_id = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
       WHERE id = ?
     `).run(
       data.name,
@@ -988,6 +1250,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       data.weight_lb ?? data.weight ?? null,
       data.cost ?? null,
       data.currency_item_id || null,
+      skillId,
       data.dimensions,
       data.description,
       data.quality,
@@ -1003,10 +1266,11 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       const weaponId = existingWeapon?.id || crypto.randomUUID()
       if (existingWeapon) {
         db.prepare(`
-          UPDATE game_table_weapons SET skill = ?, min_st = ?, rated_st = ?, handedness = ?, reach = ?, parry = ?, block = ?, fit = ?
+          UPDATE game_table_weapons SET skill = ?, skill_id = ?, min_st = ?, rated_st = ?, handedness = ?, reach = ?, parry = ?, block = ?, fit = ?
           WHERE id = ?
         `).run(
-          data.weapon_skill || data.skill_level || null,
+          skillName,
+          skillId,
           data.min_st ?? null,
           data.rated_st ?? null,
           data.handedness ?? 1,
@@ -1018,9 +1282,9 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         )
       } else {
         db.prepare(`
-          INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(weaponId, data.id, data.weapon_skill || data.skill_level || null, data.min_st ?? null, data.rated_st ?? null, data.handedness ?? 1, data.reach || 'C', data.parry || null, data.block || null, data.weapon_fit || 'normal')
+          INSERT INTO game_table_weapons (id, lang, item_id, skill, skill_id, min_st, rated_st, handedness, reach, parry, block, fit)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(weaponId, lang, data.id, skillName, skillId, data.min_st ?? null, data.rated_st ?? null, data.handedness ?? 1, data.reach || 'C', data.parry || null, data.block || null, data.weapon_fit || 'normal')
       }
 
       // Substitui os ataques (recreate por simplicidade de edição)
@@ -1076,13 +1340,23 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     const item: any = db.prepare('SELECT * FROM game_table_items WHERE id = ?').get(id)
     if (!item) throw new Error('Item not found')
     const copyId = crypto.randomUUID()
+    const lang = item.lang || 'pt'
+    const weapon: any = db.prepare('SELECT * FROM game_table_weapons WHERE item_id = ?').get(id)
+    // O skill_id da origem aponta para a pericia da mesa de origem, entao
+    // copiar o id deixaria a arma da mesa nova apontando para a skill de
+    // outra mesa. Resolve de novo pelo nome contra o destino; se a mesa
+    // destino nao tiver a pericia, fica null em vez de ponteiro morto.
+    const copiedSkillId = weapon
+      ? this.resolveItemSkillId(targetTableId, lang, null, weapon.skill ?? null)
+      : null
 
     const tx = db.transaction(() => {
       db.prepare(`
-        INSERT INTO game_table_items (id, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id, subcategory)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_table_items (id, lang, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id, subcategory, skill_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         copyId,
+        lang,
         targetTableId,
         `${item.name ?? ''} (cópia)`,
         item.kind ?? null,
@@ -1094,16 +1368,16 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
         item.quality ?? null,
         item.condition ?? null,
         null,
-        item.subcategory ?? null
+        item.subcategory ?? null,
+        copiedSkillId
       )
 
-      const weapon: any = db.prepare('SELECT * FROM game_table_weapons WHERE item_id = ?').get(id)
       if (weapon) {
         const weaponId = crypto.randomUUID()
         db.prepare(`
-          INSERT INTO game_table_weapons (id, item_id, skill, min_st, rated_st, handedness, reach, parry, block, fit)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(weaponId, copyId, weapon.skill ?? null, weapon.min_st ?? null, weapon.rated_st ?? null, weapon.handedness ?? 1, weapon.reach || 'C', weapon.parry ?? null, weapon.block ?? null, weapon.fit ?? 'normal')
+          INSERT INTO game_table_weapons (id, lang, item_id, skill, skill_id, min_st, rated_st, handedness, reach, parry, block, fit)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(weaponId, lang, copyId, weapon.skill ?? null, copiedSkillId, weapon.min_st ?? null, weapon.rated_st ?? null, weapon.handedness ?? 1, weapon.reach || 'C', weapon.parry ?? null, weapon.block ?? null, weapon.fit ?? 'normal')
 
         const attacks = db.prepare('SELECT * FROM weapon_attacks WHERE weapon_id = ? ORDER BY rowid ASC').all(weapon.id) as any[]
         for (const atk of attacks) {

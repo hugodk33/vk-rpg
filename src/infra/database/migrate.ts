@@ -319,6 +319,7 @@ CREATE TABLE IF NOT EXISTS game_table_items (
   weight_lb REAL,       -- peso em libras (GURPS)
   cost INTEGER,         -- custo na moeda de currency_item_id (GURPS)
   currency_item_id TEXT,-- item-moeda em que o custo está cotado (1 moeda por item)
+  skill_id TEXT,       -- skill usada pelo item, resolvida de weapons.skill
   dimensions TEXT,
   description TEXT,
   quality TEXT,         -- domínio: cheap | standard | fine | very_fine
@@ -351,6 +352,7 @@ CREATE TABLE IF NOT EXISTS game_table_weapons (
   lang TEXT NOT NULL DEFAULT 'pt',
   item_id TEXT,
   skill TEXT,           -- skill recomendada (ex: 'Shortsword') - domínio/texto
+  skill_id TEXT,        -- game_table_skills.id resolvido a partir da coluna skill
   min_st INTEGER,       -- requisito mínimo de ST do personagem
   rated_st INTEGER,     -- Rated ST (essencial para arcos)
   handedness INTEGER,   -- 1 ou 2 (mãos padrão)
@@ -1145,6 +1147,84 @@ if (settingsCols.length) {
       db.exec(`ALTER TABLE game_table_settings_spfix RENAME TO game_table_settings`)
     })
     rebuild()
+  }
+}
+
+// ---- item -> skill, resolvido por nome ----
+// weapons.skill e' texto solto (GURPS: 'Shortsword', 'Axe', ...) e nada no
+// codigo lia essa coluna a nao ser para escolher icone. Guardamos o id da
+// pericia resolvido por (table_id, lang, name) e espelhamos em
+// game_table_items, para o item ser legivel sem join.
+//
+// Sem FK declarada de proposito: game_table_skills tem PK composta
+// (id, lang) e o SQLite recusa FOREIGN KEY contra 'id' isolado
+// ("foreign key mismatch"). Mesmo caminho ja usado por
+// game_table_items.currency_item_id.
+const skillLinkAdds: { table: string; cols: { col: string; ddl: string }[] }[] = [
+  { table: 'game_table_items', cols: [{ col: 'skill_id', ddl: 'TEXT' }] },
+  { table: 'game_table_weapons', cols: [{ col: 'skill_id', ddl: 'TEXT' }] }
+]
+for (const { table, cols } of skillLinkAdds) {
+  const existing = (db.prepare(`PRAGMA table_info(${table})`).all() as any[]).map((c) => c.name)
+  if (!existing.length) continue
+  for (const { col, ddl } of cols) {
+    if (!existing.includes(col)) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${ddl}`)
+    }
+  }
+}
+
+// 4 das 18 armas do seed citam uma pericia que nao existe com esse nome.
+const skillAliases: Record<string, string> = {
+  Axe: 'Axe or Mace',
+  'Guns (Pistol)': 'Guns',
+  Machado: 'Machado ou Maça',
+  'Armas de Fogo (Pistola)': 'Armas de Fogo'
+}
+
+if ((db.prepare("PRAGMA table_info(game_table_skills)").all() as any[]).length) {
+  const findSkillByName = db.prepare(`
+    SELECT id FROM game_table_skills
+    WHERE table_id IS ? AND lang = ? AND name = ?
+    LIMIT 1
+  `)
+  const pendingWeapons = db.prepare(`
+    SELECT w.id, w.item_id, w.lang, w.skill, i.table_id
+    FROM game_table_weapons w
+    LEFT JOIN game_table_items i ON i.id = w.item_id AND i.lang = w.lang
+    WHERE w.skill_id IS NULL AND w.skill IS NOT NULL AND w.skill != ''
+  `).all() as any[]
+  const setWeaponSkill = db.prepare(`UPDATE game_table_weapons SET skill_id = ? WHERE id = ? AND lang = ?`)
+  const setItemSkill = db.prepare(`UPDATE game_table_items SET skill_id = ? WHERE id = ? AND lang = ?`)
+
+  // So preenche vazio: escolha manual feita no form nao e sobrescrita, e o
+  // script pode rodar quantas vezes quiser.
+  const resolveSkills = db.transaction(() => {
+    let resolved = 0
+    let unresolved = 0
+    for (const w of pendingWeapons) {
+      let skillId: string | undefined
+      for (const candidate of [w.skill, skillAliases[w.skill]]) {
+        if (!candidate) continue
+        const row = findSkillByName.get(w.table_id, w.lang, candidate) as any
+        if (row) {
+          skillId = row.id
+          break
+        }
+      }
+      if (!skillId) {
+        unresolved++
+        continue
+      }
+      setWeaponSkill.run(skillId, w.id, w.lang)
+      if (w.item_id) setItemSkill.run(skillId, w.item_id, w.lang)
+      resolved++
+    }
+    return { resolved, unresolved }
+  })
+  const { resolved, unresolved } = resolveSkills()
+  if (resolved || unresolved) {
+    console.log(`🔗 weapon->skill: ${resolved} resolvida(s), ${unresolved} sem match`)
   }
 }
 
