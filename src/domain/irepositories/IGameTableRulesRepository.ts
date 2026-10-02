@@ -19,6 +19,8 @@ export interface IGameTableRulesRepository {
   
   findGameLocation(id: any, viewer?: any): Promise<any>
   findAllGameLocations(id: any, viewer?: any): Promise<any[] | void>
+  /** Personagens de um usuário dentro de uma mesa (resolve o viewer do player). */
+  findCharacterIdsByUserAndTable(userId: string, tableId: string): Promise<string[]>
   createGameLocation(data: any): Promise<any>
   editGameLocation(data: any): Promise<void>
   deleteGameLocation(id: any): Promise<any>

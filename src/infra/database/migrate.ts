@@ -1162,5 +1162,19 @@ baseUserStmt.run(playerOneId, 1, 'João Pedro', '123456', '85888888888', 'joao.p
 
 console.log('👤 Base users (admin + player) inserted!')
 
+// ---- DIFFICULTY VOCABULARY: "Average" -> "Medium" ----
+// O formulário de skill gravava `Average`, mas o catálogo (seed) sempre usou
+// `Medium`. Duas palavras para a mesma faixa faziam o <select> abrir em branco
+// ao editar uma skill existente, porque o `value` não tinha `<option>`.
+// Idempotente: só reescreve o valor legado.
+for (const table of ['game_table_skills', 'content_skills']) {
+  const changed = db
+    .prepare(`UPDATE ${table} SET predefinition_difficulty = 'Medium' WHERE predefinition_difficulty = 'Average'`)
+    .run()
+  if (changed.changes > 0) {
+    console.log(`🎯 ${table}: ${changed.changes} skill(s) normalizada(s) Average -> Medium`)
+  }
+}
+
 // npx ts-node src/infra/database/migrate.ts
 // npx ts-node src/infra/database/seed.ts

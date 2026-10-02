@@ -1,4 +1,5 @@
 import { Request , Response } from 'express'
+import type { ViewerScope } from '../../domain/services/CharacterVisibility'
 import { FindGameTableSkillUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableSkillUseCase'
 import { FindGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableSkillsUseCase'
 import { FindGameTableAdvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableAdvantageUseCase'
@@ -51,6 +52,11 @@ import { CreateTableLocationUseCase } from '../../application/use-cases/table-ga
 import { EditTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/EditTableLocationUseCase'
 import { DeleteTableLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteTableLocationUseCase'
 import { SetDefaultGameLocationUseCase } from '../../application/use-cases/table-game-rules-use-case/SetDefaultGameLocationUseCase'
+import {
+  ResolveTableViewerUseCase,
+  TableAccessError,
+  ViewerRole,
+} from '../../application/use-cases/table-access-use-cases/TableAccessUseCases'
 import { EndPlayerTurnUseCase } from '../../application/use-cases/table-game-rules-use-case/EndPlayerTurnUseCase'
 import { GrantGameItemUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameItemUseCase'
 import { AwardGameCharacterPointsUseCase } from '../../application/use-cases/table-game-rules-use-case/AwardGameCharacterPointsUseCase'
@@ -135,8 +141,43 @@ export class GameTableRulesController {
     private deleteGameTableAdvantageUseCase?: DeleteGameTableAdvantageUseCase,
     private deleteGameTableItemUseCase?: DeleteGameTableItemUseCase,
     private deleteGameTableNPCUseCase?: DeleteGameTableNPCUseCase,
-    private deleteGameTableCharacterUseCase?: DeleteGameTableCharacterUseCase
+    private deleteGameTableCharacterUseCase?: DeleteGameTableCharacterUseCase,
+    private resolveTableViewerUseCase?: ResolveTableViewerUseCase
   ) {}
+
+  /**
+   * Locations são lidas sempre com o papel resolvido no servidor a partir do
+   * `actor`. O `viewer` não vem mais do cliente: ele é derivado do personagem
+   * que o ator realmente tem nesta mesa.
+   *
+   * Narrador e convidado veem o catálogo inteiro; jogador vê só o que seu
+   * personagem conhece. Sem `actor` o pedido é recusado — é o que impede um
+   * player de pedir o mapa completo simplesmente omitindo o filtro.
+   *
+   * `tableId` vem explícito porque `:id` significa mesa em
+   * `/game-table-locations/:id` e local em `/table-location/:id`.
+   */
+  private async resolveViewer(req: Request, tableId: string): Promise<ViewerScope> {
+    if (!this.resolveTableViewerUseCase) {
+      throw new TableAccessError('Resolução de acesso não configurada.', 500)
+    }
+    const actor = (req.query.actor ?? req.body?.actor) as string | undefined
+    const asCharacter = (req.query.asCharacter ?? req.body?.asCharacter) as string | undefined
+    const resolved = await this.resolveTableViewerUseCase.execute({
+      tableId,
+      actorId: actor ?? '',
+      asCharacterId: asCharacter ?? null
+    })
+    // Preview do narrador: `characterId` preenchido mesmo com papel de owner,
+    // e aí a leitura sai filtrada pelo conhecimento daquele personagem.
+    if (resolved.characterId) return { characterId: resolved.characterId }
+    // Player sem personagem na mesa continua sendo player: `characterId` nulo
+    // resulta em catálogo vazio, não no catálogo completo.
+    if (resolved.role === ViewerRole.Owner || resolved.role === ViewerRole.Guest) {
+      return { unfiltered: true }
+    }
+    return { characterId: resolved.characterId }
+  }
 
   async findSkill(req: Request, res: Response) {
     const skill = await this.findGameTableSkillUseCase.execute(req.params.id as string)
@@ -290,13 +331,22 @@ export class GameTableRulesController {
   }
 
   async createAdvantage(req: Request, res: Response) {
-    await this.createGameTableAdvantagesUseCase!.execute(req.body)
-    return res.json({ success: true })
+    try {
+      await this.createGameTableAdvantagesUseCase!.execute(req.body)
+      return res.json({ success: true })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
   }
 
   async editAdvantage(req: Request, res: Response) {
-    await this.editGameTableAdvantagesUseCase!.execute(req.body)
-    return res.json({ success: true })
+    try {
+      // O id da rota tem precedência sobre o do body para evitar editar a linha errada.
+      await this.editGameTableAdvantagesUseCase!.execute({ ...req.body, id: req.params.id as string })
+      return res.json({ success: true })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
   }
 
   async findAdvantage(req: Request, res: Response) {
@@ -345,21 +395,35 @@ export class GameTableRulesController {
   }
 
   async findLocation(req: Request, res: Response) {
-    const { viewer } = req.query
-    const location = await this.findTableLocationUseCase!.execute(
-      req.params.id as string,
-      viewer as string | undefined
-    )
-    return res.json(location)
+    try {
+      const locationId = req.params.id as string
+      // Aqui `:id` é o local, não a mesa: a mesa vem da própria location.
+      const tableId = resolveLocationTableId(locationId)
+      if (!tableId) return res.status(404).json({ success: false, error: 'Local não encontrado.' })
+
+      const viewer = await this.resolveViewer(req, tableId)
+      const location = await this.findTableLocationUseCase!.execute(locationId, viewer)
+      if (!location) return res.status(404).json({ success: false, error: 'Local não encontrado.' })
+      return res.json(location)
+    } catch (err: any) {
+      const status = err instanceof TableAccessError ? err.status : 400
+      return res.status(status).json({ success: false, error: err.message })
+    }
   }
 
   async findAllLocations(req: Request, res: Response) {
-    const { viewer } = req.query
-    const locations = await this.findAllTableLocationsUseCase!.execute(
-      req.params.id as string,
-      viewer as string | undefined
-    )
-    return res.json(locations)
+    try {
+      // Aqui `:id` já é a mesa.
+      const viewer = await this.resolveViewer(req, req.params.id as string)
+      const locations = await this.findAllTableLocationsUseCase!.execute(
+        req.params.id as string,
+        viewer
+      )
+      return res.json(locations)
+    } catch (err: any) {
+      const status = err instanceof TableAccessError ? err.status : 400
+      return res.status(status).json({ success: false, error: err.message })
+    }
   }
 
   async createLocation(req: Request, res: Response) {

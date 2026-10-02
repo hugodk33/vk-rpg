@@ -1,7 +1,13 @@
 import { db } from '../../infra/database/database'
 import crypto from 'crypto'
 import { IGameTableRulesRepository } from '../irepositories/IGameTableRulesRepository'
-import { shapeCatalogForViewer, shapeCharacterForViewer, shapeLocationConnections } from '../services/CharacterVisibility'
+import {
+  resolveViewerScope,
+  shapeCatalogForViewer,
+  shapeCharacterForViewer,
+  shapeLocationConnections,
+  type ViewerScope,
+} from '../services/CharacterVisibility'
 
 /** Rules an observer holds (any target) — the "knowledge" set that gates
     catalogs and locations. Catalog/location rows are observer-global, but
@@ -17,6 +23,21 @@ function possessedItemIds(characterId: string): Set<string> {
   ).all(characterId) as any[]
   return new Set(rows.map((r: any) => String(r.item_id)).filter(Boolean))
 }
+
+/** Colunas de `modifiers` que apontam para a entidade dona (PC, item, skill,
+    vantagem, desvantagem, local, ação, narração, cena). Editadas apenas quando a
+    chave chega no payload — ver `editGameModifier`. */
+const MODIFIER_LINK_COLUMNS = [
+  'character_id',
+  'item_id',
+  'skill_id',
+  'advantage_id',
+  'disadvantage_id',
+  'location_id',
+  'action_id',
+  'narration_id',
+  'scene_id',
+] as const
 
 /* ================================================================
    LOCATIONS — hierarquia de território + grade hexagonal (GURPS)
@@ -707,7 +728,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     return { success: true, id, name: disadvantage.name }
   }
 
-  async findGameLocation(id: any, viewer?: any): Promise<any> {
+  async findGameLocation(id: any, scope?: ViewerScope | string | null): Promise<any> {
     const row: any = db.prepare(`
       SELECT tl.*, gt.title AS table_title
       FROM table_locations tl
@@ -717,7 +738,12 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
     `).get(id)
     if (!row) return null
 
-    const rules = viewer ? viewerRules(viewer) : null
+    const { filter, characterId } = resolveViewerScope(scope)
+
+    // Player sem personagem não enxerga este local (nem que ele exista).
+    if (filter && !characterId) return null
+
+    const rules = filter ? viewerRules(characterId as string) : null
 
     const shape = (nodes: any[]) =>
       rules ? shapeCatalogForViewer(nodes, rules, 'location') : nodes
@@ -1220,7 +1246,34 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   /*    LOCATIONS    */
   /* =============== */
 
-  async findAllGameLocations(id: any, viewer?: any): Promise<any> {
+  /** Which characters of this table belong to a user. Used to resolve whose
+      knowledge rules shape a player's payload (a user may hold more than one
+      character, e.g. across several tables).
+
+      Inactive characters are kept as a fallback instead of being filtered out:
+      dropping them would leave the caller with no character, and "no character"
+      must mean "nothing visible" rather than "no filter". `is_active = 0`
+      therefore sorts last rather than disappearing. */
+  async findCharacterIdsByUserAndTable(userId: string, tableId: string): Promise<string[]> {
+    const rows = db.prepare(
+      `SELECT id FROM game_table_characters
+       WHERE user_id = ? AND table_id = ?
+       ORDER BY CASE WHEN is_active = 0 THEN 1 ELSE 0 END ASC`
+    ).all(userId, tableId) as any[]
+    return rows.map((r: any) => String(r.id))
+  }
+
+  /**
+   * Confere que o personagem pertence mesmo à mesa. Usado pelo preview
+   * `asCharacter`, para não aceitar um id de fora da mesa como filtro.
+   */
+  async characterBelongsToTable(characterId: string, tableId: string): Promise<boolean> {
+    const row = db.prepare(
+      `SELECT 1 AS ok FROM game_table_characters WHERE id = ? AND table_id = ? LIMIT 1`
+    ).get(characterId, tableId) as any
+    return !!row
+  }
+async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promise<any> {
     const table = db.prepare(`
       SELECT
         id,
@@ -1239,8 +1292,22 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       ORDER BY path ASC, name ASC
     `).all(id as string) as any[]).map(locationToDTO)
 
-    const shaped = viewer
-      ? shapeCatalogForViewer(locations, viewerRules(viewer), 'location')
+    const { filter, characterId } = resolveViewerScope(scope)
+
+    // Player sem personagem resolvível: nada é visível. Nunca cair no
+    // catálogo completo — seria o mesmo vazamento de antes, só invertido.
+    if (filter && !characterId) {
+      return {
+        table,
+        locations: [],
+        connections: [],
+        tree: [],
+        defaultLocationId: (table as any)?.default_location_id ?? null,
+      }
+    }
+
+    const shaped = filter
+      ? shapeCatalogForViewer(locations, viewerRules(characterId as string), 'location')
       : locations
 
     const connectionRows = (db.prepare(`
@@ -1249,10 +1316,10 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       ORDER BY sort ASC, id ASC
     `).all(id as string) as any[])
 
-    const connections = viewer
+    const connections = filter
       ? shapeLocationConnections(
           connectionRows,
-          viewerRules(viewer),
+          viewerRules(characterId as string),
           new Set(shaped.map((x: any) => String(x.id)))
         ).map(connectionToDTO)
       : connectionRows.map(connectionToDTO)
@@ -1261,7 +1328,7 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
       table: table,
       locations: shaped,
       connections,
-      tree: viewer
+      tree: filter
         ? filterTreeVisible(buildLocationTree(shaped), new Set(shaped.map((x: any) => String(x.id))))
         : buildLocationTree(locations),
       defaultLocationId: (table as any)?.default_location_id ?? null,
@@ -2995,58 +3062,51 @@ export class GameTableRulesRepository implements IGameTableRulesRepository {
   }
 
   async editGameModifier(data: any): Promise<void> {
-    db.prepare(`
-      UPDATE modifiers SET
-        character_id = ?, item_id = ?, skill_id = ?, advantage_id = ?, disadvantage_id = ?,
-        location_id = ?, action_id = ?, narration_id = ?, scene_id = ?, name = ?, cost_points = ?,
-        effect = ?, description = ?, hp = ?, st = ?, dx = ?, iq = ?, ht = ?,
-        fatigue = ?, encumbrance = ?, mod_hp = ?, mod_st = ?, mod_dx = ?, mod_iq = ?,
-        mod_ht = ?, mod_fatigue = ?, mod_encumbrance = ?, skill_value = ?,
-        advantage_value = ?, disadvantage_value = ?, armor_value = ?, damage_value = ?,
-        item_quantity = ?, item_dimension = ?, item_weight = ?, item_range = ?, item_status = ?,
-        apply_on_roll = ?
-      WHERE id = ?
-    `).run(
-      data.character_id || null,
-      data.item_id || null,
-      data.skill_id || null,
-      data.advantage_id || null,
-      data.disadvantage_id || null,
-      data.location_id || null,
-      data.action_id || null,
-      data.narration_id || null,
-      data.scene_id || null,
-      data.name || '',
-      data.cost_points ?? null,
-      data.effect || '',
-      data.description || '',
-      data.hp ?? null,
-      data.st ?? null,
-      data.dx ?? null,
-      data.iq ?? null,
-      data.ht ?? null,
-      data.fatigue ?? null,
-      data.encumbrance || null,
-      data.mod_hp ?? null,
-      data.mod_st ?? null,
-      data.mod_dx ?? null,
-      data.mod_iq ?? null,
-      data.mod_ht ?? null,
-      data.mod_fatigue ?? null,
-      data.mod_encumbrance || null,
-      data.skill_value || null,
-      data.advantage_value || null,
-      data.disadvantage_value || null,
-      data.armor_value || null,
-      data.damage_value || null,
-      data.item_quantity ?? null,
-      data.item_dimension || null,
-      data.item_weight ?? null,
-      data.item_range || null,
-      data.item_status || null,
-      data.apply_on_roll ?? 0,
-      data.id
-    )
+    // Colunas de vínculo com o "dono" do modificador. Só são sobrescritas quando a
+    // chave chega no payload: um UPDATE incondicional apagaria, por exemplo, a
+    // vantagem que originou o modificador sempre que a UI salvasse sem conhecê-la.
+    const links = MODIFIER_LINK_COLUMNS.filter((column) => column in data)
+    const scalars: Array<[string, any]> = [
+      ['name', data.name || ''],
+      ['cost_points', data.cost_points ?? null],
+      ['effect', data.effect || ''],
+      ['description', data.description || ''],
+      ['hp', data.hp ?? null],
+      ['st', data.st ?? null],
+      ['dx', data.dx ?? null],
+      ['iq', data.iq ?? null],
+      ['ht', data.ht ?? null],
+      ['fatigue', data.fatigue ?? null],
+      ['encumbrance', data.encumbrance || null],
+      ['mod_hp', data.mod_hp ?? null],
+      ['mod_st', data.mod_st ?? null],
+      ['mod_dx', data.mod_dx ?? null],
+      ['mod_iq', data.mod_iq ?? null],
+      ['mod_ht', data.mod_ht ?? null],
+      ['mod_fatigue', data.mod_fatigue ?? null],
+      ['mod_encumbrance', data.mod_encumbrance || null],
+      ['skill_value', data.skill_value || null],
+      ['advantage_value', data.advantage_value || null],
+      ['disadvantage_value', data.disadvantage_value || null],
+      ['armor_value', data.armor_value || null],
+      ['damage_value', data.damage_value || null],
+      ['item_quantity', data.item_quantity ?? null],
+      ['item_dimension', data.item_dimension || null],
+      ['item_weight', data.item_weight || null],
+      ['item_range', data.item_range || null],
+      ['item_status', data.item_status || null],
+      ['apply_on_roll', data.apply_on_roll ?? 0],
+    ]
+
+    const sets: string[] = links.map((column) => `${column} = ?`)
+    const values: any[] = links.map((column) => data[column] || null)
+    for (const [column, value] of scalars) {
+      sets.push(`${column} = ?`)
+      values.push(value)
+    }
+    values.push(data.id)
+
+    db.prepare(`UPDATE modifiers SET ${sets.join(', ')} WHERE id = ?`).run(...values)
   }
 
   /* ============================================================

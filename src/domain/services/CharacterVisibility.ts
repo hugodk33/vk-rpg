@@ -170,6 +170,38 @@ function maskLocation(loc: any, rule: VisRule): any {
 
 export type CatalogKind = 'item' | 'skill' | 'advantage' | 'disadvantage' | 'location'
 
+/**
+ * Quem está vendo o catálogo, já resolvido no servidor.
+ *
+ * A distinção entre `unfiltered` e `characterId: null` é deliberada: um
+ * jogador sem personagem resolvível precisa ver **nada**, e não o catálogo
+ * inteiro. Tratar "sem viewer" como "sem filtro" é justamente o vazamento que
+ * a resolução por `actor` veio fechar.
+ */
+export interface ViewerScope {
+  /** Narrador dono ou convidado: o catálogo volta como veio do banco. */
+  unfiltered?: boolean
+  /** Personagem cujas regras de conhecimento filtram a resposta. */
+  characterId?: string | null
+}
+
+/**
+ * Normaliza o segundo argumento dos reads para um par inequívoco.
+ *
+ * - `undefined` → narrator, sem filtro (uso interno do servidor)
+ * - string       → filtro por aquele personagem (compatibilidade)
+ * - `{ unfiltered: true }` → narrador, sem filtro
+ * - `{ characterId: null }` → filtro sem personagem: resultado vazio
+ */
+export function resolveViewerScope(
+  scope?: ViewerScope | string | null
+): { filter: boolean; characterId: string | null } {
+  if (scope === undefined) return { filter: false, characterId: null }
+  if (typeof scope === 'string') return { filter: true, characterId: scope }
+  if (scope?.unfiltered) return { filter: false, characterId: null }
+  return { filter: true, characterId: scope?.characterId ?? null }
+}
+
 /** Shape a whole catalog (items/skills/advantages/disadvantages/locations)
     for a viewer. Knowledge rules are observer-global: any visible rule for
     `rules` counts. Possessed items stay accessible even with no rule, but

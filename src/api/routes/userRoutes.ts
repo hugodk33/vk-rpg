@@ -99,10 +99,11 @@ import { TableAccessController } from '../controllers/TableAccessController'
 import { TableAccessRepository } from '../../domain/repositories/TableAccessRepository'
 import {
   ListTableAccessUseCase,
+  ResolveTableViewerUseCase,
   RevokeTableAccessUseCase,
   SaveTableAccessUseCase,
 } from '../../application/use-cases/table-access-use-cases/TableAccessUseCases'
-import { publishTable } from '../../infra/realtime/TableEvents'
+import { publishTable, resolveLocationTableId } from '../../infra/realtime/TableEvents'
 
 const router = Router()
 
@@ -151,6 +152,12 @@ const tableAccessRepo = new TableAccessRepository()
 const listTableAccessUseCase = new ListTableAccessUseCase(tableAccessRepo, repo)
 const saveTableAccessUseCase = new SaveTableAccessUseCase(tableAccessRepo, repo)
 const revokeTableAccessUseCase = new RevokeTableAccessUseCase(tableAccessRepo, repo)
+/* Resolve quem está pedindo a partir do `actor` — usado no filtro de locations. */
+const resolveTableViewerUseCase = new ResolveTableViewerUseCase(
+    tableAccessRepo,
+    repo,
+    gameTableRulesRepo
+)
 /* ========== */
 const tableAccessController = new TableAccessController(
     listTableAccessUseCase,
@@ -295,7 +302,8 @@ const gameTableRulesController = new GameTableRulesController(
     deleteGameTableAdvantageUseCase,
     deleteGameTableItemUseCase,
     deleteGameTableNPCUseCase,
-    deleteGameTableCharacterUseCase)
+    deleteGameTableCharacterUseCase,
+    resolveTableViewerUseCase)
 
 /* ROUTES */
 /* ===== USER ===== */
@@ -399,6 +407,8 @@ router.put('/game-table-skill/:id', (req, res) => gameTableRulesController.editS
 router.delete('/game-table-skill/:id', (req, res) => gameTableRulesController.deleteSkill(req, res))
 router.get('/game-table-advantages/:id', (req, res) => gameTableRulesController.findAllAdvantages(req, res))
 router.get('/game-table-advantage/:id', (req, res) => gameTableRulesController.findAdvantage(req, res))
+router.post('/game-table-advantage', (req, res) => gameTableRulesController.createAdvantage(req, res))
+router.put('/game-table-advantage/:id', (req, res) => gameTableRulesController.editAdvantage(req, res))
 router.delete('/game-table-advantage/:id', (req, res) => gameTableRulesController.deleteAdvantage(req, res))
 router.get('/game-table-disadvantages/:id', (req, res) => gameTableRulesController.findAllDisadvantages(req, res))
 router.get('/game-table-disadvantage/:id', (req, res) => gameTableRulesController.findDisadvantage(req, res))
@@ -415,6 +425,13 @@ router.post('/game-table-item', (req, res) => gameTableRulesController.createIte
 router.put('/game-table-item', (req, res) => gameTableRulesController.editItem(req, res))
 router.delete('/game-table-item/:id', (req, res) => gameTableRulesController.deleteItem(req, res))
 router.get('/table-location/:id', (req, res) => gameTableRulesController.findLocation(req, res))
+/* Só a mesa dona de um local. Existe para o front resolver qual `actor` usar
+   antes de ler o local — sem devolver nenhum dado do catálogo. */
+router.get('/table-location/:id/table', (req, res) => {
+  const tableId = resolveLocationTableId(req.params.id as string)
+  if (!tableId) return res.status(404).json({ error: 'Local não encontrado.' })
+  return res.json({ tableId })
+})
 router.get('/game-table-locations/:id', (req, res) => gameTableRulesController.findAllLocations(req, res))
 router.post('/table-location', (req, res) => gameTableRulesController.createLocation(req, res))
 router.put('/table-location/:id', (req, res) => gameTableRulesController.editLocation(req, res))
