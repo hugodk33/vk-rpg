@@ -60,6 +60,9 @@ import {
 import { EndPlayerTurnUseCase } from '../../application/use-cases/table-game-rules-use-case/EndPlayerTurnUseCase'
 import { GrantGameItemUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameItemUseCase'
 import { AwardGameCharacterPointsUseCase } from '../../application/use-cases/table-game-rules-use-case/AwardGameCharacterPointsUseCase'
+import { GrantGameTraitToCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameTraitToCharacterUseCase'
+import { RemoveGameTraitFromCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/RemoveGameTraitFromCharacterUseCase'
+import { ToggleGameModifierForCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/ToggleGameModifierForCharacterUseCase'
 import { FindGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableSettingsUseCase'
 import { EditGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSettingsUseCase'
 import { CreateGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableSkillsUseCase'
@@ -133,6 +136,9 @@ export class GameTableRulesController {
     private sellGameCharacterEquipmentUseCase?: SellGameCharacterEquipmentUseCase,
     private grantGameItemUseCase?: GrantGameItemUseCase,
     private awardGameCharacterPointsUseCase?: AwardGameCharacterPointsUseCase,
+    private grantGameTraitToCharacterUseCase?: GrantGameTraitToCharacterUseCase,
+    private removeGameTraitFromCharacterUseCase?: RemoveGameTraitFromCharacterUseCase,
+    private toggleGameModifierForCharacterUseCase?: ToggleGameModifierForCharacterUseCase,
     private findGameTableSettingsUseCase?: FindGameTableSettingsUseCase,
     private editGameTableSettingsUseCase?: EditGameTableSettingsUseCase,
     private createGameTableSkillsUseCase?: CreateGameTableSkillsUseCase,
@@ -661,6 +667,36 @@ export class GameTableRulesController {
       return res.json({ success: true, ...result })
     } catch (err: any) {
       return res.status(500).json({ success: false, error: err.message })
+    }
+  }
+
+  /* Traços numa ficha que já existe — o gancho que faltava para a modificação
+     padrão: registro o traço e o efeito entra na leitura da ficha. */
+  async grantTrait(req: Request, res: Response) {
+    try {
+      const result = await this.grantGameTraitToCharacterUseCase!.execute(req.body)
+      return res.json({ success: true, ...result })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  async removeTrait(req: Request, res: Response) {
+    try {
+      const result = await this.removeGameTraitFromCharacterUseCase!.execute(req.body)
+      return res.json({ success: true, ...result })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+  }
+
+  /* Liga/desliga um modelo de modificação para um personagem só. */
+  async toggleModifier(req: Request, res: Response) {
+    try {
+      const result = await this.toggleGameModifierForCharacterUseCase!.execute(req.body)
+      return res.json({ success: true, ...result })
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message })
     }
   }
 

@@ -61,6 +61,9 @@ import { FindAllGameModifiersUseCase } from '../../application/use-cases/table-g
 import { DeleteGameModifierUseCase } from '../../application/use-cases/table-game-rules-use-case/DeleteGameModifierUseCase'
 import { GrantGameItemUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameItemUseCase'
 import { AwardGameCharacterPointsUseCase } from '../../application/use-cases/table-game-rules-use-case/AwardGameCharacterPointsUseCase'
+import { GrantGameTraitToCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/GrantGameTraitToCharacterUseCase'
+import { RemoveGameTraitFromCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/RemoveGameTraitFromCharacterUseCase'
+import { ToggleGameModifierForCharacterUseCase } from '../../application/use-cases/table-game-rules-use-case/ToggleGameModifierForCharacterUseCase'
 import { FindGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableSettingsUseCase'
 import { EditGameTableSettingsUseCase } from '../../application/use-cases/table-game-rules-use-case/EditGameTableSettingsUseCase'
 import { CreateGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/CreateGameTableSkillsUseCase'
@@ -224,6 +227,9 @@ const setDefaultGameLocationUseCase = new SetDefaultGameLocationUseCase(gameTabl
 const endPlayerTurnUseCase = new EndPlayerTurnUseCase(gameTableRulesRepo)
 const grantGameItemUseCase = new GrantGameItemUseCase(gameTableRulesRepo)
 const awardGameCharacterPointsUseCase = new AwardGameCharacterPointsUseCase(gameTableRulesRepo)
+const grantGameTraitToCharacterUseCase = new GrantGameTraitToCharacterUseCase(gameTableRulesRepo)
+const removeGameTraitFromCharacterUseCase = new RemoveGameTraitFromCharacterUseCase(gameTableRulesRepo)
+const toggleGameModifierForCharacterUseCase = new ToggleGameModifierForCharacterUseCase(gameTableRulesRepo)
 const findGameTableSettingsUseCase = new FindGameTableSettingsUseCase(gameTableRulesRepo)
 const editGameTableSettingsUseCase = new EditGameTableSettingsUseCase(gameTableRulesRepo)
 const createGameTableSkillsUseCase = new CreateGameTableSkillsUseCase(gameTableRulesRepo)
@@ -297,6 +303,9 @@ const gameTableRulesController = new GameTableRulesController(
     sellGameCharacterEquipmentUseCase,
     grantGameItemUseCase,
     awardGameCharacterPointsUseCase,
+    grantGameTraitToCharacterUseCase,
+    removeGameTraitFromCharacterUseCase,
+    toggleGameModifierForCharacterUseCase,
     findGameTableSettingsUseCase,
     editGameTableSettingsUseCase,
     createGameTableSkillsUseCase,
@@ -522,6 +531,11 @@ router.get('/game-table-modifier/:id', (req, res) => gameTableRulesController.fi
   router.delete('/game-table-modifier/:id', (req, res) => gameTableRulesController.deleteModifier(req, res))
 router.post('/game-table-item/grant', (req, res) => gameTableRulesController.grantItem(req, res))
 router.post('/game-table-character/points', (req, res) => gameTableRulesController.awardPoints(req, res))
+// Traços depois que a ficha existe (kind: 'advantage' | 'disadvantage')
+router.post('/game-table-character/trait', (req, res) => gameTableRulesController.grantTrait(req, res))
+router.delete('/game-table-character/trait', (req, res) => gameTableRulesController.removeTrait(req, res))
+// Instância por personagem de um modelo: liga/desliga e sobrescreve
+router.post('/game-table-character/modifier', (req, res) => gameTableRulesController.toggleModifier(req, res))
 router.post('/game-table-roll-effect', (req, res) => gameTableRulesController.applySkillEffect(req, res))
 router.post('/game-table-end-turn', (req, res) => gameTableRulesController.endPlayerTurn(req, res))
 

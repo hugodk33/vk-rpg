@@ -618,6 +618,9 @@ CREATE TABLE IF NOT EXISTS modifiers (
   item_range TEXT,
   item_status TEXT,
   apply_on_roll INTEGER NOT NULL DEFAULT 0,
+  kind TEXT NOT NULL DEFAULT 'effect',
+  enabled INTEGER NOT NULL DEFAULT 1,
+  source_modifier_id TEXT,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id),
   FOREIGN KEY (action_id) REFERENCES narration_actions(id)
 );
@@ -919,6 +922,80 @@ if (modifierCols.length && !modifierCols.includes('apply_on_roll')) {
 // modifiers.location_id — condição/evento vinculado a um local (bases antigas)
 if (modifierCols.length && !modifierCols.includes('location_id')) {
   db.exec("ALTER TABLE modifiers ADD COLUMN location_id TEXT")
+}
+// modifiers.kind / enabled / source_modifier_id — a modificação como braço do jogo
+//
+// kind: 'effect' (uma vez, num character) ou 'modelo' (vinculado a um traço do
+// catálogo: quem tiver a vantagem/desvantagem ou o item recebe). O modelo nunca
+// entra sozinho na ficha: ele é resolvido na leitura contra o que o character
+// possui, então não existe linha órfã para limpar quando o traço sai.
+//
+// source_modifier_id: numa linha 'effect', aponta para o modelo de origem.
+// É a instância por character — desligar (enabled=0) ou sobrescrever os valores
+// do modelo sem mexer no catálogo. Sem origem, a linha é um efeito solto.
+if (modifierCols.length) {
+  const modifierKindAdds: { col: string; ddl: string }[] = [
+    { col: 'kind', ddl: "TEXT NOT NULL DEFAULT 'effect'" },
+    { col: 'enabled', ddl: 'INTEGER NOT NULL DEFAULT 1' },
+    { col: 'source_modifier_id', ddl: 'TEXT' },
+  ]
+  for (const { col, ddl } of modifierKindAdds) {
+    if (!modifierCols.includes(col)) {
+      db.exec(`ALTER TABLE modifiers ADD COLUMN ${col} ${ddl}`)
+    }
+  }
+}
+
+// ---- backfill: linhas de catálogo que já eram regras, não efeitos ----
+// O ColumnKind nasceu com default 'effect', então os modifiers criados antes
+// dele (via EntityModifiers, sempre sem character_id) ficaram marcados como
+// efeito e o motor passivo não os via. Um modifier sem character_id e com
+// algum traço/item vinculado é uma regra: promote.
+const toPromote = (db.prepare(`
+  SELECT count(*) AS n FROM modifiers
+  WHERE kind = 'effect'
+    AND character_id IS NULL
+    AND (advantage_id IS NOT NULL OR disadvantage_id IS NOT NULL
+         OR item_id IS NOT NULL OR skill_id IS NOT NULL)
+`).get() as { n: number }).n
+if (toPromote > 0) {
+  db.prepare(`
+    UPDATE modifiers SET kind = 'modelo'
+    WHERE kind = 'effect'
+      AND character_id IS NULL
+      AND (advantage_id IS NOT NULL OR disadvantage_id IS NOT NULL
+           OR item_id IS NOT NULL OR skill_id IS NOT NULL)
+  `).run()
+  console.log(`  ✓ modifiers: ${toPromote} linha(s) de catálogo promovida(s) a 'modelo'`)
+}
+
+// ---- índices das colunas de vínculo ----
+// Só o PRIMARY KEY tinha índice (o autoindex do id): as 9 colunas de link do
+// modifiers e as listas de traços do character eram varridas em full scan.
+// SQLite não cria índice automático para coluna de FK, então declaramos aqui.
+const linkIndexes: [string, string, string][] = [
+  ['idx_modifiers_character', 'modifiers', 'character_id'],
+  ['idx_modifiers_source', 'modifiers', 'source_modifier_id'],
+  ['idx_modifiers_kind', 'modifiers', 'kind'],
+  ['idx_modifiers_advantage', 'modifiers', 'advantage_id'],
+  ['idx_modifiers_disadvantage', 'modifiers', 'disadvantage_id'],
+  ['idx_modifiers_item', 'modifiers', 'item_id'],
+  ['idx_modifiers_skill', 'modifiers', 'skill_id'],
+  ['idx_modifiers_location', 'modifiers', 'location_id'],
+  ['idx_modifiers_action', 'modifiers', 'action_id'],
+  ['idx_modifiers_narration', 'modifiers', 'narration_id'],
+  ['idx_modifiers_scene', 'modifiers', 'scene_id'],
+  ['idx_char_adv_character', 'game_table_character_advantages', 'character_id'],
+  ['idx_char_adv_advantage', 'game_table_character_advantages', 'advantage_id'],
+  ['idx_char_dis_character', 'game_table_character_disadvantages', 'character_id'],
+  ['idx_char_dis_disadvantage', 'game_table_character_disadvantages', 'disadvantage_id'],
+  ['idx_equipment_character', 'character_equipment', 'character_id'],
+  ['idx_equipment_item', 'character_equipment', 'item_id'],
+]
+for (const [name, table, column] of linkIndexes) {
+  const tableCols = (db.prepare(`PRAGMA table_info(${table})`).all() as any[]).map((c) => c.name)
+  if (!tableCols.includes(column)) continue
+  db.exec(`CREATE INDEX IF NOT EXISTS ${name} ON ${table}(${column})`)
 }
 
 // narration_actions.moment — cada action segue a etapa de tempo da sua narration
