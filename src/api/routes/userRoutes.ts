@@ -403,6 +403,7 @@ router.post('/game-table-advantage/:id/copy', copyHandler((id, tid) => gameTable
 router.post('/game-table-disadvantage/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameDisadvantage(id, tid)))
 router.post('/game-table-item/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameItems(id, tid)))
 router.post('/game-table-npc/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameNPC(id, tid)))
+router.post('/game-table-character/:id/copy', copyHandler((id, tid) => gameTableRulesRepo.duplicateGameCharacter(id, tid)))
 router.post('/table-location/:id/copy', async (req, res) => {
   try {
     const targetTableId = req.body?.tableId

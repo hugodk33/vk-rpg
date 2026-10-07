@@ -2406,6 +2406,99 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     return { success: true, id: newNpcId, character_id: newCharId, name: sheet?.name ?? null }
   }
 
+  async duplicateGameCharacter(characterId: string, targetTableId: string): Promise<any> {
+    const character: any = db.prepare('SELECT * FROM game_table_characters WHERE id = ?').get(characterId)
+    if (!character) throw new Error('Character not found')
+
+    // O dono da cópia é o administrador (narrador titular) da mesa de destino.
+    const ownerRow = db.prepare(`
+      SELECT n.user_id AS owner_id
+      FROM game_tables g
+      LEFT JOIN narrators n ON n.id = g.narrator_id
+      WHERE g.id = ?
+      LIMIT 1
+    `).get(targetTableId) as { owner_id: string | null } | undefined
+    const ownerUserId = ownerRow?.owner_id ?? character.user_id ?? null
+
+    const sheet: any = db.prepare('SELECT * FROM game_table_character_sheets WHERE character_id = ?').get(characterId)
+    const advantages = db.prepare('SELECT * FROM game_table_character_advantages WHERE character_id = ?').all(characterId) as any[]
+    const disadvantages = db.prepare('SELECT * FROM game_table_character_disadvantages WHERE character_id = ?').all(characterId) as any[]
+    const skills = db.prepare('SELECT * FROM game_table_character_skills WHERE character_id = ?').all(characterId) as any[]
+    const quirks = db.prepare('SELECT * FROM game_table_characters_quirks WHERE character_id = ?').all(characterId) as any[]
+    const equipment = db.prepare('SELECT * FROM character_equipment WHERE character_id = ?').all(characterId) as any[]
+
+    const newCharId = crypto.randomUUID()
+    const tx = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO game_table_characters (id, user_id, table_id)
+        VALUES (?, ?, ?)
+      `).run(newCharId, ownerUserId, targetTableId)
+
+      if (sheet) {
+        db.prepare(`
+          INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          crypto.randomUUID(), newCharId,
+          `${sheet.name || ''} (cópia)`,
+          sheet.bio || '',
+          sheet.backstory || '',
+          sheet.points ?? 0,
+          sheet.hp ?? 10,
+          sheet.st ?? 10,
+          sheet.dx ?? 10,
+          sheet.iq ?? 10,
+          sheet.ht ?? 10,
+          sheet.fatigue ?? 10,
+          sheet.encumbrance || 'None'
+        )
+      }
+
+      const insertAdvantage = db.prepare(`
+        INSERT INTO game_table_character_advantages (id, advantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const adv of advantages) {
+        insertAdvantage.run(crypto.randomUUID(), adv.advantage_id ?? null, adv.name ?? null, newCharId, adv.cost_points ?? 0, adv.effect ?? '')
+      }
+
+      const insertDisadvantage = db.prepare(`
+        INSERT INTO game_table_character_disadvantages (id, disadvantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const dis of disadvantages) {
+        insertDisadvantage.run(crypto.randomUUID(), dis.disadvantage_id ?? null, dis.name ?? null, newCharId, dis.cost_points ?? 0, dis.effect ?? '')
+      }
+
+      const insertSkill = db.prepare(`
+        INSERT INTO game_table_character_skills (id, character_id, skill_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?)
+      `)
+      for (const sk of skills) {
+        insertSkill.run(crypto.randomUUID(), newCharId, sk.skill_id ?? null, sk.cost_points ?? 0, sk.effect ?? '')
+      }
+
+      const insertQuirk = db.prepare(`
+        INSERT INTO game_table_characters_quirks (id, character_id, name, cost_points, effect, description)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const q of quirks) {
+        insertQuirk.run(crypto.randomUUID(), newCharId, q.name ?? null, q.cost_points ?? 0, q.effect ?? '', q.description ?? null)
+      }
+
+      const insertEquipment = db.prepare(`
+        INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const eq of equipment) {
+        if (!eq.item_id) continue
+        insertEquipment.run(crypto.randomUUID(), newCharId, eq.item_id, eq.quantity ?? 1, eq.status || 'in_inventory', eq.location || 'none')
+      }
+    })
+    tx()
+    return { success: true, character_id: newCharId, name: sheet?.name ?? null }
+  }
+
   async editGameNPC(data: any): Promise<void> {
     db.prepare(`
       UPDATE game_table_npcs
