@@ -258,6 +258,7 @@ function connectionToDTO(c: any): any {
     description: c.description ?? null,
     bidirectional: !!c.bidirectional,
     sort: c.sort ?? 0,
+    direction: c.direction ?? null,
     floorFrom: c.floor_from ?? c.floorFrom ?? null,
     floorTo: c.floor_to ?? c.floorTo ?? null,
     from: {
@@ -2199,8 +2200,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       INSERT INTO location_connections (
         id, lang, table_id, from_location_id, to_location_id,
         kind, label, from_q, from_r, to_q, to_r,
-        floor_from, floor_to, bidirectional, sort, description
-      ) VALUES (?, 'pt', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        floor_from, floor_to, bidirectional, sort, direction, description
+      ) VALUES (?, 'pt', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       tableId,
@@ -2216,6 +2217,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.floorTo ?? data.floor_to ?? null,
       data.bidirectional ? 1 : 0,
       data.sort ?? 0,
+      data.direction ?? null,
       data.description ?? null
     )
     return this.findGameLocation(fromId)
@@ -2227,7 +2229,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     db.prepare(`
       UPDATE location_connections SET
         kind = ?, label = ?, from_q = ?, from_r = ?, to_q = ?, to_r = ?,
-        floor_from = ?, floor_to = ?, bidirectional = ?, sort = ?, description = ?
+        floor_from = ?, floor_to = ?, bidirectional = ?, sort = ?, direction = ?, description = ?
       WHERE id = ?
     `).run(
       data.kind ?? current.kind ?? 'door',
@@ -2240,6 +2242,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.floorTo ?? data.floor_to ?? current.floor_to ?? null,
       data.bidirectional !== undefined ? (data.bidirectional ? 1 : 0) : current.bidirectional ?? 1,
       data.sort ?? current.sort ?? 0,
+      data.direction !== undefined ? data.direction : current.direction ?? null,
       data.description !== undefined ? data.description : current.description ?? null,
       id
     )

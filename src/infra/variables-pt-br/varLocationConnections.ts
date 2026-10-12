@@ -32,6 +32,8 @@ export type SeedModifierLocationConnection = {
   floor_to?: number | null
   bidirectional?: number
   sort?: number
+  /** Ponto cardeal de saída da passagem (N|NE|L|SE|S|SO|O|NO). */
+  direction?: string
   description?: string
 }
 
@@ -52,6 +54,7 @@ export const modifierTableLocationConnections: SeedModifierLocationConnection[] 
     floor_to: 0,
     bidirectional: 1,
     sort: 1,
+    direction: 'L',
     description: 'Uma porta larga de carvalho entre as bancas da praça e o átrio da biblioteca.',
   },
   // A Biblioteca Arcana → Acervo Selado (andares 0 → 2) — escada em caracol
@@ -70,6 +73,7 @@ export const modifierTableLocationConnections: SeedModifierLocationConnection[] 
     floor_to: 2,
     bidirectional: 1,
     sort: 2,
+    direction: 'N',
     description: 'Uma escada em caracol atrás das mesas de leitura, subindo para as estantes altas.',
   },
   // O Caneco Sombrio → Adega (0 → -1) — alçapão no depósito
@@ -88,6 +92,7 @@ export const modifierTableLocationConnections: SeedModifierLocationConnection[] 
     floor_to: -1,
     bidirectional: 1,
     sort: 1,
+    direction: 'S',
     description: 'Um alçapão oculto atrás dos tonéis, descendo para a adega dos contrabandistas.',
   },
   // Quartel da Guarda da Cidade → Andar dos Sargentos (0 → 1) — escada da ala de serviço
@@ -106,6 +111,7 @@ export const modifierTableLocationConnections: SeedModifierLocationConnection[] 
     floor_to: 1,
     bidirectional: 1,
     sort: 1,
+    direction: 'NE',
     description: 'A escadaria de serviço nos fundos da sala de formação.',
   },
 ]

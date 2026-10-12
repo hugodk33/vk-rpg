@@ -231,7 +231,9 @@ CREATE TABLE IF NOT EXISTS table_locations (
 -- secret); floor_from/floor_to registram o andar de cada ponta
 -- (escala próxima da real usa andares: 0 = térreo, -1 = subsolo...).
 -- bidirectional indica se a passagem vale nos dois sentidos e
--- sort ordena os marcadores dentro de cada planta. Rows são por
+-- sort ordena os marcadores dentro de cada planta. direction guarda o
+-- ponto cardeal de saída (N|NE|L|SE|S|SO|O|NO) usado pelo organograma
+-- que liga as plantas entre si. Rows são por
 -- idioma (PRIMARY KEY id, lang) para label/description localizadas.
 -- =========================
 CREATE TABLE IF NOT EXISTS location_connections (
@@ -250,6 +252,7 @@ CREATE TABLE IF NOT EXISTS location_connections (
   floor_to INTEGER,
   bidirectional INTEGER DEFAULT 1,
   sort INTEGER DEFAULT 0,
+  direction TEXT,
   description TEXT,
   PRIMARY KEY (id, lang)
 );
@@ -896,6 +899,12 @@ if (visibilityCols.length && !visibilityCols.includes('previous_status')) {
 // visibility.connection_id — regras de conhecimento sobre CONEXÕES (bases antigas)
 if (visibilityCols.length && !visibilityCols.includes('connection_id')) {
   db.exec("ALTER TABLE visibility ADD COLUMN connection_id TEXT")
+}
+
+// location_connections.direction — ponto cardeal de saída do organograma
+const locConnCols = (db.prepare("PRAGMA table_info(location_connections)").all() as any[]).map((c) => c.name)
+if (locConnCols.length && !locConnCols.includes('direction')) {
+  db.exec("ALTER TABLE location_connections ADD COLUMN direction TEXT")
 }
 
 // queue.test_* para o teste controlado pelo narrador (bases criadas antes das colunas)

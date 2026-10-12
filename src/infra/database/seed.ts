@@ -516,8 +516,8 @@ modifierNarrationsNPCs,
     INSERT INTO location_connections (
       id, lang, table_id, from_location_id, to_location_id,
       kind, label, from_q, from_r, to_q, to_r,
-      floor_from, floor_to, bidirectional, sort, description
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      floor_from, floor_to, bidirectional, sort, direction, description
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   const connectionIds = new Set<string>()
@@ -548,6 +548,7 @@ modifierNarrationsNPCs,
       connection.floor_to ?? null,
       connection.bidirectional ?? 1,
       connection.sort ?? 0,
+      connection.direction ?? null,
       connection.description ?? null
     )
   }

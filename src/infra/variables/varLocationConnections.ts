@@ -35,6 +35,8 @@ export type SeedModifierLocationConnection = {
   floor_to?: number | null
   bidirectional?: number
   sort?: number
+  /** Ponto cardeal de saída da passagem (N|NE|L|SE|S|SO|O|NO). */
+  direction?: string
   description?: string
 }
 
@@ -55,6 +57,7 @@ export const modifierTableLocationConnections: SeedModifierLocationConnection[] 
     floor_to: 0,
     bidirectional: 1,
     sort: 1,
+    direction: 'L',
     description: 'A wide oak door thrown open between the market stalls and the library atrium.',
   },
   // The Arcane Library → Sealed Stack (andares 0 → 2) — escada em caracol
@@ -73,6 +76,7 @@ export const modifierTableLocationConnections: SeedModifierLocationConnection[] 
     floor_to: 2,
     bidirectional: 1,
     sort: 2,
+    direction: 'N',
     description: 'A narrow spiral staircase behind the reading desks, rising into the upper shelves.',
   },
   // The Shadowy Tankard → Cellar (0 → -1) — alçapão no depósito
@@ -91,6 +95,7 @@ export const modifierTableLocationConnections: SeedModifierLocationConnection[] 
     floor_to: -1,
     bidirectional: 1,
     sort: 1,
+    direction: 'S',
     description: 'A hidden trapdoor behind the barrels, dropping into the smuggler cellar.',
   },
   // City Watch Barracks → Sergeants Floor (0 → 1) — escada da ala de serviço
@@ -109,6 +114,7 @@ export const modifierTableLocationConnections: SeedModifierLocationConnection[] 
     floor_to: 1,
     bidirectional: 1,
     sort: 1,
+    direction: 'NO',
     description: 'The service stairwell at the back of the muster hall.',
   },
 ]
