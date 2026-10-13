@@ -40,6 +40,122 @@ const MODIFIER_LINK_COLUMNS = [
 ] as const
 
 /* ================================================================
+   MODIFIERS — efeito x modelo
+
+   A linha de `modifiers` é a unidade de efeito do jogo. Duas
+   naturezas, em `kind`:
+
+   · 'effect'  — uma vez, num character. É o histórico: o ferimento
+     do último capítulo, o ΔFP da corrida. Entra na ficha porque tem
+     `character_id`, e é isso que a torna viva.
+   · 'modelo'  — a regra do catálogo: "quem tiver Falcoaria
+     treinada ganha isto". Fica amarrada a um traço (vantagem,
+     desvantagem, perícia) ou a um item, sem `character_id`, e NÃO
+     é aplicada sozinha — é resolvida na leitura contra o que o
+     character possui. Nada é materializado, então perder a
+     vantagem desfaz o efeito sem deixar linha órfã.
+
+   `source_modifier_id` é a instância por character: uma linha
+   'effect' apontando para o modelo, que desligar (enabled=0) ou
+   sobrescrever os valores sem mexer no catálogo.
+   ================================================================ */
+
+const MODIFIER_KIND_EFFECT = 'effect'
+const MODIFIER_KIND_MODEL = 'modelo'
+
+/** Aceita o que vier da UI em pt/en e fixa nos dois valores do banco. */
+function normalizeModifierKind(value: any): string {
+  return value === MODIFIER_KIND_MODEL || value === 'model' || value === 'passive' || value === 'passiva'
+    ? MODIFIER_KIND_MODEL
+    : MODIFIER_KIND_EFFECT
+}
+
+/** Os modelos que o character satisfaz agora: cada advantage_id /
+ *  disadvantage_id / skill_id / item_id do modelo precisa estar na lista
+ * respective de posse do character. É aqui que a modificação padrão vira
+ *  efeito — sem materializar nada. */
+function characterModelModifiers(characterId: string): any[] {
+  return db.prepare(`
+    SELECT * FROM modifiers
+    WHERE kind = '${MODIFIER_KIND_MODEL}'
+      AND (
+        (advantage_id IS NOT NULL AND advantage_id IN (
+          SELECT advantage_id FROM game_table_character_advantages
+          WHERE character_id = ? AND advantage_id IS NOT NULL
+        ))
+        OR (disadvantage_id IS NOT NULL AND disadvantage_id IN (
+          SELECT disadvantage_id FROM game_table_character_disadvantages
+          WHERE character_id = ? AND disadvantage_id IS NOT NULL
+        ))
+        OR (skill_id IS NOT NULL AND skill_id IN (
+          SELECT skill_id FROM game_table_character_skills
+          WHERE character_id = ? AND skill_id IS NOT NULL
+        ))
+        OR (item_id IS NOT NULL AND item_id IN (
+          SELECT item_id FROM character_equipment
+          WHERE character_id = ? AND item_id IS NOT NULL
+        ))
+      )
+    ORDER BY rowid ASC
+  `).all(characterId, characterId, characterId, characterId) as any[]
+}
+
+/** Lista efetiva de modificadores de um character: o histórico dele (as linhas
+ *  com character_id) mais os modelos que ele satisfaz. A instância por character
+ *  — linha com source_modifier_id apontando para o modelo — tem precedência:
+ *  `enabled = 0` desliga o efeito, e o que ela preencher sobrescreve o modelo,
+ *  campo a campo, sem apagar o resto. Por isso ela é lida à parte: sozinha, sem
+ *  modelo vivo, não compõe nada. */
+function resolveCharacterModifiers(characterId: string, moment?: number | null): any[] {
+  const direct = (moment != null
+    ? db.prepare(`
+        SELECT m.* FROM modifiers m
+        LEFT JOIN narrations n ON n.id = m.narration_id
+        WHERE m.character_id = ?
+          AND m.source_modifier_id IS NULL
+          AND (n.moment IS NULL OR n.moment <= ?)
+        ORDER BY m.rowid ASC
+      `).all(characterId, moment)
+    : db.prepare(`
+        SELECT * FROM modifiers
+        WHERE character_id = ?
+          AND source_modifier_id IS NULL
+        ORDER BY rowid ASC
+      `).all(characterId)) as any[]
+
+  const instanceRows = db.prepare(`
+    SELECT * FROM modifiers
+    WHERE character_id = ? AND source_modifier_id IS NOT NULL
+  `).all(characterId) as any[]
+
+  const instances = new Map<string, any>()
+  for (const row of instanceRows) instances.set(row.source_modifier_id, row)
+
+  const resolved = [...direct]
+  const seen = new Set<string>(direct.map((r: any) => r.id))
+  for (const model of characterModelModifiers(characterId)) {
+    // Modelo com character_id próprio já veio na lista direta: é o caso de um
+    // modelo fixado num personagem específico.
+    if (seen.has(model.id)) continue
+    seen.add(model.id)
+
+    const instance = instances.get(model.id)
+    if (!instance) {
+      resolved.push({ ...model, from_model: model.id })
+      continue
+    }
+    const merged: any = { ...model, from_model: model.id, instance_id: instance.id }
+    for (const [key, value] of Object.entries(instance)) {
+      if (key === 'id' || value == null) continue
+      merged[key] = value
+    }
+    resolved.push(merged)
+  }
+  return resolved
+}
+
+
+/* ================================================================
    LOCATIONS — hierarquia de território + grade hexagonal (GURPS)
    ----------------------------------------------------------------
    A `table_locations` é uma árvore: um local ENVELOPA os filhos
@@ -123,6 +239,7 @@ function locationToDTO(l: any): any {
     shopName: l.shop_name ?? null,
     tiles: parseJsonArray(l.tiles),
     drawing: parseJsonArray(l.drawing),
+    bgImageUrl: l.bg_image_url ?? null,
     floor: l.floor ?? null,
     floorName: l.floor_name ?? null,
   }
@@ -142,6 +259,7 @@ function connectionToDTO(c: any): any {
     description: c.description ?? null,
     bidirectional: !!c.bidirectional,
     sort: c.sort ?? 0,
+    direction: c.direction ?? null,
     floorFrom: c.floor_from ?? c.floorFrom ?? null,
     floorTo: c.floor_to ?? c.floorTo ?? null,
     from: {
@@ -165,6 +283,71 @@ function parseJsonArray(raw: any): any[] {
   } catch {
     return []
   }
+}
+
+/** Reescreve a imagem de um slot (`role`) de um item (upsert de 1 linha). */
+function setItemImage(itemId: string, url: string | null, role = 'icon'): void {
+  db.prepare('DELETE FROM item_images WHERE item_id = ? AND role = ?').run(itemId, role)
+  if (url) {
+    db.prepare('INSERT INTO item_images (id, item_id, url, role, sort) VALUES (?, ?, ?, ?, 0)')
+      .run(crypto.randomUUID(), itemId, url, role)
+  }
+}
+
+/** Primeiro ícone de cada item (url), por id de item. */
+function itemIconMap(itemIds: string[]): Map<string, string> {
+  const map = new Map<string, string>()
+  if (!itemIds.length) return map
+  const ph = itemIds.map(() => '?').join(',')
+  const rows = db.prepare(
+    `SELECT item_id, url FROM item_images WHERE role = 'icon' AND item_id IN (${ph}) ORDER BY sort ASC, rowid ASC`
+  ).all(...itemIds) as any[]
+  for (const r of rows) if (!map.has(r.item_id)) map.set(r.item_id, r.url)
+  return map
+}
+
+/** Imagens de personagem (retrato/corpo) — substitui todas as linhas do slot. */
+function setCharacterImage(characterId: string, role: string, urls: (string | null)[]): void {
+  db.prepare('DELETE FROM game_table_character_images WHERE character_id = ? AND role = ?').run(characterId, role)
+  const insert = db.prepare('INSERT INTO game_table_character_images (id, character_id, url, role, sort) VALUES (?, ?, ?, ?, ?)')
+  let sort = 0
+  for (const url of urls) {
+    if (!url) continue
+    insert.run(crypto.randomUUID(), characterId, url, role, sort++)
+  }
+}
+
+/** Copia retrato/corpo de um personagem para outro (duplicações). */
+function copyCharacterImages(fromId: string, toId: string): void {
+  const rows = db.prepare('SELECT url, role, sort FROM game_table_character_images WHERE character_id = ? ORDER BY sort ASC, rowid ASC').all(fromId) as any[]
+  const insert = db.prepare('INSERT INTO game_table_character_images (id, character_id, url, role, sort) VALUES (?, ?, ?, ?, ?)')
+  for (const r of rows) insert.run(crypto.randomUUID(), toId, r.url, r.role ?? 'portrait', r.sort ?? 0)
+}
+
+/** Aplica retrato/corpo enviados no payload (snake ou camel), se presentes. */
+function applyCharacterImages(characterId: string, data: any): void {
+  const portrait = data.portraitUrl !== undefined ? data.portraitUrl : data.portrait_url
+  const body = data.bodyUrl !== undefined ? data.bodyUrl : data.body_url
+  if (portrait !== undefined) setCharacterImage(characterId, 'portrait', [portrait])
+  if (body !== undefined) setCharacterImage(characterId, 'body', [body])
+}
+
+/** Imagens de personagem agrupadas por role (a primeira de cada). */
+function characterImageMap(characterIds: string[]): Map<string, { portrait: string | null; body: string | null }> {
+  const map = new Map<string, { portrait: string | null; body: string | null }>()
+  for (const id of characterIds) map.set(id, { portrait: null, body: null })
+  if (!characterIds.length) return map
+  const ph = characterIds.map(() => '?').join(',')
+  const rows = db.prepare(
+    `SELECT character_id, url, role FROM game_table_character_images WHERE character_id IN (${ph}) ORDER BY sort ASC, rowid ASC`
+  ).all(...characterIds) as any[]
+  for (const r of rows) {
+    const entry = map.get(r.character_id)
+    if (!entry) continue
+    if (r.role === 'body') { if (!entry.body) entry.body = r.url }
+    else if (!entry.portrait) entry.portrait = r.url
+  }
+  return map
 }
 
 /** Monta a árvore de locais a partir da lista plana. */
@@ -832,8 +1015,146 @@ async findGameTableSkill(id: any): Promise<void> {
   async deleteGameModifier(id: any): Promise<any> {
     const modifier: any = db.prepare('SELECT id, name FROM modifiers WHERE id = ?').get(id)
     if (!modifier) throw new Error('Modifier not found')
+    // As instâncias por character existiam só por causa deste modelo; sem ele
+    // não são nada além de ruído na lista do narrador.
+    db.prepare('DELETE FROM modifiers WHERE source_modifier_id = ?').run(id)
     db.prepare('DELETE FROM modifiers WHERE id = ?').run(id)
     return { success: true, id, name: modifier.name }
+  }
+
+  /* ---------------------------------------------------
+     INSTÂNCIA POR PERSONAGEM
+
+     O que o narrador faz quando um personagem não deve obedecer a um
+     modelo — a Armoury treina o bárbaro, mas este cara não. A instância
+     nasce como cópia dos valores do modelo, com enabled=0; a partir
+     daí o GM edita o quanto quiser sem tocar no catálogo. Ninguém precisa
+     materializar nada: enquanto o traço estiver na ficha, a instância
+     é o que vale.
+     --------------------------------------------------- */
+
+  async toggleGameModifierForCharacter(data: any): Promise<any> {
+    const characterId = data.character_id
+    const modelId = data.modifier_id || data.source_modifier_id
+    if (!characterId || !modelId) {
+      throw new Error('character_id e modifier_id são obrigatórios.')
+    }
+    const model: any = db.prepare('SELECT * FROM modifiers WHERE id = ?').get(modelId)
+    if (!model) throw new Error('Modificação não encontrada.')
+    const enabled = data.enabled == null ? true : !!data.enabled
+
+    const existing: any = db.prepare(`
+      SELECT * FROM modifiers WHERE character_id = ? AND source_modifier_id = ?
+    `).get(characterId, modelId)
+
+    if (existing) {
+      db.prepare('UPDATE modifiers SET enabled = ? WHERE id = ?').run(enabled ? 1 : 0, existing.id)
+      return { instance_id: existing.id, modifier_id: modelId, enabled }
+    }
+
+    // Cópia em SQL: os valores vêm do modelo, mas as colunas de vínculo
+    // (advantage_id, item_id...) ficam vazias — a instância pertence ao
+    // personagem, não ao catálogo, e não pode aparecer na página da
+    // vantagem junto com o modelo.
+    const id = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO modifiers (
+        id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id,
+        action_id, narration_id, scene_id, name, cost_points, effect, description,
+        hp, st, dx, iq, ht, fatigue, encumbrance,
+        mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance,
+        skill_value, advantage_value, disadvantage_value, armor_value, damage_value,
+        item_quantity, item_dimension, item_weight, item_range, item_status,
+        apply_on_roll, kind, enabled, source_modifier_id
+      )
+      SELECT
+        ?, ?, NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, name, cost_points, effect, description,
+        hp, st, dx, iq, ht, fatigue, encumbrance,
+        mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance,
+        skill_value, advantage_value, disadvantage_value, armor_value, damage_value,
+        item_quantity, item_dimension, item_weight, item_range, item_status,
+        0, '${MODIFIER_KIND_EFFECT}', ?, ?
+      FROM modifiers WHERE id = ?
+    `).run(id, characterId, enabled ? 1 : 0, modelId, modelId)
+    return { instance_id: id, modifier_id: modelId, enabled }
+  }
+
+  /* ---------------------------------------------------
+     AQUISIÇÃO DE TRAÇO DEPOIS QUE A FICHA EXISTE
+
+     A ficha era escrita uma única vez, com a lista de traços aninhada no
+     POST /game-table-character. Sem gancho aqui, uma modificação padrão
+     não tinha quando acordar — e não havia como dar uma vantagem no meio
+     da campanha. A resolução é na leitura, então só de registrar o traço
+     o efeito já entra na ficha; nada é materializado.
+     --------------------------------------------------- */
+
+  async grantGameTraitToCharacter(data: any): Promise<any> {
+    const isDisadvantage = data.kind === 'disadvantage'
+    const table = isDisadvantage ? 'game_table_character_disadvantages' : 'game_table_character_advantages'
+    const column = isDisadvantage ? 'disadvantage_id' : 'advantage_id'
+    const catalog = isDisadvantage ? 'game_table_disadvantages' : 'game_table_advantages'
+    const characterId = data.character_id
+    if (!characterId) throw new Error('character_id é obrigatório.')
+
+    const traitId = data.trait_id || data[column] || null
+    let name = (data.name || '').trim()
+    let costPoints = data.cost_points ?? null
+    let effect = data.effect || ''
+
+    // O Narrador costuma mandar só o id: o nome, o custo e o efeito vêm do
+    // catálogo, senão a lista de traços da ficha mostra linhas em branco.
+    if (traitId) {
+      const source: any = db.prepare(`
+        SELECT name, cost_points, description FROM ${catalog} WHERE id = ? LIMIT 1
+      `).get(traitId)
+      if (!name && source?.name) name = source.name
+      if (costPoints == null && source?.cost_points != null) costPoints = source.cost_points
+      if (!effect && source?.description) effect = source.description
+    }
+    if (!name) throw new Error('Informe o traço ou o id do catálogo.')
+
+    const id = crypto.randomUUID()
+    db.prepare(`
+      INSERT INTO ${table} (id, ${column}, name, character_id, cost_points, effect)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(id, traitId, name, characterId, costPoints, effect)
+    return { id, name, [column]: traitId }
+  }
+
+  async removeGameTraitFromCharacter(data: any): Promise<any> {
+    const isDisadvantage = data.kind === 'disadvantage'
+    const table = isDisadvantage ? 'game_table_character_disadvantages' : 'game_table_character_advantages'
+    const column = isDisadvantage ? 'disadvantage_id' : 'advantage_id'
+    const characterId = data.character_id
+    const rowId = data.id || data.row_id
+    if (!characterId || !rowId) throw new Error('character_id e id são obrigatórios.')
+
+    const owned = db.prepare(`
+      SELECT id, ${column} AS trait_ref FROM ${table} WHERE id = ? AND character_id = ?
+    `).get(rowId, characterId) as any
+    if (!owned) throw new Error('Traço não encontrado neste personagem.')
+
+    const remove = db.transaction(() => {
+      db.prepare(`DELETE FROM ${table} WHERE id = ? AND character_id = ?`).run(rowId, characterId)
+      // O ajuste que o GM tinha feito para ESTE personagem não sobrevive ao
+      // traço: sem dono, a instância não compõe mais nada e só poluiria a
+      // lista. O `character_id` é obrigatório — o modelo é do catálogo e
+      // serve a toda a mesa, mas o ajuste é de quem tem o traço.
+      // `trait_ref` é o id do CATÁLOGO — é ele que o modelo referencia.
+      if (owned.trait_ref) {
+        db.prepare(`
+          DELETE FROM modifiers
+          WHERE character_id = ?
+            AND source_modifier_id IN (
+              SELECT id FROM modifiers WHERE ${column} = ?
+            )
+        `).run(characterId, owned.trait_ref)
+      }
+    })
+    remove()
+    return { success: true, id: rowId }
   }
 
   async findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any> {
@@ -1225,6 +1546,10 @@ async findGameTableSkill(id: any): Promise<void> {
       )
     }
 
+    if (data.imageUrl !== undefined || data.image_url !== undefined) {
+      setItemImage(itemId, data.imageUrl ?? data.image_url ?? null)
+    }
+
     return { id: itemId }
   }
 
@@ -1332,6 +1657,10 @@ async findGameTableSkill(id: any): Promise<void> {
     } else if (existingArmor) {
       db.prepare(`DELETE FROM game_table_armors WHERE id = ?`).run(existingArmor.id)
     }
+
+    if (data.imageUrl !== undefined || data.image_url !== undefined) {
+      setItemImage(data.id, data.imageUrl ?? data.image_url ?? null)
+    }
   }
 
   /** Duplica um item (com arma/escudo, ataques, armadura e imagens) para
@@ -1399,9 +1728,9 @@ async findGameTableSkill(id: any): Promise<void> {
       const images = db.prepare('SELECT * FROM item_images WHERE item_id = ?').all(id) as any[]
       for (const img of images) {
         db.prepare(`
-          INSERT INTO item_images (id, item_id, url)
-          VALUES (?, ?, ?)
-        `).run(crypto.randomUUID(), copyId, img.url ?? null)
+          INSERT INTO item_images (id, item_id, url, role, sort)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(crypto.randomUUID(), copyId, img.url ?? null, img.role ?? 'icon', img.sort ?? 0)
       }
     })
     tx()
@@ -1449,6 +1778,7 @@ async findGameTableSkill(id: any): Promise<void> {
       `).all(weapon.id) as any[]
     }
 
+    gameTableItem.imageUrl = itemIconMap([gameTableItem.id]).get(gameTableItem.id) ?? null
     const armor = db.prepare(`SELECT * FROM game_table_armors WHERE item_id = ?`).get(gameTableItem.id) as any
 
     return { ...gameTableItem, weapon: weapon || null, armor: armor || null }
@@ -1505,6 +1835,9 @@ async findGameTableSkill(id: any): Promise<void> {
       const armor = db.prepare(`SELECT * FROM game_table_armors WHERE item_id = ?`).get(item.id) as any
       if (armor) item.armor = armor
     }
+
+    const itemIcons = itemIconMap(gameTablesItems.map((i) => i.id))
+    for (const item of gameTablesItems) item.imageUrl = itemIcons.get(item.id) ?? null
 
     const shapedItems = viewer
       ? shapeCatalogForViewer(gameTablesItems, viewerRules(viewer), 'item', possessedItemIds(viewer))
@@ -1642,9 +1975,9 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         id, table_id, parent_id, kind, level, path,
         name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
         hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
-        shop_name, tiles, drawing, floor, floor_name
+        shop_name, tiles, drawing, bg_image_url, floor, floor_name
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.table_id,
@@ -1673,6 +2006,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.shop_name ?? data.shopName ?? null,
       JSON.stringify(data.tiles ?? []),
       JSON.stringify(data.drawing ?? []),
+      data.bg_image_url ?? data.bgImageUrl ?? null,
       data.floor ?? data.hex?.floor ?? null,
       data.floor_name ?? data.floorName ?? data.hex?.floorName ?? null
     )
@@ -1702,7 +2036,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         other = ?, country = ?, area = ?, dimensions = ?, description = ?,
         hex_size_m = ?, width_hexes = ?, height_hexes = ?, center_q = ?, center_r = ?,
         orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?,
-        tiles = ?, drawing = ?, floor = ?, floor_name = ?
+        tiles = ?, drawing = ?, bg_image_url = ?, floor = ?, floor_name = ?
       WHERE id = ?
     `).run(
       parentId,
@@ -1730,6 +2064,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.shop_name ?? data.shopName ?? current.shop_name ?? null,
       data.tiles !== undefined ? JSON.stringify(data.tiles ?? []) : current.tiles ?? '[]',
       data.drawing !== undefined ? JSON.stringify(data.drawing ?? []) : current.drawing ?? '[]',
+      data.bgImageUrl !== undefined ? data.bgImageUrl : data.bg_image_url !== undefined ? data.bg_image_url : current.bg_image_url ?? null,
       data.floor ?? data.hex?.floor ?? current.floor ?? null,
       data.floor_name ?? data.floorName ?? data.hex?.floorName ?? current.floor_name ?? null,
       data.id
@@ -1945,8 +2280,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       INSERT INTO location_connections (
         id, lang, table_id, from_location_id, to_location_id,
         kind, label, from_q, from_r, to_q, to_r,
-        floor_from, floor_to, bidirectional, sort, description
-      ) VALUES (?, 'pt', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        floor_from, floor_to, bidirectional, sort, direction, description
+      ) VALUES (?, 'pt', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       tableId,
@@ -1962,6 +2297,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.floorTo ?? data.floor_to ?? null,
       data.bidirectional ? 1 : 0,
       data.sort ?? 0,
+      data.direction ?? null,
       data.description ?? null
     )
     return this.findGameLocation(fromId)
@@ -1973,7 +2309,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     db.prepare(`
       UPDATE location_connections SET
         kind = ?, label = ?, from_q = ?, from_r = ?, to_q = ?, to_r = ?,
-        floor_from = ?, floor_to = ?, bidirectional = ?, sort = ?, description = ?
+        floor_from = ?, floor_to = ?, bidirectional = ?, sort = ?, direction = ?, description = ?
       WHERE id = ?
     `).run(
       data.kind ?? current.kind ?? 'door',
@@ -1986,6 +2322,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.floorTo ?? data.floor_to ?? current.floor_to ?? null,
       data.bidirectional !== undefined ? (data.bidirectional ? 1 : 0) : current.bidirectional ?? 1,
       data.sort ?? current.sort ?? 0,
+      data.direction !== undefined ? data.direction : current.direction ?? null,
       data.description !== undefined ? data.description : current.description ?? null,
       id
     )
@@ -2065,6 +2402,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         INSERT INTO game_table_npcs (id, character_id, status, location_id)
         VALUES (?, ?, ?, ?)
       `).run(crypto.randomUUID(), characterId, data.status || 'active', data.location_id ?? null)
+      applyCharacterImages(characterId, data)
     })
 
     insertTransaction()
@@ -2147,9 +2485,104 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         INSERT INTO game_table_npcs (id, character_id, status, location_id, module_id, category, subcategory)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `).run(newNpcId, newCharId, npc.status || 'active', null, npc.module_id ?? null, npc.category ?? null, npc.subcategory ?? null)
+      copyCharacterImages(charId, newCharId)
     })
     tx()
     return { success: true, id: newNpcId, character_id: newCharId, name: sheet?.name ?? null }
+  }
+
+  async duplicateGameCharacter(characterId: string, targetTableId: string): Promise<any> {
+    const character: any = db.prepare('SELECT * FROM game_table_characters WHERE id = ?').get(characterId)
+    if (!character) throw new Error('Character not found')
+
+    // O dono da cópia é o administrador (narrador titular) da mesa de destino.
+    const ownerRow = db.prepare(`
+      SELECT n.user_id AS owner_id
+      FROM game_tables g
+      LEFT JOIN narrators n ON n.id = g.narrator_id
+      WHERE g.id = ?
+      LIMIT 1
+    `).get(targetTableId) as { owner_id: string | null } | undefined
+    const ownerUserId = ownerRow?.owner_id ?? character.user_id ?? null
+
+    const sheet: any = db.prepare('SELECT * FROM game_table_character_sheets WHERE character_id = ?').get(characterId)
+    const advantages = db.prepare('SELECT * FROM game_table_character_advantages WHERE character_id = ?').all(characterId) as any[]
+    const disadvantages = db.prepare('SELECT * FROM game_table_character_disadvantages WHERE character_id = ?').all(characterId) as any[]
+    const skills = db.prepare('SELECT * FROM game_table_character_skills WHERE character_id = ?').all(characterId) as any[]
+    const quirks = db.prepare('SELECT * FROM game_table_characters_quirks WHERE character_id = ?').all(characterId) as any[]
+    const equipment = db.prepare('SELECT * FROM character_equipment WHERE character_id = ?').all(characterId) as any[]
+
+    const newCharId = crypto.randomUUID()
+    const tx = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO game_table_characters (id, user_id, table_id)
+        VALUES (?, ?, ?)
+      `).run(newCharId, ownerUserId, targetTableId)
+
+      if (sheet) {
+        db.prepare(`
+          INSERT INTO game_table_character_sheets (id, character_id, name, bio, backstory, points, hp, st, dx, iq, ht, fatigue, encumbrance)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          crypto.randomUUID(), newCharId,
+          `${sheet.name || ''} (cópia)`,
+          sheet.bio || '',
+          sheet.backstory || '',
+          sheet.points ?? 0,
+          sheet.hp ?? 10,
+          sheet.st ?? 10,
+          sheet.dx ?? 10,
+          sheet.iq ?? 10,
+          sheet.ht ?? 10,
+          sheet.fatigue ?? 10,
+          sheet.encumbrance || 'None'
+        )
+      }
+
+      const insertAdvantage = db.prepare(`
+        INSERT INTO game_table_character_advantages (id, advantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const adv of advantages) {
+        insertAdvantage.run(crypto.randomUUID(), adv.advantage_id ?? null, adv.name ?? null, newCharId, adv.cost_points ?? 0, adv.effect ?? '')
+      }
+
+      const insertDisadvantage = db.prepare(`
+        INSERT INTO game_table_character_disadvantages (id, disadvantage_id, name, character_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const dis of disadvantages) {
+        insertDisadvantage.run(crypto.randomUUID(), dis.disadvantage_id ?? null, dis.name ?? null, newCharId, dis.cost_points ?? 0, dis.effect ?? '')
+      }
+
+      const insertSkill = db.prepare(`
+        INSERT INTO game_table_character_skills (id, character_id, skill_id, cost_points, effect)
+        VALUES (?, ?, ?, ?, ?)
+      `)
+      for (const sk of skills) {
+        insertSkill.run(crypto.randomUUID(), newCharId, sk.skill_id ?? null, sk.cost_points ?? 0, sk.effect ?? '')
+      }
+
+      const insertQuirk = db.prepare(`
+        INSERT INTO game_table_characters_quirks (id, character_id, name, cost_points, effect, description)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const q of quirks) {
+        insertQuirk.run(crypto.randomUUID(), newCharId, q.name ?? null, q.cost_points ?? 0, q.effect ?? '', q.description ?? null)
+      }
+
+      const insertEquipment = db.prepare(`
+        INSERT INTO character_equipment (id, character_id, item_id, quantity, status, location)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      for (const eq of equipment) {
+        if (!eq.item_id) continue
+        insertEquipment.run(crypto.randomUUID(), newCharId, eq.item_id, eq.quantity ?? 1, eq.status || 'in_inventory', eq.location || 'none')
+      }
+      copyCharacterImages(characterId, newCharId)
+    })
+    tx()
+    return { success: true, character_id: newCharId, name: sheet?.name ?? null }
   }
 
   async editGameNPC(data: any): Promise<void> {
@@ -2163,6 +2596,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.location_id ?? null,
       data.id
     )
+    if (data.character_id) applyCharacterImages(data.character_id, data)
   }
   async findGameNPC(id: any): Promise<any> {
     const npcData = db.prepare(`
@@ -2270,6 +2704,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
           fatigue: npcData.fatigue,
           encumbrance: npcData.encumbrance
         } : null,
+        portraitUrl: characterImageMap([characterId]).get(characterId)?.portrait ?? null,
+        bodyUrl: characterImageMap([characterId]).get(characterId)?.body ?? null,
         advantages,
         skills,
         items
@@ -2312,7 +2748,13 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       WHERE c.table_id = ? AND (? IS NULL OR npc.location_id = ?)
     `).all(tableId, location ?? null, location ?? null) as any[]
-    
+
+    const npcImages = characterImageMap(gameTablesNPCS.map((n) => n.character_id))
+    for (const npc of gameTablesNPCS) {
+      npc.portraitUrl = npcImages.get(npc.character_id)?.portrait ?? null
+      npc.bodyUrl = npcImages.get(npc.character_id)?.body ?? null
+    }
+
     return ({
         'table': table,
         'npcs': gameTablesNPCS
@@ -2450,6 +2892,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       for (const pec of (data.peculiarities || [])) {
         insertPeculiarity.run(crypto.randomUUID(), characterId, pec.name, pec.cost_points ?? 0, pec.effect || '', pec.description || '')
       }
+      applyCharacterImages(characterId, data)
     })
 
     insertTransaction()
@@ -2466,6 +2909,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.table_id,
       data.id
     )
+    applyCharacterImages(data.id, data)
   }
 
   async editGameCharacterEquipment(data: any): Promise<any> {
@@ -2685,6 +3129,12 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       WHERE c.id = ?
     `).get(id) as any
 
+    if (!characterData) {
+      const missing: any = new Error('Personagem não encontrado.')
+      missing.status = 404
+      throw missing
+    }
+
     const characterId = characterData.character_id
     const tableId = characterData.table_id
     const userId = characterData.user_id
@@ -2771,22 +3221,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       ORDER BY n.moment ASC
     `).all(tableId) as any[]
 
-    let modifiers: any[]
-    if (moment != null) {
-      modifiers = db.prepare(`
-        SELECT m.* FROM modifiers m
-        LEFT JOIN narrations n ON n.id = m.narration_id
-        WHERE m.character_id = ?
-          AND (n.moment IS NULL OR n.moment <= ?)
-        ORDER BY m.rowid ASC
-      `).all(characterId, moment) as any[]
-    } else {
-      modifiers = db.prepare(`
-        SELECT * FROM modifiers
-        WHERE character_id = ?
-        ORDER BY rowid ASC
-      `).all(characterId) as any[]
-    }
+    const modifiers = resolveCharacterModifiers(characterId, moment)
 
     const activeEffects = modifiers
       .filter((m) =>
@@ -2801,7 +3236,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
           'mod_hp', 'mod_st', 'mod_dx', 'mod_iq', 'mod_ht', 'mod_fatigue', 'mod_encumbrance',
           'hp', 'st', 'dx', 'iq', 'ht', 'fatigue', 'encumbrance',
           'skill_value', 'advantage_value', 'disadvantage_value', 'armor_value',
-          'item_quantity', 'item_weight'
+          'item_quantity', 'item_weight',
+          'kind', 'enabled', 'from_model', 'instance_id'
         ]) {
           if (m[k] != null) e[k] = m[k]
         }
@@ -2821,6 +3257,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
 
     for (const mod of modifiers) {
       if (mod.apply_on_roll === 1) continue
+      if (mod.enabled === 0) continue
       if (mod.hp != null) currentStats.hp = mod.hp
       if (mod.st != null) currentStats.st = mod.st
       if (mod.dx != null) currentStats.dx = mod.dx
@@ -2926,11 +3363,19 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         skills,
         items,
         peculiarities,
-        active_effects: activeEffects
+        active_effects: activeEffects,
+        portraitUrl: characterImageMap([characterId]).get(characterId)?.portrait ?? null,
+        bodyUrl: characterImageMap([characterId]).get(characterId)?.body ?? null
       },
       peculiarities,
       moments: moments.map((r: any) => r.moment).filter((m: any) => m != null),
       selected_moment: moment ?? null
+    }
+
+    const charImages = characterImageMap([characterId]).get(characterId)
+    if (charImages) {
+      result.character.portraitUrl = charImages.portrait
+      result.character.bodyUrl = charImages.body
     }
 
     // Visibilidade — se um observador (type 1) de outro personagem pede,
@@ -3162,6 +3607,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     // Povoa cada linha com os stats efetivos (base + modificadores ativos),
     // igual à semântica do findGameCharacter: sheet.hp é o HP atual, base_hp
     // é o máximo original, e active_effects lista os efeitos em vigor.
+    const characterImages = characterImageMap(characters.map((c: any) => c.character_id))
+
     const rows = characters.map(char => {
       const baseStats = {
         hp: char.hp ?? 10,
@@ -3235,6 +3682,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
           base_iq: baseStats.iq,
           base_ht: baseStats.ht
         } : null,
+        portraitUrl: characterImages.get(char.character_id)?.portrait ?? null,
+        bodyUrl: characterImages.get(char.character_id)?.body ?? null,
         active_effects: activeEffects
       }
     })
@@ -3288,9 +3737,18 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
 
   async createGameModifier(data: any): Promise<any> {
     const id = crypto.randomUUID()
+    const kind = normalizeModifierKind(data.kind)
+    // Um modelo sem dono é um modelo que nunca aplica em ninguém: cobra o
+    // vínculo aqui em vez de deixar a linha Morta no catálogo.
+    if (kind === MODIFIER_KIND_MODEL && !data.character_id) {
+      const owner = MODIFIER_LINK_COLUMNS.some((column) => column !== 'character_id' && data[column])
+      if (!owner) {
+        throw new Error('Uma modificação padrão precisa de um dono: vantagem, desvantagem, perícia ou item.')
+      }
+    }
     db.prepare(`
-      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll, kind, enabled, source_modifier_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.character_id || null,
@@ -3330,7 +3788,10 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.item_weight ?? null,
       data.item_range || null,
       data.item_status || null,
-      data.apply_on_roll ?? 0
+      data.apply_on_roll ?? 0,
+      kind,
+      data.enabled == null ? 1 : data.enabled ? 1 : 0,
+      data.source_modifier_id || null
     )
     return { id }
   }
@@ -3377,6 +3838,17 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     for (const [column, value] of scalars) {
       sets.push(`${column} = ?`)
       values.push(value)
+    }
+    // kind/enabled/source_modifier_id também são escritos só quando chegam no
+    // payload: um PUT vindo de um form antigo (ou de uma tela que só conhece o
+    // histórico) não pode rebaixar um modelo para efeito solto nem desligar
+    // uma passiva por acidente.
+    for (const column of ['kind', 'enabled', 'source_modifier_id'] as const) {
+      if (!(column in data)) continue
+      sets.push(`${column} = ?`)
+      if (column === 'kind') values.push(normalizeModifierKind(data.kind))
+      else if (column === 'enabled') values.push(data.enabled ? 1 : 0)
+      else values.push(data.source_modifier_id || null)
     }
     values.push(data.id)
 
@@ -3505,7 +3977,10 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
      baseado na skill passa, cada modifier do ator marcado com
      apply_on_roll=1 é materializado como um efeito ativo (cópia com
      apply_on_roll=0), que passa a alterar HP/fadiga/atributos do sheet.
-     Assim o dano/cura/custo persiste e o máximo de HP/FP não muda. */
+     Assim o dano/cura/custo persiste e o máximo de HP/FP não muda.
+     A cópia é um efeito solto: source_modifier_id fica vazio de
+     propósito, porque essa coluna é reservada à instância de um modelo
+     e uma instância nunca compõe sozinha. */
   async applyGameSkillEffect(characterId: string, skillId: string): Promise<any[]> {
     const templates = db.prepare(`
       SELECT * FROM modifiers
@@ -3516,8 +3991,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     for (const t of templates) {
       const id = crypto.randomUUID()
       db.prepare(`
-        INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO modifiers (id, character_id, item_id, skill_id, advantage_id, disadvantage_id, location_id, action_id, narration_id, scene_id, name, cost_points, effect, description, hp, st, dx, iq, ht, fatigue, encumbrance, mod_hp, mod_st, mod_dx, mod_iq, mod_ht, mod_fatigue, mod_encumbrance, skill_value, advantage_value, disadvantage_value, armor_value, damage_value, item_quantity, item_dimension, item_weight, item_range, item_status, apply_on_roll, kind, enabled, source_modifier_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id,
         t.character_id || null,
@@ -3557,7 +4032,10 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         t.item_weight ?? null,
         t.item_range || null,
         t.item_status || null,
-        0
+        0,
+        MODIFIER_KIND_EFFECT,
+        1,
+        null
       )
       applied.push({
         id,

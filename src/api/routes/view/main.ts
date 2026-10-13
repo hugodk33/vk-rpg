@@ -335,12 +335,12 @@ router.get('/tables', async (req, res) => {
 router.get('/table', async (req, res) => {
   try {
     const tables = await findAllGameTablesUseCase.execute()
-    const characterName = 'Elric Galrhorn Denmark'
+    const characterName = 'Elric'
     let foundTableId = ''
 
     for (const t of tables) {
       const chars = await charRepo.findAllGameCharacters(t.id)
-      const match = (chars?.characters ?? []).find((c: any) => c.name === characterName)
+      const match = (chars?.characters ?? []).find((c: any) => String(c.name ?? '').startsWith(characterName))
       if (match) {
         foundTableId = t.id
         break

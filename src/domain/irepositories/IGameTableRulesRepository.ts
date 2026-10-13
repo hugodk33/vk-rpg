@@ -53,6 +53,9 @@ export interface IGameTableRulesRepository {
   sellGameCharacterEquipment(data: any): Promise<any>
   grantGameItem(data: any): Promise<any>
   awardGameCharacterPoints(data: any): Promise<any>
+  grantGameTraitToCharacter(data: any): Promise<any>
+  removeGameTraitFromCharacter(data: any): Promise<any>
+  toggleGameModifierForCharacter(data: any): Promise<any>
 
   createGameNPC(data: any): Promise<any>
   editGameNPC(id: any): Promise<void>

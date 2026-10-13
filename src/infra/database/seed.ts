@@ -4,23 +4,52 @@
 // variante (characters, npcs, narration_*, dependecies/preDetermined,
 // modifiers, visibility) é inserido dentro do loop, pois os ids diferem.
 // Tabelas globais (users, narrators, conteúdo de módulos, dano) ficam uma vez.
+//
+// Seleção de idioma por argumento (cada execução limpa o banco e semeia só o alvo):
+//   npm run seed        -> EN + PT
+//   npm run seed:en     -> apenas EN
+//   npm run seed:pt     -> apenas PT
 import { db } from './database'
 import './migrate'
+import crypto from 'crypto'
+import { portraitAsset, bodyAsset, itemAsset, backdropAsset, resetSeedAssets } from '../seed-assets'
 
 const allTables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all() as { name: string }[]
+
+// Rebuild the whole file inside ONE transaction. Foreign keys stay off while we
+// wipe and re-insert (avoids ordering constraints). If ANY step throws — a bad
+// row, a locked asset file, an interrupted run — the ROLLBACK keeps the previous
+// database intact instead of leaving it half-seeded (which silently broke the
+// story/journey and weapon-damage data).
 db.exec('PRAGMA foreign_keys = OFF')
+db.exec('BEGIN')
 for (const { name } of allTables) {
   db.exec(`DELETE FROM "${name}"`)
 }
-db.exec('PRAGMA foreign_keys = ON')
+
+// Drop the previous placeholder art so stale files never linger.
+resetSeedAssets()
 
 import * as VVariablesEn from '../variables'
 import * as VVariablesPt from '../variables-pt-br'
 
-const variants: { lang: 'en' | 'pt'; V: typeof VVariablesEn | typeof VVariablesPt }[] = [
+const allVariants: { lang: 'en' | 'pt'; V: typeof VVariablesEn | typeof VVariablesPt }[] = [
   { lang: 'en', V: VVariablesEn },
   { lang: 'pt', V: VVariablesPt }
 ]
+
+// O idioma pode ser escolhido por argumento:
+//   npm run seed        -> EN + PT
+//   npm run seed:en     -> apenas EN
+//   npm run seed:pt     -> apenas PT
+const requested = process.argv
+  .slice(2)
+  .map((arg) => arg.toLowerCase())
+  .filter((arg): arg is 'en' | 'pt' => arg === 'en' || arg === 'pt')
+
+const variants = requested.length
+  ? allVariants.filter((variant) => requested.includes(variant.lang))
+  : allVariants
 
 const VEn = VVariablesEn
 
@@ -309,6 +338,18 @@ modifierNarrationsNPCs,
     )
   }
 
+  // character images (retrato + corpo inteiro, arte placeholder gerada)
+  const characterImageStmt = db.prepare(`
+    INSERT INTO game_table_character_images (id, character_id, url, role, sort)
+    VALUES (?, ?, ?, ?, ?)
+  `)
+  for (const sheet of characterSheets) {
+    if (!sheet.characterId) continue
+    const displayName = sheet.name || 'Personagem'
+    characterImageStmt.run(crypto.randomUUID(), sheet.characterId, portraitAsset(displayName, lang), 'portrait', 0)
+    characterImageStmt.run(crypto.randomUUID(), sheet.characterId, bodyAsset(displayName, lang), 'body', 0)
+  }
+
   // insert items (etiquetadas com módulo + subcategoria)
   const itemStmt = db.prepare(`
     INSERT INTO game_table_items (id, lang, table_id , name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory)
@@ -333,6 +374,15 @@ modifierNarrationsNPCs,
       tag.moduleId,
       tag.subcategory
     )
+  }
+
+  // item images (ícone placeholder por item)
+  const itemImageStmt = db.prepare(`
+    INSERT INTO item_images (id, item_id, url, role, sort)
+    VALUES (?, ?, ?, ?, ?)
+  `)
+  for (const item of items) {
+    itemImageStmt.run(crypto.randomUUID(), item.id, itemAsset(item.name || 'Item', lang), 'icon', 0)
   }
 
   // insert weapons (específico de arma)
@@ -459,8 +509,8 @@ modifierNarrationsNPCs,
     INSERT INTO table_locations(id, lang, table_id, parent_id, kind, level, path,
       name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
         hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
-      tiles, drawing, floor, floor_name )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      tiles, drawing, bg_image_url, floor, floor_name )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   const locationIds = new Set<string>()
@@ -478,6 +528,9 @@ modifierNarrationsNPCs,
     }
     const hexSizeM = modifierTableLocation.hex_size_m ?? null
     const isBattlemap = modifierTableLocation.is_battlemap ?? (hexSizeM != null && hexSizeM <= 2 ? 1 : 0)
+    const bgImage = isBattlemap
+      ? backdropAsset(modifierTableLocation.name || 'Mapa', `${lang}-${modifierTableLocation.id}`)
+      : null
     modifierTableLocationstmt.run(
       modifierTableLocation.id,
       lang,
@@ -506,6 +559,7 @@ modifierNarrationsNPCs,
       isBattlemap,
       JSON.stringify(modifierTableLocation.tiles ?? []),
       JSON.stringify(modifierTableLocation.drawing ?? []),
+      bgImage,
       modifierTableLocation.floor ?? null,
       modifierTableLocation.floor_name ?? null
     )
@@ -516,8 +570,8 @@ modifierNarrationsNPCs,
     INSERT INTO location_connections (
       id, lang, table_id, from_location_id, to_location_id,
       kind, label, from_q, from_r, to_q, to_r,
-      floor_from, floor_to, bidirectional, sort, description
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      floor_from, floor_to, bidirectional, sort, direction, description
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   const connectionIds = new Set<string>()
@@ -548,8 +602,27 @@ modifierNarrationsNPCs,
       connection.floor_to ?? null,
       connection.bidirectional ?? 1,
       connection.sort ?? 0,
+      connection.direction ?? null,
       connection.description ?? null
     )
+  }
+
+  // showcase do organograma: liga cada battlemap ao seu local-pai como porta,
+  // quando ainda não houver conexão entre os dois.
+  const existingConnectionKeys = new Set(
+    modifierTableLocationConnections.map((c) => `${c.from_location_id}|${c.to_location_id}`)
+  )
+  for (const loc of modifierTableLocations) {
+    const isBattle = loc.is_battlemap ?? ((loc.hex_size_m ?? null) != null && (loc.hex_size_m ?? 0) <= 2)
+    if (!loc.parent_id || !isBattle) continue
+    const key = `${loc.id}|${loc.parent_id}`
+    const reverse = `${loc.parent_id}|${loc.id}`
+    if (existingConnectionKeys.has(key) || existingConnectionKeys.has(reverse)) continue
+    modifierLocationConnectionStmt.run(
+      crypto.randomUUID(), lang, loc.table_id, loc.id, loc.parent_id,
+      'door', null, 0, 0, 0, 0, null, null, 1, 0, null, null
+    )
+    existingConnectionKeys.add(key)
   }
 
   // character advantages (nome/efeito por variante)
@@ -863,5 +936,8 @@ db.exec(`
   FROM table_locations
   WHERE table_id IN (SELECT table_id FROM game_tables)
 `)
+
+db.exec('COMMIT')
+db.exec('PRAGMA foreign_keys = ON')
 
 console.log(`🌱 Seed executed successfully! (${variants.map((v) => v.lang.toUpperCase()).join(' + ')})`)
