@@ -70,7 +70,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterGalarhornId,
-    name: 'Elric Galrhorn Denmark',
+    name: 'Elric Guerreiro',
     bio: 'A streetwise duelist with quick reflexes.',
     backstory: 'Former city watch turned blade-for-hire, she fights for freedom and survival.',
     points: 150,
@@ -85,7 +85,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterLyraId,
-    name: 'Lyra Moonwhisper',
+    name: 'Maga Lyra',
     bio: 'A gifted wizard obsessed with ancient knowledge.',
     backstory: 'Raised within a secluded arcane academy, Lyra left to uncover forgotten magical secrets.',
     points: 150,
@@ -100,7 +100,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterKaelId,
-    name: 'Kael Shadowstep',
+    name: 'Kael Ladino',
     bio: 'A nimble rogue specializing in infiltration and silent kills.',
     backstory: 'Raised among thieves and smugglers, Kael learned that information is often worth more than gold.',
     points: 150,
@@ -115,7 +115,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterGarrickId,
-    name: 'Garrick Stonewall',
+    name: 'Garrick Sargento',
     bio: 'A veteran sergeant whose shield has turned aside more blades than he can count.',
     backstory: 'After years guarding the kingdom\u2019s caravans, Garrick now stands at the party\u2019s front line.',
     points: 150,
@@ -130,7 +130,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[0] as string,
-    name: 'Riven Kael',
+    name: 'Riven Espadachim',
     bio: 'A fast dual-blade fighter.',
     backstory: 'Survived by speed and instinct.',
     points: 150, hp: 11, st: 11, dx: 14, iq: 11, ht: 10, fatigue: 0, encumbrance: 'Light'
@@ -138,7 +138,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[1] as string,
-    name: 'Thorne Black',
+    name: 'Thorne Bruto',
     bio: 'A grim bounty hunter.',
     backstory: 'Tracks targets across kingdoms.',
     points: 155, hp: 12, st: 12, dx: 12, iq: 11, ht: 11, fatigue: 0, encumbrance: 'Medium'
@@ -146,7 +146,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[2] as string,
-    name: 'Selene Voss',
+    name: 'Selene Maga Sombria',
     bio: 'A shadow mage.',
     backstory: 'Manipulates darkness itself.',
     points: 160, hp: 10, st: 9, dx: 12, iq: 15, ht: 10, fatigue: 0, encumbrance: 'Light'
@@ -154,7 +154,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[3] as string,
-    name: 'Kael Draven',
+    name: 'Kael Duelista',
     bio: 'A ruthless duelist.',
     backstory: 'Seeks perfection in combat.',
     points: 150, hp: 11, st: 11, dx: 13, iq: 11, ht: 11, fatigue: 0, encumbrance: 'Light'
@@ -162,7 +162,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[4] as string,
-    name: 'Lyra Moonfall',
+    name: 'Lyra Feiticeira',
     bio: 'A celestial sorcerer.',
     backstory: 'Gifted by ancient stars.',
     points: 165, hp: 10, st: 9, dx: 11, iq: 15, ht: 11, fatigue: 0, encumbrance: 'Light'
@@ -170,7 +170,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[5] as string,
-    name: 'Borin Stonehelm',
+    name: 'Borin Tanque',
     bio: 'A dwarven tank.',
     backstory: 'Unbreakable in battle.',
     points: 160, hp: 14, st: 14, dx: 10, iq: 10, ht: 13, fatigue: 1, encumbrance: 'Heavy'
@@ -178,7 +178,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[6] as string,
-    name: 'Nyx Shadowend',
+    name: 'Nyx Assassina',
     bio: 'An elite assassin.',
     backstory: 'Never seen, always lethal.',
     points: 155, hp: 10, st: 10, dx: 15, iq: 12, ht: 10, fatigue: 0, encumbrance: 'Light'
@@ -186,7 +186,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[7] as string,
-    name: 'Eldric Vale',
+    name: 'Eldric Mago',
     bio: 'A wise mage.',
     backstory: 'Keeper of forbidden lore.',
     points: 170, hp: 10, st: 9, dx: 10, iq: 16, ht: 11, fatigue: 0, encumbrance: 'Light'
@@ -194,7 +194,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[8] as string,
-    name: 'Vera Hollow',
+    name: 'Vera Arqueira',
     bio: 'A cursed archer.',
     backstory: 'Haunted by past battles.',
     points: 150, hp: 11, st: 11, dx: 13, iq: 11, ht: 11, fatigue: 0, encumbrance: 'Light'
@@ -202,7 +202,7 @@ export const characterSheets: SeedCharacterSheet[] = [
   {
     id: crypto.randomUUID(),
     characterId: characterNPCsIds[9] as string,
-    name: 'Dante Crowe',
+    name: 'Dante Bruxo',
     bio: 'A charismatic warlock.',
     backstory: 'Power at a terrible cost.',
     points: 165, hp: 10, st: 10, dx: 11, iq: 15, ht: 11, fatigue: 0, encumbrance: 'Light'

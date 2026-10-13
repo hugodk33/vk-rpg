@@ -239,6 +239,7 @@ function locationToDTO(l: any): any {
     shopName: l.shop_name ?? null,
     tiles: parseJsonArray(l.tiles),
     drawing: parseJsonArray(l.drawing),
+    bgImageUrl: l.bg_image_url ?? null,
     floor: l.floor ?? null,
     floorName: l.floor_name ?? null,
   }
@@ -282,6 +283,71 @@ function parseJsonArray(raw: any): any[] {
   } catch {
     return []
   }
+}
+
+/** Reescreve a imagem de um slot (`role`) de um item (upsert de 1 linha). */
+function setItemImage(itemId: string, url: string | null, role = 'icon'): void {
+  db.prepare('DELETE FROM item_images WHERE item_id = ? AND role = ?').run(itemId, role)
+  if (url) {
+    db.prepare('INSERT INTO item_images (id, item_id, url, role, sort) VALUES (?, ?, ?, ?, 0)')
+      .run(crypto.randomUUID(), itemId, url, role)
+  }
+}
+
+/** Primeiro ícone de cada item (url), por id de item. */
+function itemIconMap(itemIds: string[]): Map<string, string> {
+  const map = new Map<string, string>()
+  if (!itemIds.length) return map
+  const ph = itemIds.map(() => '?').join(',')
+  const rows = db.prepare(
+    `SELECT item_id, url FROM item_images WHERE role = 'icon' AND item_id IN (${ph}) ORDER BY sort ASC, rowid ASC`
+  ).all(...itemIds) as any[]
+  for (const r of rows) if (!map.has(r.item_id)) map.set(r.item_id, r.url)
+  return map
+}
+
+/** Imagens de personagem (retrato/corpo) — substitui todas as linhas do slot. */
+function setCharacterImage(characterId: string, role: string, urls: (string | null)[]): void {
+  db.prepare('DELETE FROM game_table_character_images WHERE character_id = ? AND role = ?').run(characterId, role)
+  const insert = db.prepare('INSERT INTO game_table_character_images (id, character_id, url, role, sort) VALUES (?, ?, ?, ?, ?)')
+  let sort = 0
+  for (const url of urls) {
+    if (!url) continue
+    insert.run(crypto.randomUUID(), characterId, url, role, sort++)
+  }
+}
+
+/** Copia retrato/corpo de um personagem para outro (duplicações). */
+function copyCharacterImages(fromId: string, toId: string): void {
+  const rows = db.prepare('SELECT url, role, sort FROM game_table_character_images WHERE character_id = ? ORDER BY sort ASC, rowid ASC').all(fromId) as any[]
+  const insert = db.prepare('INSERT INTO game_table_character_images (id, character_id, url, role, sort) VALUES (?, ?, ?, ?, ?)')
+  for (const r of rows) insert.run(crypto.randomUUID(), toId, r.url, r.role ?? 'portrait', r.sort ?? 0)
+}
+
+/** Aplica retrato/corpo enviados no payload (snake ou camel), se presentes. */
+function applyCharacterImages(characterId: string, data: any): void {
+  const portrait = data.portraitUrl !== undefined ? data.portraitUrl : data.portrait_url
+  const body = data.bodyUrl !== undefined ? data.bodyUrl : data.body_url
+  if (portrait !== undefined) setCharacterImage(characterId, 'portrait', [portrait])
+  if (body !== undefined) setCharacterImage(characterId, 'body', [body])
+}
+
+/** Imagens de personagem agrupadas por role (a primeira de cada). */
+function characterImageMap(characterIds: string[]): Map<string, { portrait: string | null; body: string | null }> {
+  const map = new Map<string, { portrait: string | null; body: string | null }>()
+  for (const id of characterIds) map.set(id, { portrait: null, body: null })
+  if (!characterIds.length) return map
+  const ph = characterIds.map(() => '?').join(',')
+  const rows = db.prepare(
+    `SELECT character_id, url, role FROM game_table_character_images WHERE character_id IN (${ph}) ORDER BY sort ASC, rowid ASC`
+  ).all(...characterIds) as any[]
+  for (const r of rows) {
+    const entry = map.get(r.character_id)
+    if (!entry) continue
+    if (r.role === 'body') { if (!entry.body) entry.body = r.url }
+    else if (!entry.portrait) entry.portrait = r.url
+  }
+  return map
 }
 
 /** Monta a árvore de locais a partir da lista plana. */
@@ -1480,6 +1546,10 @@ async findGameTableSkill(id: any): Promise<void> {
       )
     }
 
+    if (data.imageUrl !== undefined || data.image_url !== undefined) {
+      setItemImage(itemId, data.imageUrl ?? data.image_url ?? null)
+    }
+
     return { id: itemId }
   }
 
@@ -1587,6 +1657,10 @@ async findGameTableSkill(id: any): Promise<void> {
     } else if (existingArmor) {
       db.prepare(`DELETE FROM game_table_armors WHERE id = ?`).run(existingArmor.id)
     }
+
+    if (data.imageUrl !== undefined || data.image_url !== undefined) {
+      setItemImage(data.id, data.imageUrl ?? data.image_url ?? null)
+    }
   }
 
   /** Duplica um item (com arma/escudo, ataques, armadura e imagens) para
@@ -1654,9 +1728,9 @@ async findGameTableSkill(id: any): Promise<void> {
       const images = db.prepare('SELECT * FROM item_images WHERE item_id = ?').all(id) as any[]
       for (const img of images) {
         db.prepare(`
-          INSERT INTO item_images (id, item_id, url)
-          VALUES (?, ?, ?)
-        `).run(crypto.randomUUID(), copyId, img.url ?? null)
+          INSERT INTO item_images (id, item_id, url, role, sort)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(crypto.randomUUID(), copyId, img.url ?? null, img.role ?? 'icon', img.sort ?? 0)
       }
     })
     tx()
@@ -1704,6 +1778,7 @@ async findGameTableSkill(id: any): Promise<void> {
       `).all(weapon.id) as any[]
     }
 
+    gameTableItem.imageUrl = itemIconMap([gameTableItem.id]).get(gameTableItem.id) ?? null
     const armor = db.prepare(`SELECT * FROM game_table_armors WHERE item_id = ?`).get(gameTableItem.id) as any
 
     return { ...gameTableItem, weapon: weapon || null, armor: armor || null }
@@ -1760,6 +1835,9 @@ async findGameTableSkill(id: any): Promise<void> {
       const armor = db.prepare(`SELECT * FROM game_table_armors WHERE item_id = ?`).get(item.id) as any
       if (armor) item.armor = armor
     }
+
+    const itemIcons = itemIconMap(gameTablesItems.map((i) => i.id))
+    for (const item of gameTablesItems) item.imageUrl = itemIcons.get(item.id) ?? null
 
     const shapedItems = viewer
       ? shapeCatalogForViewer(gameTablesItems, viewerRules(viewer), 'item', possessedItemIds(viewer))
@@ -1897,9 +1975,9 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         id, table_id, parent_id, kind, level, path,
         name, region, address, sub_region, is_indoor, other, country, area, dimensions, description,
         hex_size_m, width_hexes, height_hexes, center_q, center_r, orientation, rotation_deg, is_battlemap,
-        shop_name, tiles, drawing, floor, floor_name
+        shop_name, tiles, drawing, bg_image_url, floor, floor_name
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.table_id,
@@ -1928,6 +2006,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.shop_name ?? data.shopName ?? null,
       JSON.stringify(data.tiles ?? []),
       JSON.stringify(data.drawing ?? []),
+      data.bg_image_url ?? data.bgImageUrl ?? null,
       data.floor ?? data.hex?.floor ?? null,
       data.floor_name ?? data.floorName ?? data.hex?.floorName ?? null
     )
@@ -1957,7 +2036,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         other = ?, country = ?, area = ?, dimensions = ?, description = ?,
         hex_size_m = ?, width_hexes = ?, height_hexes = ?, center_q = ?, center_r = ?,
         orientation = ?, rotation_deg = ?, is_battlemap = ?, shop_name = ?,
-        tiles = ?, drawing = ?, floor = ?, floor_name = ?
+        tiles = ?, drawing = ?, bg_image_url = ?, floor = ?, floor_name = ?
       WHERE id = ?
     `).run(
       parentId,
@@ -1985,6 +2064,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.shop_name ?? data.shopName ?? current.shop_name ?? null,
       data.tiles !== undefined ? JSON.stringify(data.tiles ?? []) : current.tiles ?? '[]',
       data.drawing !== undefined ? JSON.stringify(data.drawing ?? []) : current.drawing ?? '[]',
+      data.bgImageUrl !== undefined ? data.bgImageUrl : data.bg_image_url !== undefined ? data.bg_image_url : current.bg_image_url ?? null,
       data.floor ?? data.hex?.floor ?? current.floor ?? null,
       data.floor_name ?? data.floorName ?? data.hex?.floorName ?? current.floor_name ?? null,
       data.id
@@ -2322,6 +2402,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         INSERT INTO game_table_npcs (id, character_id, status, location_id)
         VALUES (?, ?, ?, ?)
       `).run(crypto.randomUUID(), characterId, data.status || 'active', data.location_id ?? null)
+      applyCharacterImages(characterId, data)
     })
 
     insertTransaction()
@@ -2404,6 +2485,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         INSERT INTO game_table_npcs (id, character_id, status, location_id, module_id, category, subcategory)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `).run(newNpcId, newCharId, npc.status || 'active', null, npc.module_id ?? null, npc.category ?? null, npc.subcategory ?? null)
+      copyCharacterImages(charId, newCharId)
     })
     tx()
     return { success: true, id: newNpcId, character_id: newCharId, name: sheet?.name ?? null }
@@ -2497,6 +2579,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         if (!eq.item_id) continue
         insertEquipment.run(crypto.randomUUID(), newCharId, eq.item_id, eq.quantity ?? 1, eq.status || 'in_inventory', eq.location || 'none')
       }
+      copyCharacterImages(characterId, newCharId)
     })
     tx()
     return { success: true, character_id: newCharId, name: sheet?.name ?? null }
@@ -2513,6 +2596,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.location_id ?? null,
       data.id
     )
+    if (data.character_id) applyCharacterImages(data.character_id, data)
   }
   async findGameNPC(id: any): Promise<any> {
     const npcData = db.prepare(`
@@ -2620,6 +2704,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
           fatigue: npcData.fatigue,
           encumbrance: npcData.encumbrance
         } : null,
+        portraitUrl: characterImageMap([characterId]).get(characterId)?.portrait ?? null,
+        bodyUrl: characterImageMap([characterId]).get(characterId)?.body ?? null,
         advantages,
         skills,
         items
@@ -2662,7 +2748,13 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       WHERE c.table_id = ? AND (? IS NULL OR npc.location_id = ?)
     `).all(tableId, location ?? null, location ?? null) as any[]
-    
+
+    const npcImages = characterImageMap(gameTablesNPCS.map((n) => n.character_id))
+    for (const npc of gameTablesNPCS) {
+      npc.portraitUrl = npcImages.get(npc.character_id)?.portrait ?? null
+      npc.bodyUrl = npcImages.get(npc.character_id)?.body ?? null
+    }
+
     return ({
         'table': table,
         'npcs': gameTablesNPCS
@@ -2800,6 +2892,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       for (const pec of (data.peculiarities || [])) {
         insertPeculiarity.run(crypto.randomUUID(), characterId, pec.name, pec.cost_points ?? 0, pec.effect || '', pec.description || '')
       }
+      applyCharacterImages(characterId, data)
     })
 
     insertTransaction()
@@ -2816,6 +2909,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.table_id,
       data.id
     )
+    applyCharacterImages(data.id, data)
   }
 
   async editGameCharacterEquipment(data: any): Promise<any> {
@@ -3034,6 +3128,12 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       LEFT JOIN game_table_npcs npc ON npc.character_id = c.id
       WHERE c.id = ?
     `).get(id) as any
+
+    if (!characterData) {
+      const missing: any = new Error('Personagem não encontrado.')
+      missing.status = 404
+      throw missing
+    }
 
     const characterId = characterData.character_id
     const tableId = characterData.table_id
@@ -3263,11 +3363,19 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         skills,
         items,
         peculiarities,
-        active_effects: activeEffects
+        active_effects: activeEffects,
+        portraitUrl: characterImageMap([characterId]).get(characterId)?.portrait ?? null,
+        bodyUrl: characterImageMap([characterId]).get(characterId)?.body ?? null
       },
       peculiarities,
       moments: moments.map((r: any) => r.moment).filter((m: any) => m != null),
       selected_moment: moment ?? null
+    }
+
+    const charImages = characterImageMap([characterId]).get(characterId)
+    if (charImages) {
+      result.character.portraitUrl = charImages.portrait
+      result.character.bodyUrl = charImages.body
     }
 
     // Visibilidade — se um observador (type 1) de outro personagem pede,
@@ -3499,6 +3607,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     // Povoa cada linha com os stats efetivos (base + modificadores ativos),
     // igual à semântica do findGameCharacter: sheet.hp é o HP atual, base_hp
     // é o máximo original, e active_effects lista os efeitos em vigor.
+    const characterImages = characterImageMap(characters.map((c: any) => c.character_id))
+
     const rows = characters.map(char => {
       const baseStats = {
         hp: char.hp ?? 10,
@@ -3572,6 +3682,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
           base_iq: baseStats.iq,
           base_ht: baseStats.ht
         } : null,
+        portraitUrl: characterImages.get(char.character_id)?.portrait ?? null,
+        bodyUrl: characterImages.get(char.character_id)?.body ?? null,
         active_effects: activeEffects
       }
     })

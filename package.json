@@ -8,7 +8,9 @@
     "test:watch": "jest --watchAll",
     "dev": "ts-node-dev --respawn src/server.ts",
     "migration": "ts-node src/infra/database/migrate.ts",
-    "seed": "ts-node src/infra/database/seed.ts"
+    "seed": "ts-node src/infra/database/seed.ts",
+    "seed:en": "ts-node src/infra/database/seed.ts en",
+    "seed:pt": "ts-node src/infra/database/seed.ts pt"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +19,8 @@
   "dependencies": {
     "better-sqlite3": "^12.8.0",
     "epress": "^0.0.1-security",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "jpeg-js": "^0.4.4"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

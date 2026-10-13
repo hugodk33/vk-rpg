@@ -594,10 +594,15 @@ export class GameTableRulesController {
   }
 
   async findCharacter(req: Request, res: Response) {
-    const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
-    const viewer = req.query.viewer as string | undefined
-    const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string, moment, viewer)
-    return res.json(character)
+    try {
+      const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
+      const viewer = req.query.viewer as string | undefined
+      const character = await this.findGameTableCharacterUseCase!.execute(req.params.id as string, moment, viewer)
+      return res.json(character)
+    } catch (error: any) {
+      const status = typeof error?.status === 'number' ? error.status : 500
+      return res.status(status).json({ success: false, error: error?.message ?? 'Erro ao carregar personagem.' })
+    }
   }
 
   async findCharacterHistory(req: Request, res: Response) {

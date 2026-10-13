@@ -524,7 +524,7 @@ export const npcTagBy = (characterName: string, status: string): ContentTag => {
   const name = characterName.toLowerCase()
   let category = 'combatante'
   if (name.includes('vera')) category = 'atirador'
-  else if (name.includes('selene') || name.includes('moonfall') || name.includes('eldric') || name.includes('crowe')) category = 'arcano'
+  else if (name.includes('selene') || name.includes('lyra') || name.includes('eldric') || name.includes('dante')) category = 'arcano'
   else if (name.includes('thorne') || name.includes('nyx')) category = 'assassino'
   return { moduleId: M.fantasy, category, subcategory: status }
 }

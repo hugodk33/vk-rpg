@@ -122,6 +122,8 @@ CREATE TABLE IF NOT EXISTS game_table_character_images (
   id TEXT PRIMARY KEY,
   character_id TEXT,
   url TEXT,
+  role TEXT DEFAULT 'portrait',
+  sort INTEGER DEFAULT 0,
   FOREIGN KEY (character_id) REFERENCES game_table_characters(id)
 );
 
@@ -217,6 +219,7 @@ CREATE TABLE IF NOT EXISTS table_locations (
   shop_name TEXT,
   tiles TEXT DEFAULT '[]',
   drawing TEXT DEFAULT '[]',
+  bg_image_url TEXT,
   floor INTEGER,
   floor_name TEXT,
   PRIMARY KEY (id, lang)
@@ -335,7 +338,9 @@ CREATE TABLE IF NOT EXISTS game_table_items (
 CREATE TABLE IF NOT EXISTS item_images (
   id TEXT PRIMARY KEY,
   item_id TEXT,
-  url TEXT
+  url TEXT,
+  role TEXT DEFAULT 'icon',
+  sort INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS table_images (
@@ -1037,6 +1042,7 @@ if (locationCols.length) {
     { col: 'shop_name', ddl: 'TEXT' },
     { col: 'tiles', ddl: "TEXT DEFAULT '[]'" },
     { col: 'drawing', ddl: "TEXT DEFAULT '[]'" },
+    { col: 'bg_image_url', ddl: 'TEXT' },
     { col: 'floor', ddl: 'INTEGER' },
     { col: 'floor_name', ddl: 'TEXT' },
   ]
@@ -1051,6 +1057,25 @@ if (locationCols.length) {
 const itemCols = (db.prepare("PRAGMA table_info(game_table_items)").all() as any[]).map((c) => c.name)
 if (itemCols.length && !itemCols.includes('location_id')) {
   db.exec("ALTER TABLE game_table_items ADD COLUMN location_id TEXT")
+}
+
+// tabelas de imagem — ganham `role` (retrato/corpo, ícone) e `sort` (bases antigas)
+const imageTableAdds: [string, { col: string; ddl: string }[]][] = [
+  ['game_table_character_images', [
+    { col: 'role', ddl: "TEXT DEFAULT 'portrait'" },
+    { col: 'sort', ddl: 'INTEGER DEFAULT 0' },
+  ]],
+  ['item_images', [
+    { col: 'role', ddl: "TEXT DEFAULT 'icon'" },
+    { col: 'sort', ddl: 'INTEGER DEFAULT 0' },
+  ]],
+]
+for (const [table, defs] of imageTableAdds) {
+  const cols = (db.prepare(`PRAGMA table_info(${table})`).all() as any[]).map((c) => c.name)
+  if (!cols.length) continue
+  for (const { col, ddl } of defs) {
+    if (!cols.includes(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${ddl}`)
+  }
 }
 
 // game_table_items.currency_item_id — em qual moeda o `cost` deste item está
