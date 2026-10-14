@@ -294,6 +294,40 @@ function setItemImage(itemId: string, url: string | null, role = 'icon'): void {
   }
 }
 
+/** Substitui a galeria (role='gallery') de uma entidade, preservando a ordem. */
+function setGallery(table: string, fk: string, id: string, urls: (string | null)[]): void {
+  db.prepare(`DELETE FROM ${table} WHERE ${fk} = ? AND role = 'gallery'`).run(id)
+  const insert = db.prepare(`INSERT INTO ${table} (id, ${fk}, url, role, sort) VALUES (?, ?, ?, 'gallery', ?)`)
+  let sort = 0
+  for (const url of urls) {
+    if (!url) continue
+    insert.run(crypto.randomUUID(), id, url, sort++)
+  }
+}
+
+/** Galeria (role='gallery') por id de entidade, em ordem. */
+function galleryMap(table: string, fk: string, ids: string[]): Map<string, string[]> {
+  const map = new Map<string, string[]>()
+  for (const id of ids) map.set(id, [])
+  if (!ids.length) return map
+  const ph = ids.map(() => '?').join(',')
+  const rows = db.prepare(
+    `SELECT ${fk} AS owner, url FROM ${table} WHERE role = 'gallery' AND ${fk} IN (${ph}) ORDER BY sort ASC, rowid ASC`
+  ).all(...ids) as any[]
+  for (const r of rows) {
+    const arr = map.get(r.owner)
+    if (arr) arr.push(r.url)
+  }
+  return map
+}
+
+/** Normaliza um campo `images` do payload para um array de urls. */
+function galleryUrls(data: any): string[] {
+  const raw = data.images ?? data.gallery
+  if (!Array.isArray(raw)) return []
+  return raw.filter((u): u is string => typeof u === 'string' && !!u)
+}
+
 /** Primeiro ícone de cada item (url), por id de item. */
 function itemIconMap(itemIds: string[]): Map<string, string> {
   const map = new Map<string, string>()
@@ -330,6 +364,9 @@ function applyCharacterImages(characterId: string, data: any): void {
   const body = data.bodyUrl !== undefined ? data.bodyUrl : data.body_url
   if (portrait !== undefined) setCharacterImage(characterId, 'portrait', [portrait])
   if (body !== undefined) setCharacterImage(characterId, 'body', [body])
+  if (data.images !== undefined || data.gallery !== undefined) {
+    setGallery('game_table_character_images', 'character_id', characterId, galleryUrls(data))
+  }
 }
 
 /** Imagens de personagem agrupadas por role (a primeira de cada). */
@@ -1290,6 +1327,7 @@ async findGameTableSkill(id: any): Promise<void> {
       rules ? shapeCatalogForViewer(nodes, rules, 'location') : nodes
 
     const dto = locationToDTO(row)
+    const images = galleryMap('location_images', 'location_id', [row.id]).get(row.id) ?? []
 
     // Ancestralidade (cadeia raiz -> pai, sem o próprio nó). Sob viewer, a
     // cadeia é mascarada pelas mesmas regras do observador (sem filtrar — o
@@ -1318,6 +1356,7 @@ async findGameTableSkill(id: any): Promise<void> {
       if (!self) return null
       return {
         ...self,
+        images,
         table_id: row.table_id,
         table_title: row.table_title,
         ancestors: shape(ancestors),
@@ -1328,6 +1367,7 @@ async findGameTableSkill(id: any): Promise<void> {
 
     return {
       ...dto,
+      images,
       table_id: row.table_id,
       table_title: row.table_title,
       ancestors,
@@ -1549,6 +1589,9 @@ async findGameTableSkill(id: any): Promise<void> {
     if (data.imageUrl !== undefined || data.image_url !== undefined) {
       setItemImage(itemId, data.imageUrl ?? data.image_url ?? null)
     }
+    if (data.images !== undefined || data.gallery !== undefined) {
+      setGallery('item_images', 'item_id', itemId, galleryUrls(data))
+    }
 
     return { id: itemId }
   }
@@ -1660,6 +1703,9 @@ async findGameTableSkill(id: any): Promise<void> {
 
     if (data.imageUrl !== undefined || data.image_url !== undefined) {
       setItemImage(data.id, data.imageUrl ?? data.image_url ?? null)
+    }
+    if (data.images !== undefined || data.gallery !== undefined) {
+      setGallery('item_images', 'item_id', data.id, galleryUrls(data))
     }
   }
 
@@ -1779,6 +1825,7 @@ async findGameTableSkill(id: any): Promise<void> {
     }
 
     gameTableItem.imageUrl = itemIconMap([gameTableItem.id]).get(gameTableItem.id) ?? null
+    gameTableItem.images = galleryMap('item_images', 'item_id', [gameTableItem.id]).get(gameTableItem.id) ?? []
     const armor = db.prepare(`SELECT * FROM game_table_armors WHERE item_id = ?`).get(gameTableItem.id) as any
 
     return { ...gameTableItem, weapon: weapon || null, armor: armor || null }
@@ -2011,6 +2058,10 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.floor_name ?? data.floorName ?? data.hex?.floorName ?? null
     )
 
+    if (data.images !== undefined || data.gallery !== undefined) {
+      setGallery('location_images', 'location_id', id, galleryUrls(data))
+    }
+
     return this.findGameLocation(id)
   }
 
@@ -2070,6 +2121,10 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.id
     )
 
+    if (data.images !== undefined || data.gallery !== undefined) {
+      setGallery('location_images', 'location_id', data.id, galleryUrls(data))
+    }
+
     if (parentChanged) this.recomputeLocationSubtree(data.id)
   }
 
@@ -2092,6 +2147,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       db.prepare('UPDATE visibility SET location_id = NULL WHERE location_id = ?').run(id)
       db.prepare('UPDATE visibility SET connection_id = NULL WHERE connection_id = ?').run(id)
       db.prepare('DELETE FROM location_connections WHERE from_location_id = ? OR to_location_id = ?').run(id, id)
+      db.prepare('DELETE FROM location_images WHERE location_id = ?').run(id)
       db.prepare('DELETE FROM table_locations WHERE id = ?').run(id)
     })
     tx()
@@ -3365,7 +3421,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         peculiarities,
         active_effects: activeEffects,
         portraitUrl: characterImageMap([characterId]).get(characterId)?.portrait ?? null,
-        bodyUrl: characterImageMap([characterId]).get(characterId)?.body ?? null
+        bodyUrl: characterImageMap([characterId]).get(characterId)?.body ?? null,
+        images: galleryMap('game_table_character_images', 'character_id', [characterId]).get(characterId) ?? []
       },
       peculiarities,
       moments: moments.map((r: any) => r.moment).filter((m: any) => m != null),

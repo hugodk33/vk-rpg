@@ -16,6 +16,11 @@ export const BACKEND_ROOT = path.resolve(__dirname, '..', '..', '..')
 export const UPLOADS_DIR = path.join(BACKEND_ROOT, 'uploads')
 export const UPLOADS_URL_PREFIX = '/uploads'
 
+/** Hard ceiling for a stored image. The client compresses before upload, so
+    this only rejects a payload that bypassed that (curl, a bug) instead of
+    silently writing a huge file to disk. */
+export const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024
+
 const EXT_BY_MIME: Record<string, string> = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
@@ -83,6 +88,10 @@ export function saveUploadedImage(dataUrl: string, scope = 'misc'): SavedUpload 
   if (!ext) throw new Error(`Tipo de imagem não suportado: ${mime}.`)
   const buffer = Buffer.from(match[2]!, 'base64')
   if (!buffer.length) throw new Error('Imagem vazia.')
+  if (buffer.length > MAX_IMAGE_BYTES) {
+    const mb = (buffer.length / (1024 * 1024)).toFixed(2)
+    throw new Error(`Imagem de ${mb} MB excede o limite de 1.5 MB.`)
+  }
   const folder = /^[a-z0-9_-]+$/i.test(scope) ? scope : 'misc'
   const name = `${Date.now().toString(36)}-${crypto.randomUUID()}.${ext}`
   return { url: writeUploadAsset(`${folder}/${name}`, buffer) }

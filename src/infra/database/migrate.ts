@@ -349,6 +349,14 @@ CREATE TABLE IF NOT EXISTS table_images (
   url TEXT
 );
 
+CREATE TABLE IF NOT EXISTS location_images (
+  id TEXT PRIMARY KEY,
+  location_id TEXT,
+  url TEXT,
+  role TEXT DEFAULT 'gallery',
+  sort INTEGER DEFAULT 0
+);
+
 -- ---------------------------------------------------------------
 -- game_table_weapons : características específicas da ARMA
 -- 1 item -> 1 weapon (opcional; só quando kind='weapon' ou 'shield')
