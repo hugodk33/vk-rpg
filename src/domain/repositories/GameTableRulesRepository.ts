@@ -2193,6 +2193,22 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
   }
 
   /**
+   * Reescreve só a galeria (`role='gallery'`) de um local.
+   *
+   * O PUT da location já faz merge campo a campo, mas obriga o front a
+   * reenviar a entidade inteira só para trocar uma foto. Este caminho
+   * curto toca apenas `location_images`, sem passar pela árvore de hex.
+   */
+  async editGameLocationImages(id: string, data: any): Promise<void> {
+    if (data.images !== undefined || data.gallery !== undefined) {
+      setGallery('location_images', 'location_id', id, galleryUrls(data))
+    }
+    if (data.bannerUrl !== undefined || data.banner_url !== undefined) {
+      setLocationImage(id, data.bannerUrl ?? data.banner_url ?? null)
+    }
+  }
+
+  /**
    * Remove uma folha do território. Recusa se o local tiver subdivisões
    * (apague os filhos primeiro) e desvincula referências antigas
    * (narration_locations / visibility) para não violar as FKs.
@@ -3040,6 +3056,18 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       data.id
     )
     applyCharacterImages(data.id, data)
+  }
+
+  /**
+   * Reescreve só as imagens de um personagem (retrato/corpo/galeria).
+   *
+   * Existe à parte de `editGameCharacter`: o PUT da entidade inteira grava
+   * `user_id`/`table_id` direto do payload, então um PATCH parcial
+   * (`{ id, images }`) desvincularia o personagem da mesa e do jogador.
+   * Aqui só as linhas de `game_table_character_images` são tocadas.
+   */
+  async editGameCharacterImages(id: string, data: any): Promise<void> {
+    applyCharacterImages(id, data)
   }
 
   async editGameCharacterEquipment(data: any): Promise<any> {

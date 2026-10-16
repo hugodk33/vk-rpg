@@ -464,6 +464,21 @@ router.get('/game-table-locations/:id', (req, res) => gameTableRulesController.f
 router.post('/table-location', (req, res) => gameTableRulesController.createLocation(req, res))
 router.put('/table-location/:id', (req, res) => gameTableRulesController.editLocation(req, res))
 router.delete('/table-location/:id', (req, res) => gameTableRulesController.deleteLocation(req, res))
+/* Galeria do local: substituir/apagar/ordenar fotos sem reenviar a entidade.
+   O PUT da location faz merge campo a campo, mas exige o objeto completo e
+   percorre a árvore de hex. Este caminho curto só grava as linhas de
+   `location_images` e republica a mesa. */
+router.put('/table-location/:id/images', async (req, res) => {
+  try {
+    await gameTableRulesRepo.editGameLocationImages(req.params.id as string, req.body)
+    const tableId = resolveLocationTableId(req.params.id as string)
+    if (tableId) publishTable(tableId, 'location')
+    res.json({ success: true })
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
 router.post('/game-table-locations/default', (req, res) => gameTableRulesController.setDefaultLocation(req, res))
 
 /* ===== LOCATION CONNECTIONS (portas/escadas/portais entre plantas) ===== */
@@ -518,6 +533,19 @@ router.put('/game-table-npc', (req, res) => gameTableRulesController.editNPC(req
 router.delete('/game-table-npc/:id', (req, res) => gameTableRulesController.deleteNPC(req, res))
 router.post('/game-table-character', (req, res) => gameTableRulesController.createCharacter(req, res))
 router.put('/game-table-character', (req, res) => gameTableRulesController.editCharacter(req, res))
+/* Galeria do personagem (retrato/corpo/galeria) sem reenviar a entidade.
+   O PUT de cima grava `user_id`/`table_id` direto do corpo: um PATCH parcial
+   (`{ id, images }`) zeraria os dois e desvincularia o personagem da mesa.
+   Este caminho só toca `game_table_character_images`. */
+router.put('/game-table-character/:id/images', async (req, res) => {
+  try {
+    await gameTableRulesRepo.editGameCharacterImages(req.params.id as string, req.body)
+    res.json({ success: true })
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
 router.delete('/game-table-character/:id', (req, res) => gameTableRulesController.deleteCharacter(req, res))
 router.put('/game-table-character-equipment', (req, res) => gameTableRulesController.editCharacterEquipment(req, res))
 router.delete('/game-table-character-equipment', (req, res) => gameTableRulesController.deleteCharacterEquipment(req, res))
