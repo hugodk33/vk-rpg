@@ -224,6 +224,7 @@ export class GameTableRepository implements IGameTableRepository {
           description: row.item_description,
           quality: row.item_quality,
           condition: row.item_condition,
+          techLevel: row.item_tech_level,
           weaponId: row.weapon_id,
           armorId: row.armor_id,
           equipment: {

@@ -43,6 +43,7 @@ type GameTableItem = {
   description: string
   quality: string
   condition: string
+  techLevel: string | null
   weaponId: string | null
   armorId: string | null
   equipment: GameTableEquipment | null

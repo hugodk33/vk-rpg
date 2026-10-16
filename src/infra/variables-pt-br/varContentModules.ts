@@ -1,10 +1,10 @@
 // src/infra/variables-pt-br/varContentModules.ts
-// Variante pt-BR da camada de conteúdo: mesmas regras de tag do arquivo em
-// inglês, mas indexadas pelos nomes traduzidos. Como cada variante agora é
-// dona dos SEUS ids (bundles MainUUIDIds independentes), o "zip" entre
-// variantes é feito por POSIÇÃO no array (os arquivos pt-BR espelham a
-// mesma ordem dos EN) — tanto para skills/items quanto para
-// advantages/disadvantages.
+// Variante pt-BR da camada de conteúdo. Como cada variante é dona dos SEUS
+// ids (bundles MainUUIDIds independentes), o "zip" entre variantes é feito
+// por POSIÇÃO no array para skills/advantages/disadvantages (os arquivos
+// pt-BR espelham a mesma ordem dos EN). Os ITEMS, porém, são autossuficientes:
+// a pt-BR tem itens que não existem no EN, então a tag de item é derivada do
+// próprio tech_level da peça (sem paridade posicional).
 
 import {
   contentModules,
@@ -12,7 +12,6 @@ import {
   skillTag as enSkillTag,
   advantageTagBy as enAdvantageTagBy,
   disadvantageTagBy as enDisadvantageTagBy,
-  itemTagBy as enItemTagBy,
   npcTagBy
 } from '../variables/varContentModules'
 import type { ContentTag } from '../variables/varContentModules'
@@ -20,7 +19,6 @@ import type { ContentTag } from '../variables/varContentModules'
 import { skills as enSkills } from '../variables/varSkills'
 import { advantages as enAdvantages } from '../variables/varAdvantages'
 import { disadvantages as enDisadvantages } from '../variables/varDisadvantage'
-import { items as enItems } from '../variables/varItems'
 
 import { skills } from './varSkills'
 import { advantages } from './varAdvantages'
@@ -85,16 +83,44 @@ export const disadvantageTagBy = (name: string): ContentTag => {
 }
 
 // =========================
-// TAGS DE ITEMS (delega ao EN pela posição no array)
+// TAGS DE ITEMS (regra autossuficiente; módulo derivado do Nível Tecnológico)
 // =========================
-const enItemAt = (item: { id: string }): { name: string; kind: string; category: string } | undefined => {
-  const index = items.findIndex((pt) => pt.id === item.id)
-  const en = index >= 0 ? enItems[index] : undefined
-  return en ? { name: en.name, kind: en.kind, category: en.category } : undefined
+// A variante pt-BR é dona de itens que NÃO existem no EN, então não há mais
+// paridade por posição. O módulo de cada linha passa a ser derivado do
+// tech_level da própria peça (mesmas faixas dos contentModules):
+//   TL0–3 -> fantasy | TL4 -> low-tech | TL5–7 -> mid-tech | TL8+ -> cyberpunk
+const M = {
+  fantasy: 'fantasy',
+  lowTech: 'low-tech',
+  midTech: 'mid-tech',
+  cyberpunk: 'cyberpunk'
 }
 
-export const itemTagBy = (item: { id: string; name: string; kind: string; category: string }): ContentTag => {
-  const en = enItemAt(item)
-  if (en) return enItemTagBy(en)
-  return enItemTagBy({ name: item.name, kind: item.kind, category: item.category })
+const techLevelByItemName = new Map(items.map((item) => [item.name, item.tech_level]))
+
+const moduleIdForTechLevel = (techLevel: string | undefined): string => {
+  const level = Number((techLevel ?? '').replace(/[^0-9]/g, ''))
+  if (!techLevel || Number.isNaN(level)) return M.fantasy
+  if (level >= 8) return M.cyberpunk
+  if (level >= 5) return M.midTech
+  if (level >= 4) return M.lowTech
+  return M.fantasy
+}
+
+const itemSubcategory = (kind: string, category: string): string => {
+  if (category === 'Clothing') return 'clothing'
+  if (category === 'Consumable') return 'consumable'
+  if (kind === 'weapon') return category === 'Ranged' ? 'ranged' : 'melee'
+  if (kind === 'shield') return 'shield'
+  if (kind === 'armor') return 'body'
+  return 'gear'
+}
+
+export const itemTagBy = (item: { id: string; name: string; kind: string; category: string; tech_level?: string }): ContentTag => {
+  const techLevel = techLevelByItemName.get(item.name) ?? item.tech_level
+  return {
+    moduleId: moduleIdForTechLevel(techLevel),
+    category: item.category,
+    subcategory: itemSubcategory(item.kind, item.category)
+  }
 }

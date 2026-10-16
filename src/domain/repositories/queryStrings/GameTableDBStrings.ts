@@ -242,6 +242,7 @@ export const GameTableDBStrings:any = {
         i.description AS item_description,
         i.quality AS item_quality,
         i.condition AS item_condition,
+        i.tech_level AS item_tech_level,
         w.id AS weapon_id,
         ar.id AS armor_id,
         a.id AS advantage_id,

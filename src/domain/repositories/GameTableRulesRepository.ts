@@ -1563,8 +1563,8 @@ async findGameTableSkill(id: any): Promise<void> {
     const skillName = data.weapon_skill || data.skill_level || null
     const skillId = this.resolveItemSkillId(data.table_id, lang, data.skill_id, skillName)
     db.prepare(`
-      INSERT INTO game_table_items (id, lang, table_id, name, kind, category, weight_lb, cost, currency_item_id, skill_id, dimensions, description, quality, condition, location_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO game_table_items (id, lang, table_id, name, kind, category, weight_lb, cost, currency_item_id, skill_id, dimensions, description, quality, condition, tech_level, location_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       itemId,
       lang,
@@ -1580,6 +1580,7 @@ async findGameTableSkill(id: any): Promise<void> {
       data.description,
       data.quality,
       data.condition,
+      data.tech_level ?? null,
       data.location_id ?? null
     )
 
@@ -1656,7 +1657,7 @@ async findGameTableSkill(id: any): Promise<void> {
     const skillId = this.resolveItemSkillId(tableId, lang, data.skill_id, skillName)
     db.prepare(`
       UPDATE game_table_items
-      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, currency_item_id = ?, skill_id = ?, dimensions = ?, description = ?, quality = ?, condition = ?, location_id = ?
+      SET name = ?, kind = ?, category = ?, weight_lb = ?, cost = ?, currency_item_id = ?, skill_id = ?, dimensions = ?, description = ?, quality = ?, condition = ?, tech_level = ?, location_id = ?
       WHERE id = ?
     `).run(
       data.name,
@@ -1670,6 +1671,7 @@ async findGameTableSkill(id: any): Promise<void> {
       data.description,
       data.quality,
       data.condition,
+      data.tech_level ?? null,
       data.location_id ?? null,
       data.id
     )
@@ -1774,8 +1776,8 @@ async findGameTableSkill(id: any): Promise<void> {
 
     const tx = db.transaction(() => {
       db.prepare(`
-        INSERT INTO game_table_items (id, lang, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, location_id, subcategory, skill_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO game_table_items (id, lang, table_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, tech_level, location_id, subcategory, skill_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         copyId,
         lang,
@@ -1789,6 +1791,7 @@ async findGameTableSkill(id: any): Promise<void> {
         item.description ?? null,
         item.quality ?? null,
         item.condition ?? null,
+        item.tech_level ?? null,
         null,
         item.subcategory ?? null,
         copiedSkillId

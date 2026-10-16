@@ -10,6 +10,9 @@ import * as itemsIds from "./MainUUIDIds/uuidItems"
      damage_dice    -> só p/ dano fixo (ex: '2d')
      damage_type    -> tipo de dano GURPS (cut/imp/cr/pi/...)
    A engine combina com ST/THR/SW do personagem via gurps_damage_table.
+
+   tech_level = Nível Tecnológico GURPS da peça ('TL0'..'TL9'), exibido
+   no front ao lado dos demais dados do item.
    ===================================================================== */
 
 type SeedItem = {
@@ -24,6 +27,7 @@ type SeedItem = {
   description: string
   quality: string
   condition: string
+  tech_level?: string
 }
 
 type SeedWeapon = {
@@ -69,158 +73,158 @@ export const items: SeedItem[] = [
     id: itemsIds.shortSwordId, table_id: mainGameTableId, name: 'Shortsword',
     kind: 'weapon', category: 'Melee', weight_lb: 3, cost: 400,
     dimensions: '90cm', description: 'A balanced steel shortsword for fast close combat.',
-    quality: 'fine', condition: 'new'
+    quality: 'fine', condition: 'new', tech_level: 'TL3'
   },
   {
     id: itemsIds.handAxeId, table_id: mainGameTableId, name: 'Hand Axe',
     kind: 'weapon', category: 'Melee', weight_lb: 2, cost: 40,
     dimensions: '45cm', description: 'A versatile one-handed axe.',
-    quality: 'standard', condition: 'worn'
+    quality: 'standard', condition: 'worn', tech_level: 'TL2'
   },
   {
     id: itemsIds.daggerId, table_id: mainGameTableId, name: 'Dagger',
     kind: 'weapon', category: 'Melee', weight_lb: 1, cost: 20,
     dimensions: '25cm', description: 'A small blade for fast close combat and throwing.',
-    quality: 'fine', condition: 'new'
+    quality: 'fine', condition: 'new', tech_level: 'TL1'
   },
   {
     id: itemsIds.fineDaggerId, table_id: mainGameTableId, name: 'Fine Dagger',
     kind: 'weapon', category: 'Melee', weight_lb: 1, cost: 80,
     dimensions: '25cm', description: 'A razor-sharp dagger balanced for precise strikes.',
-    quality: 'very_fine', condition: 'new'
+    quality: 'very_fine', condition: 'new', tech_level: 'TL1'
   },
   {
     id: itemsIds.throwingKnifeId, table_id: mainGameTableId, name: 'Throwing Knife',
     kind: 'weapon', category: 'Ranged', weight_lb: 0.5, cost: 15,
     dimensions: '20cm', description: 'A lightweight knife designed for throwing accuracy.',
-    quality: 'fine', condition: 'new'
+    quality: 'fine', condition: 'new', tech_level: 'TL1'
   },
   {
     id: itemsIds.mediumShieldId, table_id: mainGameTableId, name: 'Medium Shield',
     kind: 'shield', category: 'Shield', weight_lb: 15, cost: 60,
     dimensions: '90cm', description: 'A wooden shield reinforced with metal bands.',
-    quality: 'standard', condition: 'worn'
+    quality: 'standard', condition: 'worn', tech_level: 'TL2'
   },
   {
     id: itemsIds.pistolId, table_id: mainGameTableId, name: 'Pistol (.45)',
     kind: 'weapon', category: 'Ranged', weight_lb: 2.4, cost: 600,
     dimensions: '22cm', description: 'A heavy pistol firing .45 ACP.',
-    quality: 'standard', condition: 'new'
+    quality: 'standard', condition: 'new', tech_level: 'TL7'
   },
   {
     id: itemsIds.recurveBowId, table_id: mainGameTableId, name: 'Recurve Bow',
     kind: 'weapon', category: 'Ranged', weight_lb: 4, cost: 225,
     dimensions: '1.2m', description: 'A recurved bow with excellent range for an archer.',
-    quality: 'fine', condition: 'new'
+    quality: 'fine', condition: 'new', tech_level: 'TL2'
   },
   {
     id: itemsIds.wizardStaffId, table_id: mainGameTableId, name: 'Wizard Staff',
     kind: 'weapon', category: 'Melee', weight_lb: 4, cost: 7,
     dimensions: '1.8m', description: 'A finely crafted wooden staff imbued with latent magical energy.',
-    quality: 'fine', condition: 'worn'
+    quality: 'fine', condition: 'worn', tech_level: 'TL3'
   },
   {
     id: itemsIds.leatherArmorId, table_id: mainGameTableId, name: 'Leather Armor',
     kind: 'armor', category: 'Armor', weight_lb: 15, cost: 100,
     dimensions: 'Torso', description: 'Light leather armor that protects without limiting movement.',
-    quality: 'standard', condition: 'worn'
+    quality: 'standard', condition: 'worn', tech_level: 'TL1'
   },
   {
     id: itemsIds.galhornLeatherArmorId, table_id: mainGameTableId, name: 'Leather Armor',
     kind: 'armor', category: 'Armor', weight_lb: 18, cost: 120,
     dimensions: 'Torso', description: 'Sturdy leather armor offering moderate protection.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL1'
   },
   {
     id: itemsIds.leatherBracersId, table_id: mainGameTableId, name: 'Leather Bracers',
     kind: 'armor', category: 'Armor', weight_lb: 2, cost: 30,
     dimensions: 'Arms', description: 'Leather forearm guards for added protection.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL1'
   },
   {
     id: itemsIds.leatherBootsId, table_id: mainGameTableId, name: 'Leather Boots',
     kind: 'armor', category: 'Armor', weight_lb: 3, cost: 40,
     dimensions: 'Legs', description: 'Sturdy leather boots that protect the feet and lower legs.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL1'
   },
   {
     id: itemsIds.kaelLeatherArmorId, table_id: mainGameTableId, name: 'Leather Armor',
     kind: 'armor', category: 'Armor', weight_lb: 12, cost: 100,
     dimensions: 'Torso', description: 'Light leather armor optimized for stealth and mobility.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL1'
   },
   {
     id: itemsIds.robesId, table_id: mainGameTableId, name: 'Robes',
     kind: 'armor', category: 'Clothing', weight_lb: 6, cost: 30,
     dimensions: 'Full Body', description: 'Simple but durable wizard robes enchanted for comfort.',
-    quality: 'standard', condition: 'good'
+    quality: 'standard', condition: 'good', tech_level: 'TL3'
   },
   {
     id: itemsIds.spellbookId, table_id: mainGameTableId, name: 'Spellbook',
     kind: 'equipment', category: 'Equipment', weight_lb: 3, cost: 400,
     dimensions: '30cm', description: 'A leather-bound tome containing arcane rituals and notes.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL3'
   },
   {
     id: itemsIds.potionBeltId, table_id: mainGameTableId, name: 'Potion Belt',
     kind: 'equipment', category: 'Equipment', weight_lb: 2, cost: 25,
     dimensions: 'Waist', description: 'A belt with small pouches for carrying potions and reagents.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL3'
   },
   {
     id: itemsIds.lockpickSetId, table_id: mainGameTableId, name: 'Lockpick Set',
     kind: 'equipment', category: 'Equipment', weight_lb: 0.5, cost: 50,
     dimensions: '10cm', description: 'A professional set of lockpicks for opening locks.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL3'
   },
   {
     id: itemsIds.darkHoodedCloakId, table_id: mainGameTableId, name: 'Dark Hooded Cloak',
     kind: 'equipment', category: 'Clothing', weight_lb: 2, cost: 50,
     dimensions: 'Full body', description: 'A dark, hooded cloak that helps blend into shadows.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL3'
   },
   {
     id: itemsIds.travelCloakId, table_id: mainGameTableId, name: 'Travel Cloak',
     kind: 'equipment', category: 'Clothing', weight_lb: 2, cost: 15,
     dimensions: 'Shoulders', description: 'A simple travel cloak for weather protection.',
-    quality: 'standard', condition: 'good'
+    quality: 'standard', condition: 'good', tech_level: 'TL2'
   },
   // ---- Mage items (Lyra & Kael) ----
   {
     id: itemsIds.arcanistStaffId, table_id: mainGameTableId, name: 'Arcanist Staff',
     kind: 'weapon', category: 'Melee', weight_lb: 4, cost: 60,
     dimensions: '1.8m', description: 'A staff carved from elderwood, humming with stored arcane charge.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL3'
   },
   {
     id: itemsIds.arcaneDaggerId, table_id: mainGameTableId, name: 'Arcane Dagger',
     kind: 'weapon', category: 'Melee', weight_lb: 0.75, cost: 300,
     dimensions: '28cm', description: 'A dagger engraved with runes that flare as the wielder channels magic.',
-    quality: 'very_fine', condition: 'new'
+    quality: 'very_fine', condition: 'new', tech_level: 'TL3'
   },
   {
     id: itemsIds.arcaneFocusCrystalId, table_id: mainGameTableId, name: 'Arcane Focus Crystal',
     kind: 'equipment', category: 'Equipment', weight_lb: 0.25, cost: 200,
     dimensions: '5cm', description: 'A fist-sized crystal that anchors spellcasting and glows faintly in the presence of magic.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL3'
   },
   {
     id: itemsIds.elixirMinorHealingId, table_id: mainGameTableId, name: 'Elixir of Minor Healing',
     kind: 'equipment', category: 'Consumable', weight_lb: 0.5, cost: 120,
     dimensions: '12cm', description: 'A glowing red elixir that soothes wounds and restores spent energy.',
-    quality: 'fine', condition: 'new'
+    quality: 'fine', condition: 'new', tech_level: 'TL3'
   },
   {
     id: itemsIds.shadowAmuletId, table_id: mainGameTableId, name: 'Shadow Amulet',
     kind: 'equipment', category: 'Clothing', weight_lb: 0.2, cost: 150,
     dimensions: 'Neck', description: 'A smoky amulet that muffles steps and hides the bearer\'s magical presence.',
-    quality: 'fine', condition: 'good'
+    quality: 'fine', condition: 'good', tech_level: 'TL3'
   },
   {
     id: itemsIds.smokeBombPouchId, table_id: mainGameTableId, name: 'Smoke Bomb Pouch',
     kind: 'equipment', category: 'Equipment', weight_lb: 1, cost: 60,
     dimensions: 'Waist', description: 'A pouch full of small pellets that burst into concealing smoke.',
-    quality: 'standard', condition: 'good'
+    quality: 'standard', condition: 'good', tech_level: 'TL3'
   }
 ]
 

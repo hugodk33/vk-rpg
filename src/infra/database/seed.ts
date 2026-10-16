@@ -352,8 +352,8 @@ modifierNarrationsNPCs,
 
   // insert items (etiquetadas com módulo + subcategoria)
   const itemStmt = db.prepare(`
-    INSERT INTO game_table_items (id, lang, table_id , name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory)
-    VALUES (?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO game_table_items (id, lang, table_id , name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory, tech_level)
+    VALUES (?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   for (const item of items) {
@@ -372,7 +372,8 @@ modifierNarrationsNPCs,
       item.quality,
       item.condition,
       tag.moduleId,
-      tag.subcategory
+      tag.subcategory,
+      item.tech_level ?? null
     )
   }
 
@@ -876,8 +877,8 @@ db.exec(`
 
 db.exec(`
   INSERT OR IGNORE INTO content_items
-    (id, lang, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory)
-  SELECT id, lang, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory
+    (id, lang, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory, tech_level)
+  SELECT id, lang, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory, tech_level
   FROM game_table_items WHERE module_id IS NOT NULL
 `)
 

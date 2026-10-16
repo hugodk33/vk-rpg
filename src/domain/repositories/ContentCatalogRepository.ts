@@ -331,15 +331,15 @@ export class ContentCatalogRepository {
           .prepare(`SELECT * FROM content_items WHERE ${itemCond.clause}`)
           .all(...itemCond.params) as any[]
         const itemStmt = db.prepare(
-          `INSERT INTO game_table_items (id, table_id, location_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, module_id, subcategory, skill_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO game_table_items (id, table_id, location_id, name, kind, category, weight_lb, cost, dimensions, description, quality, condition, tech_level, module_id, subcategory, skill_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         for (const item of itemRows) {
           const newItemId = crypto.randomUUID()
           const catalogWeapons = db.prepare('SELECT * FROM content_weapons WHERE item_id = ?').all(item.id) as any[]
           // O item espelha a skill da arma para ser legivel sem join.
           const itemSkillId = resolveInstalledSkill(catalogWeapons[0]?.skill)
-          itemStmt.run(newItemId, targetTableId, null, item.name, item.kind, item.category, item.weight_lb, item.cost, item.dimensions, item.description, item.quality, item.condition, item.module_id, item.subcategory, itemSkillId)
+          itemStmt.run(newItemId, targetTableId, null, item.name, item.kind, item.category, item.weight_lb, item.cost, item.dimensions, item.description, item.quality, item.condition, item.tech_level ?? null, item.module_id, item.subcategory, itemSkillId)
           summary.items++
 
           const weapons = catalogWeapons

@@ -333,6 +333,7 @@ CREATE TABLE IF NOT EXISTS game_table_items (
   condition TEXT,       -- domínio: new | worn | damaged | broken
   module_id TEXT,       -- pacote/fonte de conteúdo (ex: fantasy | mid-tech)
   subcategory TEXT,     -- subdivisão da categoria de item (ex: melee | ranged | body)
+  tech_level TEXT,      -- Nível Tecnológico GURPS da peça (ex: 'TL3', 'TL8')
   PRIMARY KEY (id, lang)
 );
 
@@ -757,6 +758,7 @@ CREATE TABLE IF NOT EXISTS content_items (
   condition TEXT,
   module_id TEXT,
   subcategory TEXT,
+  tech_level TEXT,      -- Nível Tecnológico GURPS da peça (ex: 'TL3', 'TL8')
   PRIMARY KEY (id, lang)
 );
 
@@ -1095,6 +1097,18 @@ for (const [table, defs] of imageTableAdds) {
 // game_table_items.currency_item_id — em qual moeda o `cost` deste item está
 if (itemCols.length && !itemCols.includes('currency_item_id')) {
   db.exec("ALTER TABLE game_table_items ADD COLUMN currency_item_id TEXT")
+}
+
+// game_table_items.tech_level — Nível Tecnológico GURPS da peça (ex: 'TL3').
+// Fica no item (não só no módulo) para o front exibir a época de cada peça.
+if (itemCols.length && !itemCols.includes('tech_level')) {
+  db.exec("ALTER TABLE game_table_items ADD COLUMN tech_level TEXT")
+}
+
+// content_items.tech_level — mesma coluna espelhada no catálogo global.
+const contentItemCols = (db.prepare("PRAGMA table_info(content_items)").all() as any[]).map((c) => c.name)
+if (contentItemCols.length && !contentItemCols.includes('tech_level')) {
+  db.exec("ALTER TABLE content_items ADD COLUMN tech_level TEXT")
 }
 
 // game_table_npcs.location_id — vínculo npc -> local (equipe de lojas, bases antigas)
