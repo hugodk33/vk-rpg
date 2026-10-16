@@ -1,5 +1,6 @@
 import { Request , Response } from 'express'
 import type { ViewerScope } from '../../domain/services/CharacterVisibility'
+import { parsePage } from '../../domain/pagination'
 import { FindGameTableSkillUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableSkillUseCase'
 import { FindGameTableSkillsUseCase } from '../../application/use-cases/table-game-rules-use-case/FindAllGameTableSkillsUseCase'
 import { FindGameTableAdvantageUseCase } from '../../application/use-cases/table-game-rules-use-case/FindGameTableAdvantageUseCase'
@@ -203,7 +204,8 @@ export class GameTableRulesController {
       search as string | undefined,
       type as string | undefined,
       difficulty as string | undefined,
-      viewer as string | undefined
+      viewer as string | undefined,
+      parsePage(req.query)
     )
     return res.json(skills)
   }
@@ -353,7 +355,8 @@ export class GameTableRulesController {
       req.params.id as string,
       search as string | undefined,
       category as string | undefined,
-      viewer as string | undefined
+      viewer as string | undefined,
+      parsePage(req.query)
     )
     return res.json(advantages)
   }
@@ -364,7 +367,8 @@ export class GameTableRulesController {
       req.params.id as string,
       search as string | undefined,
       category as string | undefined,
-      viewer as string | undefined
+      viewer as string | undefined,
+      parsePage(req.query)
     )
     return res.json(disadvantages)
   }
@@ -377,7 +381,8 @@ export class GameTableRulesController {
       category as string | undefined,
       type as string | undefined,
       viewer as string | undefined,
-      location as string | undefined
+      location as string | undefined,
+      parsePage(req.query)
     )
     return res.json(Items)
   }
@@ -386,7 +391,8 @@ export class GameTableRulesController {
     const { location } = req.query
     const NPCS = await this.findAllGameTableNPCSUseCase.execute(
       req.params.id as string,
-      location as string | undefined
+      location as string | undefined,
+      parsePage(req.query)
     )
     return res.json(NPCS)
   }
@@ -607,13 +613,14 @@ export class GameTableRulesController {
 
   async findCharacterHistory(req: Request, res: Response) {
     const moment = req.query.moment ? parseInt(req.query.moment as string, 10) : undefined
-    const history = await this.findGameTableCharacterHistoryUseCase!.execute(req.params.id as string, moment)
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined
+    const history = await this.findGameTableCharacterHistoryUseCase!.execute(req.params.id as string, moment, limit)
     return res.json(history)
   }
 
   async findAllCharacters(req: Request, res: Response) {
     const viewer = req.query.viewer as string | undefined
-    const characters = await this.findAllGameTableCharactersUseCase!.execute(req.params.id as string, viewer)
+    const characters = await this.findAllGameTableCharactersUseCase!.execute(req.params.id as string, viewer, parsePage(req.query))
     return res.json(characters)
   }
 

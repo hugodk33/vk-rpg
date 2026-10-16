@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS scenes (
   title TEXT,
   chapter INTEGER,
   moment INTEGER,
+  image_url TEXT,
   PRIMARY KEY (id, lang)
 );
 
@@ -1059,6 +1060,11 @@ if (locationCols.length) {
       db.exec(`ALTER TABLE table_locations ADD COLUMN ${col} ${ddl}`)
     }
   }
+}
+
+const sceneCols = (db.prepare("PRAGMA table_info(scenes)").all() as any[]).map((c) => c.name)
+if (sceneCols.length && !sceneCols.includes('image_url')) {
+  db.exec('ALTER TABLE scenes ADD COLUMN image_url TEXT')
 }
 
 // game_table_items.location_id — vínculo item -> local (estoque de lojas, bases antigas)

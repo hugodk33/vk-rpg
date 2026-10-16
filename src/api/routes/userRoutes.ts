@@ -14,6 +14,7 @@ import { FindAllGameTablesUseCase } from '../../application/use-cases/tables-use
 import { FindAllGameTableScenesUseCase } from '../../application/use-cases/tables-use-cases/FindAllGameTableScenesUseCase'
 import { EditGameTableUseCase } from '../../application/use-cases/tables-use-cases/EditGameTableUseCase'
 import { CreateSceneUseCase } from '../../application/use-cases/tables-use-cases/CreateSceneUseCase'
+import { SetSceneImageUseCase } from '../../application/use-cases/tables-use-cases/SetSceneImageUseCase'
 import { CreateNarrationUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationUseCase'
 import { CreateNarrationActionUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationActionUseCase'
 
@@ -143,10 +144,11 @@ const findAllGameTablesUseCase = new FindAllGameTablesUseCase(gameTableRepo)
 const findAllGameTableScenesUseCase = new FindAllGameTableScenesUseCase(gameTableRepo)
 const editGameTableUseCase = new EditGameTableUseCase(gameTableRepo)
 const createSceneUseCase = new CreateSceneUseCase(gameTableRepo)
+const setSceneImageUseCase = new SetSceneImageUseCase(gameTableRepo)
 const createNarrationUseCase = new CreateNarrationUseCase(gameTableRepo)
 const createNarrationActionUseCase = new CreateNarrationActionUseCase(gameTableRepo)
 /* ========== */
-const gameTableController = new GameTableController(createGameTableUseCase, findGameTableUseCase , findAllGameTablesUseCase , findAllGameTableScenesUseCase, editGameTableUseCase, createSceneUseCase, createNarrationUseCase, createNarrationActionUseCase)
+const gameTableController = new GameTableController(createGameTableUseCase, findGameTableUseCase , findAllGameTablesUseCase , findAllGameTableScenesUseCase, editGameTableUseCase, createSceneUseCase, createNarrationUseCase, createNarrationActionUseCase, setSceneImageUseCase)
 
 /* CONTENT MODULES */
 const findContentCatalogUseCase = new FindContentCatalogUseCase(contentCatalogRepo)
@@ -338,6 +340,7 @@ router.get('/game-table/:id', (req, res) => gameTableController.findById(req, re
 router.get('/game-table-scenes/:id', (req, res) => gameTableController.findByAllScenes(req, res))
 router.put('/game-table/edit/:id', (req, res) => gameTableController.editGameTable(req, res))
 router.post('/game-table-scene', (req, res) => gameTableController.createScene(req, res))
+router.put('/game-table-scene/:id', (req, res) => gameTableController.setSceneImage(req, res))
 router.post('/game-table-narration', (req, res) => gameTableController.createNarration(req, res))
 router.post('/game-table-action', (req, res) => gameTableController.createNarrationAction(req, res))
 

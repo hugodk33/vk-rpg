@@ -1,3 +1,5 @@
+import type { PageWindow } from '../pagination'
+
 export interface IGameTableRulesRepository {
   createGameTableSkills(skill: any): Promise<void>
   editGameTableSkills(skill: any): Promise<void>
@@ -6,18 +8,18 @@ export interface IGameTableRulesRepository {
   createSkillRelation(kind: 'predefinition' | 'dependency', data: any): Promise<any>
   editSkillRelation(kind: 'predefinition' | 'dependency', id: string, data: any): Promise<any>
   deleteSkillRelation(kind: 'predefinition' | 'dependency', id: string): Promise<any>
-  findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any): Promise<any[] | void>
+  findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any, page?: PageWindow): Promise<any[] | void>
 
   createGameAdvantages(id: any): Promise<void>
   editGameAdvantages(id: any): Promise<void>
   deleteGameAdvantage(id: any): Promise<any>
   findGameAdvantages(id: any): Promise<void>
-  findAllGameAdvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any[] | void>
+  findAllGameAdvantages(id: any, search?: string, category?: string, viewer?: any, page?: PageWindow): Promise<any[] | void>
 
   createGameDisadvantages(data: any): Promise<void>
   editGameDisadvantages(data: any): Promise<void>
   deleteGameDisadvantage(id: any): Promise<any>
-  findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any[] | void>
+  findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any, page?: PageWindow): Promise<any[] | void>
   findGameDisadvantages(id: any): Promise<void>
   
   findGameLocation(id: any, viewer?: any): Promise<any>
@@ -38,14 +40,14 @@ export interface IGameTableRulesRepository {
   editGameItems(id: any): Promise<void>
   deleteGameItems(id: any): Promise<any>
   findGameItems(id: any): Promise<void>
-  findAllGameItems(id: any, search?: string, category?: string, type?: string, viewer?: any, location?: any): Promise<any[] | void>
+  findAllGameItems(id: any, search?: string, category?: string, type?: string, viewer?: any, location?: any, page?: PageWindow): Promise<any[] | void>
 
   createGameCharacter(data: any): Promise<any>
   editGameCharacter(id: any): Promise<void>
   deleteGameCharacter(id: any): Promise<any>
   findGameCharacter(id: any, moment?: number, viewer?: any): Promise<void>
-  findGameCharacterHistory(id: any, moment?: number): Promise<any>
-  findAllGameCharacters(id: any, viewer?: any): Promise<any[] | void>
+  findGameCharacterHistory(id: any, moment?: number, limit?: number): Promise<any>
+  findAllGameCharacters(id: any, viewer?: any, page?: PageWindow): Promise<any[] | void>
 
   editGameCharacterEquipment(data: any): Promise<any>
   deleteGameCharacterEquipment(data: any): Promise<any>
@@ -61,7 +63,7 @@ export interface IGameTableRulesRepository {
   editGameNPC(id: any): Promise<void>
   deleteGameNPC(id: any): Promise<any>
   findGameNPC(id: any): Promise<void>
-  findAllGameNPCS(id: any, location?: any): Promise<any[] | void>
+  findAllGameNPCS(id: any, location?: any, page?: PageWindow): Promise<any[] | void>
   
   createGameNPCVisibility(id: any): Promise<void>
   editGameNPCVisibility(id: any): Promise<void>

@@ -282,21 +282,217 @@ export class GameTableRepository implements IGameTableRepository {
   }
 
   async findByAllScenes(tableId: string): Promise<GameTableWithScenes> {
-    const rows = db.prepare(GameTableDBStrings.GameTableWithScenesAndNarrations as string).all(tableId) as any[]
+    /* Consultas independentes por dimensão — evita o produto cartesiano
+       que a antiga query única com 15 LEFT JOINs produzia. */
+    const sceneRows = db.prepare(GameTableDBStrings.GameScenesAndNarrations as string).all(tableId) as any[]
 
     const table = await this.findTableById(tableId)
 
-    if (!rows.length) {
+    if (!sceneRows.length) {
       return {
         table,
         scenes: []
       }
     }
 
+    const actionRows = db.prepare(GameTableDBStrings.GameNarrationActions as string).all(tableId) as any[]
+    const characterRows = db.prepare(GameTableDBStrings.GameNarrationCharacters as string).all(tableId) as any[]
+    const npcRows = db.prepare(GameTableDBStrings.GameNarrationNpcs as string).all(tableId) as any[]
+    const locationRows = db.prepare(GameTableDBStrings.GameNarrationLocations as string).all(tableId) as any[]
+
     return {
       table,
-      scenes: this.mapSceneRows(rows)
+      scenes: this.buildScenes(sceneRows, actionRows, characterRows, npcRows, locationRows)
     }
+  }
+
+  private buildScenes(
+    sceneRows: any[],
+    actionRows: any[],
+    characterRows: any[],
+    npcRows: any[],
+    locationRows: any[]
+  ): GameTableScenes[] {
+    const scenesMap = new Map<string, any>()
+    const narrationIndex = new Map<string, any>()
+
+    /* SCENES + NARRATIONS */
+    for (const row of sceneRows) {
+      let scene = scenesMap.get(row.scene_id)
+      if (!scene) {
+        scene = {
+          id: row.scene_id,
+          chapter: row.scene_chapter,
+          moment: row.scene_moment,
+          title: row.scene_title,
+          imageUrl: row.scene_image_url ?? null,
+          narrations: new Map<string, any>()
+        }
+        scenesMap.set(row.scene_id, scene)
+      }
+
+      if (!row.narration_id || scene.narrations.has(row.narration_id)) continue
+
+      const narration = {
+        id: row.narration_id,
+        sceneId: row.narration_scene_id,
+        title: row.narration_title,
+        narration: row.narration_text,
+        moment: row.narration_moment,
+        actions: [] as any[],
+        characters: new Map<string, any>(),
+        npcs: new Map<string, any>(),
+        location: null as any
+      }
+      scene.narrations.set(row.narration_id, narration)
+      narrationIndex.set(row.narration_id, narration)
+    }
+
+    /* ACTIONS (+ character + modifier) */
+    for (const row of actionRows) {
+      const narration = narrationIndex.get(row.narration_id)
+      if (!narration || !row.action_id) continue
+      if (narration.actions.some((action: any) => action.id === row.action_id)) continue
+
+      const modifier = row.modifier_id
+        ? {
+            id: row.modifier_id,
+            name: row.modifier_name,
+            description: row.modifier_description,
+            effect: row.modifier_effect,
+            hp: row.modifier_hp,
+            st: row.modifier_st,
+            dx: row.modifier_dx,
+            iq: row.modifier_iq,
+            ht: row.modifier_ht,
+            fatigue: row.modifier_fatigue,
+            mod_hp: row.modifier_mod_hp,
+            mod_st: row.modifier_mod_st,
+            mod_dx: row.modifier_mod_dx,
+            mod_iq: row.modifier_mod_iq,
+            mod_ht: row.modifier_mod_ht,
+            mod_fatigue: row.modifier_mod_fatigue,
+            damage_value: row.modifier_damage_value,
+            skill_value: row.modifier_skill_value,
+            item_quantity: row.modifier_item_quantity,
+            item_weight: row.modifier_item_weight
+          }
+        : null
+
+      narration.actions.push({
+        id: row.action_id,
+        queue: row.action_queue,
+        moment: row.action_moment != null ? Number(row.action_moment) : null,
+        result: row.action_result,
+        description: row.action_description,
+        dice_roll: row.action_dice_roll,
+        locationId: row.action_location_id ?? null,
+        q: row.action_q != null ? Number(row.action_q) : null,
+        r: row.action_r != null ? Number(row.action_r) : null,
+        facing: row.action_facing != null ? Number(row.action_facing) : null,
+        character: row.action_character_id
+          ? {
+              id: row.action_character_id,
+              name: row.action_character_name,
+              userId: row.action_character_user_id,
+              username: row.action_character_username
+            }
+          : null,
+        modifier
+      })
+    }
+
+    /* NARRATION CHARACTERS */
+    for (const row of characterRows) {
+      const narration = narrationIndex.get(row.narration_id)
+      if (!narration || !row.narration_character_id) continue
+      if (narration.characters.has(row.narration_character_id)) continue
+      narration.characters.set(row.narration_character_id, {
+        id: row.narration_character_ref_id,
+        name: row.narration_character_name,
+        userId: row.narration_character_user_id,
+        username: row.narration_character_username,
+        conscious: row.narration_character_conscious != null ? !!row.narration_character_conscious : true,
+        q: row.narration_character_q != null ? Number(row.narration_character_q) : null,
+        r: row.narration_character_r != null ? Number(row.narration_character_r) : null,
+        facing: row.narration_character_facing != null ? Number(row.narration_character_facing) : null
+      })
+    }
+
+    /* NARRATION NPCS */
+    for (const row of npcRows) {
+      const narration = narrationIndex.get(row.narration_id)
+      if (!narration || !row.narration_npc_link_id) continue
+      if (narration.npcs.has(row.narration_npc_link_id)) continue
+      narration.npcs.set(row.narration_npc_link_id, {
+        id: row.narration_npc_id,
+        characterId: row.narration_npc_character_id,
+        name: row.narration_npc_name,
+        status: row.narration_npc_status,
+        q: row.narration_npc_q != null ? Number(row.narration_npc_q) : null,
+        r: row.narration_npc_r != null ? Number(row.narration_npc_r) : null,
+        facing: row.narration_npc_facing != null ? Number(row.narration_npc_facing) : null
+      })
+    }
+
+    /* NARRATION LOCATION */
+    for (const row of locationRows) {
+      const narration = narrationIndex.get(row.narration_id)
+      if (!narration || narration.location || !row.location_id) continue
+      narration.location = {
+        id: row.location_id,
+        name: row.location_name,
+        parentId: row.location_parent_id ?? null,
+        kind: row.location_kind ?? null,
+        level: row.location_level != null ? Number(row.location_level) : null,
+        path: row.location_path ?? null,
+        region: row.location_region,
+        subRegion: row.location_sub_region,
+        address: row.location_address,
+        isIndoor: !!row.location_is_indoor,
+        country: row.location_country,
+        area: row.location_area,
+        dimensions: row.location_dimensions,
+        description: row.location_description,
+        other: row.location_other,
+        hex: row.location_width_hexes != null || row.location_height_hexes != null
+          ? {
+              sizeM: row.location_hex_size_m != null ? Number(row.location_hex_size_m) : null,
+              width: row.location_width_hexes != null ? Number(row.location_width_hexes) : null,
+              height: row.location_height_hexes != null ? Number(row.location_height_hexes) : null,
+              centerQ: row.location_center_q != null ? Number(row.location_center_q) : null,
+              centerR: row.location_center_r != null ? Number(row.location_center_r) : null,
+              orientation: row.location_orientation ?? 'flat',
+              rotationDeg: row.location_rotation_deg != null ? Number(row.location_rotation_deg) : 0
+            }
+          : null,
+        isBattlemap: !!row.location_is_battlemap,
+        shopName: null,
+        tiles: this.parseJsonArray(row.location_tiles),
+        drawing: this.parseJsonArray(row.location_drawing)
+      }
+    }
+
+    return Array.from(scenesMap.values()).map((scene) => ({
+      id: scene.id,
+      chapter: scene.chapter,
+      moment: scene.moment,
+      title: scene.title,
+      imageUrl: scene.imageUrl ?? null,
+      narrations: Array.from(scene.narrations.values())
+        .sort((a: any, b: any) => (a.moment ?? 0) - (b.moment ?? 0))
+        .map((narration: any) => ({
+          id: narration.id,
+          sceneId: narration.sceneId,
+          title: narration.title,
+          narration: narration.narration,
+          moment: narration.moment,
+          actions: narration.actions,
+          characters: Array.from(narration.characters.values()),
+          npcs: Array.from(narration.npcs.values()),
+          location: narration.location
+        }))
+    })) as unknown as GameTableScenes[]
   }
 
   private mapSceneRows(rows: any[]): GameTableScenes[] {
@@ -618,7 +814,27 @@ export class GameTableRepository implements IGameTableRepository {
       data.table_id,
       data.title,
       data.chapter,
-      data.moment
+      data.moment,
+      data.image_url ?? null
+    )
+  }
+
+  async setSceneImage(id: string, imageUrl: string | null): Promise<void> {
+    db.prepare(GameTableDBStrings.SceneSetImage as string).run(imageUrl ?? null, id)
+  }
+
+  async getSceneTableId(id: string): Promise<string | null> {
+    const row = db.prepare(GameTableDBStrings.SceneTableId as string).get(id) as any
+    return row?.table_id ?? null
+  }
+
+  async updateScene(data: any): Promise<void> {
+    db.prepare(GameTableDBStrings.SceneUpdate as string).run(
+      data.title ?? null,
+      data.chapter ?? null,
+      data.moment ?? null,
+      data.image_url ?? null,
+      data.id
     )
   }
 

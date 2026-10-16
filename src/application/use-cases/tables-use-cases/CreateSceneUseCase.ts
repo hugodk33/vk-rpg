@@ -10,7 +10,8 @@ export class CreateSceneUseCase {
       table_id: data.table_id,
       title: data.title,
       chapter: data.chapter ?? 1,
-      moment: data.moment ?? 0
+      moment: data.moment ?? 0,
+      image_url: data.imageUrl ?? data.image_url ?? null
     }
     await this.repo.createScene(scene)
     return scene

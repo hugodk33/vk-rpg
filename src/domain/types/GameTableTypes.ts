@@ -121,6 +121,9 @@ export type GameTableSceneNarration = {
 export type GameTableScenes = {
   id: string
   title: string
+  chapter?: number
+  moment?: number
+  imageUrl?: string | null
   narrations: GameTableSceneNarration[]
   characters?: any[]
 }

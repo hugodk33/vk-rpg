@@ -8,6 +8,7 @@ import {
   shapeLocationConnections,
   type ViewerScope,
 } from '../services/CharacterVisibility'
+import { pageSqlClause, pageSqlParams, pageMeta, type PageWindow } from '../pagination'
 
 /** Rules an observer holds (any target) — the "knowledge" set that gates
     catalogs and locations. Catalog/location rows are observer-global, but
@@ -337,6 +338,27 @@ function itemIconMap(itemIds: string[]): Map<string, string> {
     `SELECT item_id, url FROM item_images WHERE role = 'icon' AND item_id IN (${ph}) ORDER BY sort ASC, rowid ASC`
   ).all(...itemIds) as any[]
   for (const r of rows) if (!map.has(r.item_id)) map.set(r.item_id, r.url)
+  return map
+}
+
+/** Reescreve a imagem de um único slot (`role`) de um local (upsert de 1 linha). */
+function setLocationImage(locationId: string, url: string | null, role = 'banner'): void {
+  db.prepare('DELETE FROM location_images WHERE location_id = ? AND role = ?').run(locationId, role)
+  if (url) {
+    db.prepare('INSERT INTO location_images (id, location_id, url, role, sort) VALUES (?, ?, ?, ?, 0)')
+      .run(crypto.randomUUID(), locationId, url, role)
+  }
+}
+
+/** Primeira imagem de um slot (`role`) por id de local. */
+function locationRoleMap(role: string, locationIds: string[]): Map<string, string> {
+  const map = new Map<string, string>()
+  if (!locationIds.length) return map
+  const ph = locationIds.map(() => '?').join(',')
+  const rows = db.prepare(
+    `SELECT location_id, url FROM location_images WHERE role = ? AND location_id IN (${ph}) ORDER BY sort ASC, rowid ASC`
+  ).all(role, ...locationIds) as any[]
+  for (const r of rows) if (!map.has(r.location_id)) map.set(r.location_id, r.url)
   return map
 }
 
@@ -778,7 +800,8 @@ async findGameTableSkill(id: any): Promise<void> {
       }
     }
 
-  async findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any): Promise<any> {
+  async findAllGameTableSkills(id: any, search?: string, type?: string, difficulty?: string, viewer?: any, page?: PageWindow): Promise<any> {
+    const pw: PageWindow = page ?? { offset: 0 }
 
     const table = db.prepare(`
       SELECT
@@ -802,11 +825,17 @@ async findGameTableSkill(id: any): Promise<void> {
     if (difficulty) { skillClauses.push("predefinition_difficulty = ?"); skillParams.push(difficulty) }
 
     // Todas as skills
+    const skillWhere = skillClauses.join(" AND ")
+    const skillsTotal = (db.prepare(`
+      SELECT COUNT(*) AS n
+      FROM game_table_skills
+      WHERE ${skillWhere}
+    `).get(...skillParams) as any).n as number
     const skills = db.prepare(`
       SELECT *
       FROM game_table_skills
-      WHERE ${skillClauses.join(" AND ")}
-    `).all(...skillParams) as any[]
+      WHERE ${skillWhere}${pageSqlClause(pw)}
+    `).all(...skillParams, ...pageSqlParams(pw)) as any[]
 
     // =========================
     // PREDEFINITIONS
@@ -898,7 +927,8 @@ async findGameTableSkill(id: any): Promise<void> {
       table,
       skills: viewer
         ? shapeCatalogForViewer(formattedSkills, viewerRules(viewer), 'skill')
-        : formattedSkills
+        : formattedSkills,
+      ...pageMeta(skillsTotal, pw)
     }
   }
 
@@ -992,7 +1022,8 @@ async findGameTableSkill(id: any): Promise<void> {
     return { ...gameTableAdvantage, modifiers }
   }
 
-  async findAllGameAdvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any> {
+  async findAllGameAdvantages(id: any, search?: string, category?: string, viewer?: any, page?: PageWindow): Promise<any> {
+    const pw: PageWindow = page ?? { offset: 0 }
     const table = db.prepare(`
       SELECT
         id,
@@ -1012,10 +1043,15 @@ async findGameTableSkill(id: any): Promise<void> {
     }
     if (category) { advClauses.push("category = ?"); advParams.push(category) }
 
+    const advWhere = advClauses.join(" AND ")
+    const advantagesTotal = (db.prepare(`
+      SELECT COUNT(*) AS n FROM game_table_advantages
+      WHERE ${advWhere}
+    `).get(...advParams) as any).n as number
     const gameTablesAdvantages = db.prepare(`
       SELECT * FROM game_table_advantages
-      WHERE ${advClauses.join(" AND ")}
-    `).all(...advParams) as any[]
+      WHERE ${advWhere}${pageSqlClause(pw)}
+    `).all(...advParams, ...pageSqlParams(pw)) as any[]
 
     const advantagesWithModifiers = this.attachAdvantageModifiers(gameTablesAdvantages)
 
@@ -1023,7 +1059,8 @@ async findGameTableSkill(id: any): Promise<void> {
       table: table,
       advantages: viewer
         ? shapeCatalogForViewer(advantagesWithModifiers, viewerRules(viewer), 'advantage')
-        : advantagesWithModifiers
+        : advantagesWithModifiers,
+      ...pageMeta(advantagesTotal, pw)
     })
   }
 
@@ -1194,7 +1231,8 @@ async findGameTableSkill(id: any): Promise<void> {
     return { success: true, id: rowId }
   }
 
-  async findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any): Promise<any> {
+  async findAllGameDisadvantages(id: any, search?: string, category?: string, viewer?: any, page?: PageWindow): Promise<any> {
+    const pw: PageWindow = page ?? { offset: 0 }
     const table = db.prepare(`
       SELECT
         id,
@@ -1214,15 +1252,21 @@ async findGameTableSkill(id: any): Promise<void> {
     }
     if (category) { disClauses.push("category = ?"); disParams.push(category) }
 
+    const disWhere = disClauses.join(" AND ")
+    const disadvantagesTotal = (db.prepare(`
+      SELECT COUNT(*) AS n FROM game_table_disadvantages
+      WHERE ${disWhere}
+    `).get(...disParams) as any).n as number
     const gameTablesDisadvantages = db.prepare(`
       SELECT * FROM game_table_disadvantages
-      WHERE ${disClauses.join(" AND ")}
-    `).all(...disParams) as any[]
+      WHERE ${disWhere}${pageSqlClause(pw)}
+    `).all(...disParams, ...pageSqlParams(pw)) as any[]
     return ({
       table: table,
       disadvantages: viewer
         ? shapeCatalogForViewer(gameTablesDisadvantages, viewerRules(viewer), 'disadvantage')
-        : gameTablesDisadvantages
+        : gameTablesDisadvantages,
+      ...pageMeta(disadvantagesTotal, pw)
     })
   }
 
@@ -1328,6 +1372,7 @@ async findGameTableSkill(id: any): Promise<void> {
 
     const dto = locationToDTO(row)
     const images = galleryMap('location_images', 'location_id', [row.id]).get(row.id) ?? []
+    const bannerUrl = locationRoleMap('banner', [row.id]).get(row.id) ?? null
 
     // Ancestralidade (cadeia raiz -> pai, sem o próprio nó). Sob viewer, a
     // cadeia é mascarada pelas mesmas regras do observador (sem filtrar — o
@@ -1357,6 +1402,7 @@ async findGameTableSkill(id: any): Promise<void> {
       return {
         ...self,
         images,
+        bannerUrl,
         table_id: row.table_id,
         table_title: row.table_title,
         ancestors: shape(ancestors),
@@ -1368,6 +1414,7 @@ async findGameTableSkill(id: any): Promise<void> {
     return {
       ...dto,
       images,
+      bannerUrl,
       table_id: row.table_id,
       table_title: row.table_title,
       ancestors,
@@ -1831,7 +1878,8 @@ async findGameTableSkill(id: any): Promise<void> {
     return { ...gameTableItem, weapon: weapon || null, armor: armor || null }
   }
 
-  async findAllGameItems(id: any, search?: string, category?: string, kind?: string, viewer?: any, location?: any): Promise<any> {
+  async findAllGameItems(id: any, search?: string, category?: string, kind?: string, viewer?: any, location?: any, page?: PageWindow): Promise<any> {
+    const pw: PageWindow = page ?? { offset: 0 }
     const table = db.prepare(`
       SELECT
         id,
@@ -1866,11 +1914,17 @@ async findGameTableSkill(id: any): Promise<void> {
       itemParams.push(location)
     }
 
+    const itemWhere = itemClauses.join(" AND ")
+    const itemsTotal = (db.prepare(`
+      SELECT COUNT(*) AS n
+      FROM game_table_items
+      WHERE ${itemWhere}
+    `).get(...itemParams) as any).n as number
     const gameTablesItems = db.prepare(`
       SELECT *
       FROM game_table_items
-      WHERE ${itemClauses.join(" AND ")}
-    `).all(...itemParams) as any[]
+      WHERE ${itemWhere}${pageSqlClause(pw)}
+    `).all(...itemParams, ...pageSqlParams(pw)) as any[]
 
     // Associa cada item ao seu weapon (com ataques) e/ou armor
     for (const item of gameTablesItems) {
@@ -1892,7 +1946,8 @@ async findGameTableSkill(id: any): Promise<void> {
 
     return ({
       table: table,
-      items: shapedItems
+      items: shapedItems,
+      ...pageMeta(itemsTotal, pw)
     })
   }
 
@@ -2061,6 +2116,9 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     if (data.images !== undefined || data.gallery !== undefined) {
       setGallery('location_images', 'location_id', id, galleryUrls(data))
     }
+    if (data.bannerUrl !== undefined || data.banner_url !== undefined) {
+      setLocationImage(id, data.bannerUrl ?? data.banner_url ?? null)
+    }
 
     return this.findGameLocation(id)
   }
@@ -2123,6 +2181,9 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
 
     if (data.images !== undefined || data.gallery !== undefined) {
       setGallery('location_images', 'location_id', data.id, galleryUrls(data))
+    }
+    if (data.bannerUrl !== undefined || data.banner_url !== undefined) {
+      setLocationImage(data.id, data.bannerUrl ?? data.banner_url ?? null)
     }
 
     if (parentChanged) this.recomputeLocationSubtree(data.id)
@@ -2775,7 +2836,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       peculiarities
     }
   }
-  async findAllGameNPCS(tableId: any, location?: any): Promise<any> {
+  async findAllGameNPCS(tableId: any, location?: any, page?: PageWindow): Promise<any> {
+    const pw: PageWindow = page ?? { offset: 0 }
     const table = db.prepare(`
       SELECT
         id,
@@ -2785,6 +2847,14 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       FROM game_tables
       WHERE id = ?
     `).get(tableId as string)
+
+    const npcWhere = `c.table_id = ? AND (? IS NULL OR npc.location_id = ?)`
+    const npcsTotal = (db.prepare(`
+      SELECT COUNT(*) AS n
+      FROM game_table_npcs npc
+      LEFT JOIN game_table_characters c ON c.id = npc.character_id
+      WHERE ${npcWhere}
+    `).get(tableId, location ?? null, location ?? null) as any).n as number
 
     const gameTablesNPCS = db.prepare(`
       SELECT 
@@ -2802,8 +2872,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       FROM game_table_npcs npc
       LEFT JOIN game_table_characters c ON c.id = npc.character_id
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
-      WHERE c.table_id = ? AND (? IS NULL OR npc.location_id = ?)
-    `).all(tableId, location ?? null, location ?? null) as any[]
+      WHERE ${npcWhere}${pageSqlClause(pw)}
+    `).all(tableId, location ?? null, location ?? null, ...pageSqlParams(pw)) as any[]
 
     const npcImages = characterImageMap(gameTablesNPCS.map((n) => n.character_id))
     for (const npc of gameTablesNPCS) {
@@ -2813,7 +2883,8 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
 
     return ({
         'table': table,
-        'npcs': gameTablesNPCS
+        'npcs': gameTablesNPCS,
+        ...pageMeta(npcsTotal, pw)
     })
   }
   
@@ -3457,7 +3528,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     return result
   }
 
-  async findGameCharacterHistory(id: any, moment?: number): Promise<any> {
+  async findGameCharacterHistory(id: any, moment?: number, limit?: number): Promise<any> {
     const characterData = db.prepare(`
       SELECT
         c.id as character_id,
@@ -3608,6 +3679,12 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
     }
     for (const ev of enriched) delete ev._rowid
 
+    /* Teto opcional: devolve apenas os N eventos mais recentes, mas o estado
+       acumulado (state_before/state_after) é calculado sobre TODOS os eventos,
+       então continua correto. Sem `limit`, mantém o comportamento antigo. */
+    const total = enriched.length
+    const visible = limit != null && limit > 0 ? enriched.slice(-limit) : enriched
+
     return {
       character: {
         id: characterData.character_id,
@@ -3623,11 +3700,14 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         system: characterData.table_system
       },
       baseline: baseStats,
-      events: enriched
+      total,
+      limited: visible.length !== total,
+      events: visible
     }
   }
 
-  async findAllGameCharacters(tableId: any, viewer?: any): Promise<any> {
+  async findAllGameCharacters(tableId: any, viewer?: any, page?: PageWindow): Promise<any> {
+    const pw: PageWindow = page ?? { offset: 0 }
     const table = db.prepare(`
       SELECT
         id,
@@ -3637,6 +3717,12 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       FROM game_tables
       WHERE id = ?
     `).get(tableId as string)
+
+    const charactersTotal = (db.prepare(`
+      SELECT COUNT(*) AS n
+      FROM game_table_characters c
+      WHERE c.table_id = ?
+    `).get(tableId) as any).n as number
 
     const characters = db.prepare(`
       SELECT
@@ -3658,13 +3744,31 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
       LEFT JOIN game_table_character_sheets cs ON cs.character_id = c.id
       LEFT JOIN users u ON u.id = c.user_id
       LEFT JOIN game_table_npcs npc ON npc.character_id = c.id
-      WHERE c.table_id = ?
-    `).all(tableId) as any[]
+      WHERE c.table_id = ?${pageSqlClause(pw)}
+    `).all(tableId, ...pageSqlParams(pw)) as any[]
 
     // Povoa cada linha com os stats efetivos (base + modificadores ativos),
     // igual à semântica do findGameCharacter: sheet.hp é o HP atual, base_hp
     // é o máximo original, e active_effects lista os efeitos em vigor.
     const characterImages = characterImageMap(characters.map((c: any) => c.character_id))
+
+    /* Uma única query para todos os modificadores dos personagens desta página
+       (antes era uma query por personagem — N+1). Agrupamos em memória por
+       character_id, preservando a ordem por rowid. */
+    const modifiersByCharacter = new Map<string, any[]>()
+    const pageCharacterIds = characters.map((c: any) => c.character_id).filter(Boolean)
+    const allModifiers = pageCharacterIds.length
+      ? db.prepare(`
+          SELECT m.* FROM modifiers m
+          WHERE m.character_id IN (${pageCharacterIds.map(() => '?').join(', ')})
+          ORDER BY m.rowid ASC
+        `).all(...pageCharacterIds) as any[]
+      : []
+    for (const m of allModifiers) {
+      const list = modifiersByCharacter.get(m.character_id)
+      if (list) list.push(m)
+      else modifiersByCharacter.set(m.character_id, [m])
+    }
 
     const rows = characters.map(char => {
       const baseStats = {
@@ -3674,11 +3778,7 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
         iq: char.iq ?? 10,
         ht: char.ht ?? 10,
       }
-      const modifiers = db.prepare(`
-        SELECT * FROM modifiers
-        WHERE character_id = ?
-        ORDER BY rowid ASC
-      `).all(char.character_id) as any[]
+      const modifiers = modifiersByCharacter.get(char.character_id) ?? []
 
       const activeEffects = modifiers
         .filter((m) =>
@@ -3778,13 +3878,14 @@ async findAllGameLocations(id: any, scope?: ViewerScope | string | null): Promis
           const known = rules.some((r: any) => r.status === 'known' || r.status === 'specialist')
           return { ...shapedChar, known }
         })
-        return { table, characters: shaped }
+        return { table, characters: shaped, ...pageMeta(charactersTotal, pw) }
       }
     }
 
     return {
       table,
-      characters: rows.map((ch: any) => ({ ...ch, known: true }))
+      characters: rows.map((ch: any) => ({ ...ch, known: true })),
+      ...pageMeta(charactersTotal, pw)
     }
   }
 

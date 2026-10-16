@@ -7,6 +7,7 @@ import { EditGameTableUseCase } from '../../application/use-cases/tables-use-cas
 import { CreateSceneUseCase } from '../../application/use-cases/tables-use-cases/CreateSceneUseCase'
 import { CreateNarrationUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationUseCase'
 import { CreateNarrationActionUseCase } from '../../application/use-cases/tables-use-cases/CreateNarrationActionUseCase'
+import { SetSceneImageUseCase } from '../../application/use-cases/tables-use-cases/SetSceneImageUseCase'
 import { publishTable, resolveTableId } from '../../infra/realtime/TableEvents'
 
 export class GameTableController {
@@ -18,7 +19,8 @@ export class GameTableController {
     private editGameTableUseCase: EditGameTableUseCase,
     private createSceneUseCase: CreateSceneUseCase,
     private createNarrationUseCase: CreateNarrationUseCase,
-    private createNarrationActionUseCase: CreateNarrationActionUseCase
+    private createNarrationActionUseCase: CreateNarrationActionUseCase,
+    private setSceneImageUseCase: SetSceneImageUseCase
   ) {}
 
   async create(req: Request, res: Response) {
@@ -39,10 +41,10 @@ export class GameTableController {
   async findByAllScenes(req: Request, res: Response) {
     const gameTablesScenes = await this.findAllGameTableScenesUseCase.execute(req.params.id as string) 
     return res.json(gameTablesScenes)
-  } 
+  }
 
   async editGameTable(req: Request, res: Response) {
-    const { id } = req.params
+    const { id } = req.params as any
     const gameTable = await this.editGameTableUseCase.execute({ ...req.body, id })
     return res.json(gameTable)
   }
@@ -53,6 +55,17 @@ export class GameTableController {
       const tableId = resolveTableId(req.body)
       if (tableId) publishTable(tableId, 'scene')
       return res.json({ success: true, scene })
+    } catch (e: any) {
+      return res.status(500).json({ success: false, error: e.message })
+    }
+  }
+
+  async setSceneImage(req: Request, res: Response) {
+    try {
+      const imageUrl = (req.body?.imageUrl ?? req.body?.image_url) ?? null
+      const tableId = await this.setSceneImageUseCase.execute(req.params.id as string, imageUrl)
+      if (tableId) publishTable(tableId, 'scene')
+      return res.json({ success: true })
     } catch (e: any) {
       return res.status(500).json({ success: false, error: e.message })
     }
